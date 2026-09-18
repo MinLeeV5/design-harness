@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Design Harness · 品牌预览</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font:16px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;background:#edeef2;color:#202430}main{max-width:1040px;margin:auto;padding:32px 24px}h1{font-size:28px;margin:0 0 8px}header p{margin:0 0 24px;color:#626779}.themes{display:grid;grid-template-columns:1fr 1fr;gap:20px}.theme{padding:28px;border:1px solid #0001;border-radius:16px;background:#f6f7fa}.dark{background:#171d2e;color:#f6f7fa}.label{font-size:12px;letter-spacing:1px;opacity:.65}.hero{display:flex;justify-content:center;padding:20px 0 24px}.hero img{width:240px;height:240px}.card{display:flex;align-items:center;gap:12px;border:1px solid #80808040;padding:14px;border-radius:10px}.card img{width:40px;height:40px}.card strong{font-size:15px}.card p{font-size:12px;opacity:.65;margin:2px 0 0}.sizes{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-top:30px}.size{text-align:center;font-size:11px;opacity:.95}.size img{display:block;margin:0 auto 6px}.colors{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0}.color{font:13px ui-monospace,monospace;display:flex;align-items:center;gap:7px}.color i{width:18px;height:18px;border-radius:50%;border:1px solid #0001}.foot{font-size:12px;color:#737889}a{color:#7050b4}@media(max-width:740px){.themes{grid-template-columns:1fr}.theme{padding:20px}.sizes{flex-wrap:wrap}.hero img{width:200px;height:200px}}
+</style>
+<main>
+<header><h1>Design Harness · 彩色组件核心</h1><p>四个模块围绕 H 留白组成菱形。浅色与深色共用同一份透明图形。</p></header>
+<section class="themes" aria-label="浅色与深色预览">
+<article class="theme"><div class="label">浅色背景</div><div class="hero"><img src="../assets/icon.png" alt="Design Harness 彩色图标"></div><div class="card"><img src="../assets/icon.png" alt=""><div><strong>Design Harness · 设计工作流</strong><p>整理项目上下文，设计可比较的 UI/UX 方案</p></div></div><div class="sizes" data-sizes></div></article>
+<article class="theme dark"><div class="label">深色背景</div><div class="hero"><img src="../assets/icon.png" alt="深色背景上的 Design Harness 彩色图标"></div><div class="card"><img src="../assets/icon.png" alt=""><div><strong>Design Harness · 设计工作流</strong><p>整理项目上下文，设计可比较的 UI/UX 方案</p></div></div><div class="sizes" data-sizes></div></article>
+</section>
+<div class="colors"><span class="color"><i style="background:#ff7262"></i>#FF7262</span><span class="color"><i style="background:#a259ff"></i>#A259FF · 主题色</span><span class="color"><i style="background:#1abcfe"></i>#1ABCFE</span><span class="color"><i style="background:#0acf83"></i>#0ACF83</span></div>
+<p class="foot">本页为资源显示检查，插件在 Codex 中的排版与主题处理由宿主决定。<a href="../assets/README.md">品牌说明</a></p>
+</main>
+<script>
+for(const group of document.querySelectorAll('[data-sizes]')){
+  for(const size of [16,24,32,64,128]){
+    const item=document.createElement('div');item.className='size';
+    const img=document.createElement('img');img.src='../assets/icon.png';img.width=size;img.height=size;img.alt=size+' 像素图标';
+    item.append(img,document.createTextNode(size+'px'));group.append(item);
+  }
+}
+</script>
+</html>

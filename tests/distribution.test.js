@@ -55,6 +55,36 @@ describe("Plugin distribution", () => {
     assert.deepEqual(fs.readdirSync(path.join(plugin, "skills")).sort(), [...SKILL_NAMES].sort());
     assert.equal(readJson(path.join(plugin, "package.json")).scripts.validate, "node scripts/validate.js");
     assert.ok(fs.existsSync(path.join(plugin, "package-lock.json")));
+    const {interface: branding} = readJson(path.join(plugin, ".codex-plugin/plugin.json"));
+    for (const field of ["composerIcon", "logo", "logoDark"]) {
+      assert.deepEqual(fs.readFileSync(path.join(plugin, branding[field])), fs.readFileSync(path.join(root, branding[field])));
+    }
+  });
+
+  test("Missing, escaping and non-PNG branding assets prevent packaging", () => {
+    const filename = path.join(root, ".codex-plugin/plugin.json");
+    const original = fs.readFileSync(filename);
+    const manifest = readJson(filename);
+    for (const value of ["./assets/missing.png", "./assets/../LICENSE", "https://example.com/icon.png"]) {
+      manifest.interface.composerIcon = value;
+      fs.writeFileSync(filename, JSON.stringify(manifest));
+      assert.throws(() => packagePlugin(path.join(base, "out"), root), /interface asset/);
+    }
+    fs.writeFileSync(filename, original);
+    const icon = path.join(root, readJson(filename).interface.composerIcon);
+    for (const bytes of [Buffer.alloc(0), Buffer.from("not a PNG")]) {
+      fs.writeFileSync(icon, bytes);
+      assert.throws(() => packagePlugin(path.join(base, "out"), root), /Invalid PNG interface asset/);
+    }
+  });
+
+  test("Branding cannot rely on a symlink outside the plugin", () => {
+    const {interface: branding} = readJson(path.join(root, ".codex-plugin/plugin.json"));
+    const icon = path.join(root, branding.logo);
+    const external = path.join(base, "external.png");
+    fs.renameSync(icon, external);
+    fs.symlinkSync(external, icon);
+    assert.throws(() => packagePlugin(path.join(base, "out"), root), /symlinked interface asset/);
   });
 
   test("Builds are deterministic and refuse to overwrite either output", () => {

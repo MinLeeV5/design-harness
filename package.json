@@ -1,6 +1,6 @@
 {
   "name": "design-harness",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Design Harness 插件的开发、校验、测试与打包工具",
   "type": "module",

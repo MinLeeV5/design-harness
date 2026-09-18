@@ -1,6 +1,10 @@
 # Design Harness
 
+<img src="assets/icon.png" width="80" height="80" alt="Design Harness 彩色组件图标">
+
 一个以项目 Figma 为知识载体的 Codex 设计插件。提供两个入口：**Init 建立项目上下文，Design 在项目约束下完成新需求设计**。
+
+图标以四个彩色组件围绕 H 留白组成。浅色与深色使用同一份透明图形，插件主题色为紫色；配色和资源用法见[品牌资源](assets/README.md)。
 
 ```mermaid
 flowchart LR
@@ -83,7 +87,7 @@ skills/
     LICENSE
 ```
 
-根目录保留插件配置、开发校验/打包脚本、测试和维护文档。两个 Skill 不依赖根目录的运行文档，也不互相跨目录读取。随两者携带的读取助手、资源说明蓝图与原创许可证通过一致性校验保持同步。
+根目录保留插件配置、品牌资源、开发校验/打包脚本、测试和维护文档。根目录 `assets/` 仅供插件展示使用；两个 Skill 不依赖这些品牌资源或根目录的运行文档，也不互相跨目录读取。随两者携带的读取助手、资源说明蓝图与原创许可证通过一致性校验保持同步。
 
 ## 工作方式
 
@@ -217,7 +221,7 @@ flowchart LR
 
 ## 安装与团队分发
 
-当前发布版本为 **0.1.0**。团队成员可直接从 GitHub 安装：
+当前发布版本为 **0.1.1**。团队成员可直接从 GitHub 安装：
 
 ```sh
 codex plugin marketplace add MinLeeV5/design-harness --ref main

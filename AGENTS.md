@@ -22,5 +22,6 @@
 - 发布版本同时更新插件清单、`package.json` 和锁文件，使用不带本地缓存后缀的 SemVer；发布记录维护在 GitHub Release，不恢复已删除的旧版迁移资料。`+codex.*` 后缀只用于本地开发调试。
 - 仓库的 `.agents/plugins/marketplace.json` 使用稳定名称 `design-harness`，以 `./` 指向根目录插件；GitHub 安装跟随明确的 Git 引用。ZIP 的外层 marketplace 由同一份入口派生，并把路径调整到 `./plugins/design-harness`，避免两种分发方式的元数据漂移。
 - 插件清单的用户文案使用中文，保存为可直接阅读的 UTF-8 文本；刷新缓存版本后也保留中文原文。
+- 插件品牌图形和生成提示词维护在根目录 `assets/`，随 Git 和 ZIP 一起分发；它们不属于 Skill 运行依赖。图标保持四个色块与透明 H 留白，浅色和深色共用同一份图形。修改品牌资源时核对清单引用、浅深背景与小尺寸渲染，并检查解压后的资源字节一致。
 - 安装依赖使用 `npm ci`；`npm run check` 执行结构校验与全部测试，也可分别运行 `npm run validate` 和 `npm test`。使用 `npm run package -- --out <新目录>` 打包，保持可重复构建、校验和与拒绝覆盖；随包携带 `package.json` 和锁文件，排除依赖目录与临时数据。涉及分发方式变更时，在全新路径验证打包与解压，以及仅复制单个 Skill 后的引用完整性。分别报告模拟 API 测试和真实 Figma 验证，不能混为一谈。
 - 只有获得该任务的明确授权后，才能发布到远程插件市场、推送 Git、修改其他项目或修改 Figma。

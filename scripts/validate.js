@@ -8,6 +8,36 @@ import {isWithin, isFile, walk} from "./files.js";
 export const ROOT = path.resolve(import.meta.dirname, "..");
 export const SKILL_NAMES = ["design-harness-init", "design-harness-design"];
 const SHARED_SKILL_FILES = ["scripts/figma-reader.js", "assets/resource-card.txt", "LICENSE"];
+const PNG_SIGNATURE = Buffer.from("89504e470d0a1a0a", "hex");
+
+function validateBranding(root, manifest) {
+  const errors = [];
+  for (const [field, value] of [["homepage", manifest.homepage], ["websiteURL", manifest.interface?.websiteURL]]) {
+    try {
+      if (new URL(value).protocol !== "https:") throw new Error("Expected HTTPS");
+    } catch { errors.push(`Invalid branding URL: ${field}`); }
+  }
+  if (!/^#[\da-f]{6}$/i.test(manifest.interface?.brandColor || "")) errors.push("Invalid brandColor");
+  for (const field of ["composerIcon", "logo", "logoDark"]) {
+    const relative = manifest.interface?.[field];
+    if (typeof relative !== "string" || !relative.startsWith("./assets/") || !relative.endsWith(".png") ||
+      relative.includes("\\") || relative.split("/").includes("..")) {
+      errors.push(`Invalid interface asset path: ${field}`);
+      continue;
+    }
+    const filename = path.resolve(root, relative);
+    if (!isFile(filename) || fs.realpathSync(filename) !== filename) {
+      errors.push(`Missing or symlinked interface asset: ${field}`);
+      continue;
+    }
+    const data = fs.readFileSync(filename);
+    if (data.length < 33 || !data.subarray(0, 8).equals(PNG_SIGNATURE) ||
+      data.toString("ascii", 12, 16) !== "IHDR" || !data.readUInt32BE(16) || !data.readUInt32BE(20)) {
+      errors.push(`Invalid PNG interface asset: ${field}`);
+    }
+  }
+  return errors;
+}
 
 function* localLinks(filename) {
   const content = fs.readFileSync(filename, "utf8");
@@ -109,6 +139,7 @@ export function validate(directory = ROOT) {
   check(Array.isArray(prompts) && prompts.length >= 1 && prompts.length <= 3 &&
     prompts.every(prompt => typeof prompt === "string" && [...prompt].length <= 128), "Invalid defaultPrompt");
   check(!["hooks", "mcpServers", "apps"].some(key => key in manifest), "This plugin distributes skills only");
+  errors.push(...validateBranding(root, manifest));
 
   const marketplace = JSON.parse(fs.readFileSync(path.join(root, ".agents/plugins/marketplace.json"), "utf8"));
   check(marketplace.name === manifest.name, "Marketplace must use the plugin's stable name");
