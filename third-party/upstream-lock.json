@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-09-17T08:25:32.269547+00:00",
+  "sources": [
+    {
+      "name": "impeccable",
+      "repository": "https://github.com/pbakaus/impeccable",
+      "commit": "f2c7051853848826aac2f4646581d62a732155ad",
+      "license": "Apache-2.0",
+      "use": "Adapted design guidance",
+      "adaptedInto": [
+        "references/impeccable.md"
+      ],
+      "sourceFiles": [
+        {
+          "path": "skill/SKILL.src.md",
+          "sha256": "0333d85ba408d29c7748838762b6d1e0a211dec22cd7e78ed6db987d983e91d4"
+        },
+        {
+          "path": "skill/reference/operate.md",
+          "sha256": "e5bf4980c547e60b091f82f38d0eec4cc3ab85610b4b15ec8f1d86584f9eb404"
+        },
+        {
+          "path": "skill/reference/critique.md",
+          "sha256": "8d2cdf4f583a0caf7685620069069354b4fb81582fb63c349783298454140a0e"
+        },
+        {
+          "path": "skill/reference/harden.md",
+          "sha256": "6674a6fc1eb681f2ad266dc0a3a71cec29dc4dcd3a1ff91195d2302582fa7c58"
+        },
+        {
+          "path": "skill/reference/clarify.md",
+          "sha256": "4738e125835bd6c166aec2622977c9bc59bada52aaeb186585ed38b3900860b5"
+        },
+        {
+          "path": "skill/reference/polish.md",
+          "sha256": "c504e12ea076fd1a57b8c9ece79fbb532c54226b2b6298c5c62fa889ae1dd34d"
+        },
+        {
+          "path": "skill/reference/audit.native.md",
+          "sha256": "c2f18f1ed206de24fe97ec513655e5bfc867691c1f766ab62f21b06b2fcdd4bc"
+        }
+      ],
+      "bundledFiles": [
+        {
+          "path": "third-party/impeccable/LICENSE",
+          "upstreamPath": "LICENSE",
+          "sha256": "02bb8c3b4e70190e3986c0404ad2fd8d639b4f534252d82379cc1b502b6d1812"
+        },
+        {
+          "path": "third-party/impeccable/NOTICE.md",
+          "upstreamPath": "NOTICE.md",
+          "sha256": "c60a093c2845fd9fb82f9c6f742ece31f379f8190b535309d32d66c45ccffdcb"
+        }
+      ]
+    },
+    {
+      "name": "harness-designing-plugin",
+      "repository": "https://github.com/BilLogic/harness-designing-plugin",
+      "commit": "c998fe3ed4d8627903a900d4fc2c622657a3be3f",
+      "license": "MIT",
+      "use": "Architectural background only; no upstream workflow, skill or executable code bundled",
+      "adaptedInto": [],
+      "sourceFiles": [
+        {
+          "path": "skills/hd-review/references/rubric-application.md",
+          "sha256": "e4a10a6bf73137cbc7fe466c348ff97863176ff5199c2b2ce018184202d0486d"
+        }
+      ],
+      "bundledFiles": [
+        {
+          "path": "third-party/harness-designing-plugin/LICENSE",
+          "upstreamPath": "LICENSE",
+          "sha256": "47b28b5c658f7f4d5673e39d6e7e76988d281641fd89cb4f7223ef2d28fe6b32"
+        }
+      ]
+    }
+  ]
+}

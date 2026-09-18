@@ -1,0 +1,36 @@
+{
+  "name": "design-harness",
+  "version": "0.1.0+codex.20260917105822",
+  "description": "Figma-first design harness with Init and Design: project knowledge, progressive context, guided interviews, comparable UI/UX options, and confirmed knowledge updates.",
+  "author": {
+    "name": "Min Lee"
+  },
+  "license": "MIT; adapted Impeccable guidance under Apache-2.0",
+  "keywords": [
+    "design",
+    "figma",
+    "ui",
+    "ux",
+    "workflow",
+    "evaluation"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Design Harness",
+    "shortDescription": "\u5728 Figma \u6c89\u6dc0\u9879\u76ee\u4e0a\u4e0b\u6587\uff0c\u9010\u9898\u8bbf\u8c08\u540e\u751f\u6210\u591a\u65b9\u6848\u5e76\u786e\u8ba4\u77e5\u8bc6\u56de\u5199",
+    "longDescription": "Init \u4ece\u5df2\u6709 Figma \u4e0e\u4ee3\u7801\u9010\u6a21\u5757\u786e\u8ba4\u5e76\u6574\u7406\u9879\u76ee\u4e0a\u4e0b\u6587\uff0c\u5148\u76d8\u70b9\u73b0\u72b6\u518d\u8865\u9f50\u539f\u751f\u8bbe\u8ba1\u8d44\u4ea7\u3002Design \u6309\u9700\u8bfb\u53d6\u9879\u76ee Harness\uff0c\u901a\u8fc7\u9010\u9898\u8bbf\u8c08\u786e\u8ba4\u9700\u6c42\uff0c\u5728\u72ec\u7acb Page \u751f\u6210\u53ef\u6bd4\u8f83\u65b9\u6848\uff0c\u5c06\u8bc4\u4ef7\u5d4c\u5165\u6d41\u7a0b\uff0c\u5e76\u5728\u786e\u8ba4\u5177\u4f53\u589e\u91cf\u540e\u56de\u5199\u77e5\u8bc6\u3002\u9879\u76ee\u89c4\u8303\u4f18\u5148\uff0c\u652f\u6301\u5df2\u786e\u8ba4\u8bbe\u8ba1\u4e0e\u5f85\u5b9e\u73b0\u72b6\u6001\u3002",
+    "developerName": "Min Lee",
+    "category": "Productivity",
+    "capabilities": [
+      "Figma project harness initialization",
+      "Progressive project context loading",
+      "Guided requirement interviews",
+      "Comparable UI/UX alternatives",
+      "Confirmed project knowledge updates"
+    ],
+    "defaultPrompt": [
+      "\u7528 $design-harness-init \u6839\u636e\u8fd9\u4e2a Figma \u9879\u76ee\u548c\u4ee3\u7801\u4ed3\u5e93\u5efa\u7acb\u9879\u76ee Harness\u3002",
+      "\u7528 $design-harness-design \u8bfb\u53d6\u9879\u76ee Harness\uff0c\u9010\u9898\u8ba8\u8bba\u8fd9\u4e2a\u9700\u6c42\uff0c\u518d\u751f\u6210\u591a\u4e2a\u65b9\u6848\u3002"
+    ]
+  }
+}
