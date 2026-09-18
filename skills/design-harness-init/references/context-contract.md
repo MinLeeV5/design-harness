@@ -12,7 +12,7 @@
 | 原生资产 | Component/ComponentSet/Instance/Frame 等 | 真正可复用的变量绑定、组件、模板与场景示例 |
 | 需求 | 独立需求 Page | 已确认摘要、方案、状态与交互说明、选择记录；Harness 只保留索引 |
 
-使用 [入口蓝图](../templates/harness-entry.txt)、[模块蓝图](../templates/module-overview.txt) 和 [资源蓝图](../templates/resource-card.txt) 填写真实内容，再转换为项目风格的 Figma 原生文本和分组。蓝图本身不是项目工作文件，不要把未替换的字段直接写入正式入口。
+使用 [入口蓝图](../assets/harness-entry.txt)、[模块蓝图](../assets/module-overview.txt) 和 [资源蓝图](../assets/resource-card.txt) 填写真实内容，再转换为项目风格的 Figma 原生文本和分组。蓝图本身不是项目工作文件，不要把未替换的字段直接写入正式入口。
 
 入口 Frame 放在 Page 顶层，机器名固定，内部显示标题可以沿用项目语言。模块与资源的容器名称、排版、颜色自由沿用原稿；为概览文本保留明确的语义名和真实节点链接。旧项目不强制改名才能使用。
 

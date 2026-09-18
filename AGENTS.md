@@ -1,19 +1,26 @@
-# Design Harness contributor instructions
+# Design Harness 仓库协作规范
 
-Use Chinese for collaboration. This repository ships a generic Codex plugin, not a product-specific design system.
+使用中文沟通。本仓库用于分发通用 Codex 插件，具体业务项目的设计系统由项目自身维护。
 
-- Ship exactly two public skills: design-harness-init and design-harness-design. Keep entrypoints concise and discoverable.
-- Project knowledge lives in the consuming project's Figma Harness Page; each requirement gets its own Page. Never bake real project keys, paths, code mappings or task records into this distribution.
-- User scope and previously granted authorization take precedence. Avoid redundant approvals; do not derive Figma file-wide authority from permission to edit one Page.
-- Project design conventions outrank generic guidance. Prefer verified current code when reconstructing existing behavior; present meaningful conflicts for user choice. Preserve approved future designs separately from current code.
-- Init first organizes existing context, then fills code-backed gaps. Each module's concrete content is confirmed before generation; reuse existing authorization for the same scope.
-- Design interviews run one question at a time, with recommendation and rationale. Keep facts, decisions, delegations and open issues in conversation; no mandatory brief.md, project.json, run.json or local workflow artifacts.
-- Confirm the overall requirement before formal Figma options. After selection, present concrete knowledge deltas and write back only the approved scope. Approved designs may be pending implementation.
-- No automatic cross-project learning, background promotion, hooks or telemetry. Scoped, confirmed project knowledge maintenance is supported.
-- Preserve progressive disclosure: short skill entrypoints, shared references, reusable evaluation criteria.
-- Evaluation is embedded in both workflows. Inspect actual assets and renders; scripts cannot prove design quality, human approval or runtime behavior.
-- Use visible native Figma text for the entrance and indexes. Read progressively; variables/styles are file-level assets, not Page-local data. Do not rely on hidden pluginData or whole-file scans.
-- The Figma read helper is dependency-free JavaScript for the Plugin API. Developer packaging scripts use Python 3.10+ standard library; tests additionally use Node.js 18+. Keep paths relative to the plugin.
-- For changes to contracts or behavior, update README/docs/templates and relevant tests in the same session. Preserve upstream license notices and update lock records when updating adapted material.
-- Validate with `python3 scripts/validate.py`, `python3 -m unittest discover -s tests -v`, and `node --test tests/figma-reader.test.js`; test packaging from a fresh path for distribution changes. Report simulated API tests separately from live Figma validation.
-- Do not publish to a remote marketplace, push Git, change another project or modify Figma unless explicitly authorized for that task.
+- 仅提供两个公开 Skill：`design-harness-init` 和 `design-harness-design`。入口保持简洁，便于发现和调用。
+- 项目知识沉淀在使用方项目的 Figma Harness 页面，每次需求使用独立页面。分发包中不得写入真实项目标识、路径、代码映射或任务记录。
+- 优先遵循用户指定的范围和已有授权，避免重复审批。获准编辑一个 Figma 页面，不代表获准修改整个文件。
+- 项目设计规范优先于通用指导。还原现有行为时，优先采用已核实的当前代码；遇到影响决策的冲突，展示依据并交由用户选择。已确认的新设计与当前代码基线分开保留。
+- Init 先整理存量上下文，再补齐代码已有而设计缺失的内容。每个模块的具体内容经用户确认后再生成；同一范围已有明确授权时直接沿用。
+- Design 访谈每次只问一个问题，并给出推荐和理由。事实、决策、委托事项和未决问题承载于对话，不强制生成 `brief.md`、`project.json`、`run.json` 或其他本地流程文件。
+- 生成正式 Figma 方案前，先确认整体需求。用户选定方案后，展示具体知识增量，仅回写已批准的范围。已确认设计可以标记为待实现。
+- 不启用自动跨项目学习、后台知识晋升、钩子（hooks）或遥测。支持在明确范围内维护经用户确认的项目知识。
+- 保持 Skill 自包含与渐进式加载：入口简短，执行文档和评价标准放在各自的 `references/`，产出蓝图放在 `assets/`，运行助手放在 `scripts/`。Skill 不引用插件根目录或另一个 Skill 的运行文件。
+- Figma 操作先发现当前工具及实际参数，再探测连接并核对目标文件，按本次需求选择专用工具或脚本执行工具。支持 figma-console-mcp 与 use_figma；不以工具已注册代替连接成功，不把任何一种连接器设为硬依赖。
+- Console 的专用工具可能使用活动文件，而 figma_execute 的 fileKey 不会切换活动目标。跨工具操作前必须核对同一文件与 Page；超时先查实际结果，再补缺，不能换连接器重放整个写入。
+- 两个 Skill 按职责分别维护上下文建立/读取和对应检查。读取助手、资源说明蓝图与原创许可证需要随各 Skill 携带；修改这些相同文件时同步两份，并通过一致性校验，避免内容漂移。
+- Evaluation 嵌入 Init 和 Design 两个工作流。检查真实资产及渲染结果；脚本不能证明设计质量、用户批准或实际运行行为。
+- 入口和索引使用可见的 Figma 原生文本，并按需逐层读取。变量和样式属于文件级资产。不得依赖隐藏的 `pluginData` 或全文件扫描。
+- Figma 读取助手使用无外部依赖的 JavaScript，运行于 Plugin API 环境。Skill 内路径相对于各自目录。根目录的 `scripts/` 和 `tests/` 统一使用 Node.js 22+ 与 ESM（`import/export`），通过 npm 执行开发、校验、测试与打包；测试使用内置 `node:test`，ZIP 处理使用开发依赖 `fflate`。开发依赖不进入分发包，也不成为 Skill 的运行依赖。
+- 第三方来源与许可放在使用它们的 Skill 中。需要外部指导时按需读取上游默认分支的最新内容，不固定 tag、commit 或维护版本锁；项目规范与已确认的工作方式仍然优先。获取失败时如实说明，不能把本地摘要称为最新上游。
+- 修改契约或行为时，在同一轮工作中同步更新受影响 Skill 的文档、蓝图及相关测试，以及 README 和维护文档。保留上游许可证和声明；维护适配内容时一并核对上游最新许可。
+- 发布版本同时更新插件清单、`package.json` 和锁文件，使用不带本地缓存后缀的 SemVer；发布记录维护在 GitHub Release，不恢复已删除的旧版迁移资料。`+codex.*` 后缀只用于本地开发调试。
+- 仓库的 `.agents/plugins/marketplace.json` 使用稳定名称 `design-harness`，以 `./` 指向根目录插件；GitHub 安装跟随明确的 Git 引用。ZIP 的外层 marketplace 由同一份入口派生，并把路径调整到 `./plugins/design-harness`，避免两种分发方式的元数据漂移。
+- 插件清单的用户文案使用中文，保存为可直接阅读的 UTF-8 文本；刷新缓存版本后也保留中文原文。
+- 安装依赖使用 `npm ci`；`npm run check` 执行结构校验与全部测试，也可分别运行 `npm run validate` 和 `npm test`。使用 `npm run package -- --out <新目录>` 打包，保持可重复构建、校验和与拒绝覆盖；随包携带 `package.json` 和锁文件，排除依赖目录与临时数据。涉及分发方式变更时，在全新路径验证打包与解压，以及仅复制单个 Skill 后的引用完整性。分别报告模拟 API 测试和真实 Figma 验证，不能混为一谈。
+- 只有获得该任务的明确授权后，才能发布到远程插件市场、推送 Git、修改其他项目或修改 Figma。

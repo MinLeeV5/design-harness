@@ -1,0 +1,19 @@
+{
+  "name": "design-harness",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Design Harness 插件的开发、校验、测试与打包工具",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "validate": "node scripts/validate.js",
+    "test": "node --test tests/distribution.test.js tests/figma-reader.test.js",
+    "check": "npm run validate && npm test",
+    "package": "node scripts/package-plugin.js"
+  },
+  "devDependencies": {
+    "fflate": "^0.8.3"
+  }
+}

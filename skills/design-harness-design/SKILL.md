@@ -9,13 +9,15 @@ description: 根据 Figma 项目的 Design Harness 按需加载设计约束，�
 
 ## 执行
 
-1. 按 [Design 工作流](../../workflows/design.md) 推进。定位与读取 Harness 时使用 [上下文契约](../../references/figma-context.md)，先入口、再相关模块概览、最后所需资源与依赖。
-2. 访谈前读 [访谈机制](../../references/interview.md)。自己查明可发现的事实，每次只问一个关键问题，给出推荐与理由，随需求成熟度调整提问形式。
+本地文档、蓝图和读取助手均在本 Skill 内；只加载当前步骤涉及的内容。外部指导按 [来源与读取方式](references/sources.md) 从上游默认分支获取最新内容。
+
+1. 按 [Design 工作流](references/workflow.md) 推进。首次访问 Figma 时先按 [工具探测与选择](references/figma-operations.md) 检查实际连接、目标文件并匹配本次操作，再按 [上下文契约](references/context-loading.md) 读取入口、相关模块概览与所需资源。
+2. 访谈前读 [访谈机制](references/interview.md)。自己查明可发现的事实，每次只问一个关键问题，给出推荐与理由，随需求成熟度调整提问形式。
 3. 需求和决策承载于对话。可以用临时草图帮助讨论；在用户确认整体理解之前，不生成正式 Figma 方案，不创建本地 `brief.md`。
-4. 确认后，为本次需求建立独立 Figma Page，或继续本需求已经授权的 Page。按 [工具衔接与写入](../../references/figma-operations.md) 制作方案。
-5. 设计与评价时按需读取 [Impeccable 适配指导](../../references/impeccable.md)。项目已确认的规范优先；通用建议填补空白，不替换项目风格。
-6. 将 [嵌入式检查](../../evaluation/checks.md) 用于方案生成、修正和比较。提供关键页面、必要状态与交互说明；只有需要验证交互差异时才制作可点击原型。
-7. 用户选择后，按 [知识更新](../../references/knowledge-update.md) 展示具体增量，确认后更新 Harness。可以沉淀“已确认设计／待实现”，不必等代码落地。
+4. 确认后，为本次需求建立独立 Figma Page，或继续本需求已经授权的 Page。按 [工具衔接与写入](references/figma-operations.md) 为组件复用、布局、文案与截图选择对应工具，按需加载 Console 或 use_figma 指引。
+5. 设计与评价时按 [Impeccable 加载与适配](references/impeccable.md) 获取最新相关指导。项目已确认的规范优先；通用建议填补空白，不替换项目风格。
+6. 将 [嵌入式检查](references/evaluation.md) 用于方案生成、修正和比较。提供关键页面、必要状态与交互说明；只有需要验证交互差异时才制作可点击原型。
+7. 用户选择后，按 [知识更新](references/knowledge-update.md) 展示具体增量，确认后更新 Harness。可以沉淀“已确认设计／待实现”，不必等代码落地。
 
 ## 关键边界
 

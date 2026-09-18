@@ -1,0 +1,20 @@
+{
+  "name": "design-harness",
+  "interface": {
+    "displayName": "Design Harness · 设计工作流"
+  },
+  "plugins": [
+    {
+      "name": "design-harness",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
