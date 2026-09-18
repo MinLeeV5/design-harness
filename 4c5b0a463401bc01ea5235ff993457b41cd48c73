@@ -1,0 +1,24 @@
+.codex-plugin/plugin.json
+  11a9ddc8748ec723 4,26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.8",
+  "base_commit_sha": "4c5b0a463401bc01ea5235ff993457b41cd48c73",
+  "prompts": {
+    "11a9ddc8748ec723": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0b2d7-894d-7ee3-b790-41a46b1fa920",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 0,
+      "accepted_lines": 2,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/5892bb610a60a6f5de5e78140b20d6706d2cf22e16587acb2ce218fc993d49d5"
+    }
+  }
+}
