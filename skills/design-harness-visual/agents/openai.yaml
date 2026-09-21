@@ -1,6 +1,6 @@
 interface:
   display_name: "Design Harness · 视觉设计"
-  short_description: "承接已确认交互，复用 Library 并细化画面、图标与插画，独立交付视觉稿。"
-  default_prompt: "用 $design-harness-visual 读取这份交互交接，沿用项目 Library，在已确认行为范围内完成视觉细化。"
+  short_description: "先访谈视觉目标，比较 2–3 套代表方案，选主方向并整合确认后展开完整设计。"
+  default_prompt: "用 $design-harness-visual 承接这份交互交接，先访谈目标，再给出 2–3 套代表方案，选定并整合确认后展开设计。"
 policy:
   allow_implicit_invocation: false
