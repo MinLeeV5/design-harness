@@ -15,6 +15,9 @@
 | --- | --- |
 | 定位 Page、入口与模块 | 在 `use_figma.code` 放入本 Skill 的 [读取助手](../scripts/figma-reader.js)，追加 `return await readDesignHarness(figma, request)`；request 见 [有界读取说明](figma-operations.md) |
 | 变量、组件、原生文本与布局 | 读取当前 API 的相关类型与方法，按已批准范围用 `use_figma` 分步执行；返回本次真实节点和资产 ID |
+| Library 来源与相关素材 | 按当前 `get_libraries`、库限定搜索等能力读取，遵循 [视觉资产约定](visual-assets.md)；不把查询句柄当库文件 ID |
+| 主流程/分支可点击原型 | 核实当前 API 支持的原型连接、起点与预览方式，按 [原型约定](prototyping.md) 构建和验证；写入与实际点击分别报告 |
+| 插画导入 | 使用当前文档支持的图像/填充方式，核对真实素材及节点，再按目标尺寸截图 |
 | 局部属性、结构与截图 | 按实际能力用 `get_metadata`、`get_screenshot` 或受支持的节点读取/截图方法，限定目标 fileKey 与 nodeId |
 
 `use_figma` 与 Console 不保证具有相同扩展方法；例如某一运行环境的 Auto Layout 或截图辅助方法不能直接移植到另一环境。只复用已核对支持的 API。有界读取助手本身无连接器依赖，但真实执行兼容性仍以当前连接验证为准。

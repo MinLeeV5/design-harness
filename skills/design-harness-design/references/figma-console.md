@@ -1,4 +1,4 @@
-# Console：约束读取与多方案设计
+# Console：约束读取与分阶段设计
 
 仅在发现或选择 figma-console-mcp 时读取。工具名是能力定位线索，实际命名空间、参数、模式限制和返回结构以当前工具说明为准。需求确认、方案范围与知识回写沿用 [通用读写流程](figma-operations.md)。
 
@@ -16,10 +16,12 @@
 | 读取 Harness 入口、相关模块与资源 | `figma_execute` + 本 Skill 的有界读取助手；或 `figma_get_file_data` | 先入口再必要节点；从 `summary`、浅层和 nodeIds 开始，不一次导出全文件 |
 | 用户说“这个组件/选区” | `figma_get_selection` | 核对文件后取得选区；用户明确 URL 优先 |
 | 查找项目已有组件与属性 | `figma_search_components`、`figma_get_component_details` | 进入组件操作时先按本次需求查询并分页，不复用未经核对的旧 nodeId 或跨项目同名结果 |
+| 查询已知团队库 | `figma_get_library_components`、`figma_get_library_variables` 等当前可用工具 | 使用真实源库文件定位，按 [资产约定](visual-assets.md) 过滤；单库查询不代表完整 Teams 发现 |
 | 实例化项目组件 | `figma_instantiate_component` | 按查询结果同时传 componentKey 与 nodeId，并指定已授权 parentId、变体和内容；未发布组件也需真实节点定位 |
 | 改实例文案、显隐或变体 | `figma_set_instance_properties` | 先读实际暴露的属性；不要把实例内部的文本当成普通 TEXT 直接覆盖。Slot 使用支持的专用操作或原生 API |
 | 调整普通文本、尺寸、颜色或局部位置 | `figma_set_text`、`figma_resize_node`、`figma_set_fills`、`figma_move_node` | 仅在真实类型、参数及目标范围匹配时使用；改父级、跨 Page 和 Auto Layout 不能用坐标移动替代 |
-| 新需求 Page、复制模板、安排多套布局 | `figma_execute` | 先检查已有 Page 和目标区域，指定父容器，用项目组件与可编辑结构组织方案；复制与归位同次完成，避免污染原稿 |
+| 新需求 Page、流程和当前原型 | `figma_execute` 或可用专用工具 | 先核对目标，指定父容器，主流程确认后逐条补分支；按 [原型约定](prototyping.md) 建真实连接、回读并预览走查 |
+| 导入插画 | 当前可用图片填充/导入工具，如 `figma_set_image_fill` | 先核对真实参数、支持的资源来源、文件与父节点；导入后检查裁切与实际截图，不能仅返回提示词 |
 | 查询项目 Token 与样式 | `figma_get_variables`、`figma_get_styles` | 按当前方案的 collection/名称/mode 过滤，保持 token 引用；样式回退结果不是完整变量库 |
 | 已确认知识增量涉及变量/组件库 | `figma_batch_create_variables`、`figma_batch_update_variables`、`figma_create_component_set` 或执行工具 | 仅按已批准增量执行；候选方案不自动改全局变量或现有主组件，建变体集前核对是否会移动/重命名源组件 |
 | 比较方案和写后验证 | 局部节点回读 + `figma_capture_screenshot` | 以相同目标尺寸查看各方案真实节点与必要状态，不以工具成功返回替代视觉检查 |

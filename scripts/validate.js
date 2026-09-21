@@ -8,6 +8,7 @@ import {isWithin, isFile, walk} from "./files.js";
 export const ROOT = path.resolve(import.meta.dirname, "..");
 export const SKILL_NAMES = ["design-harness-init", "design-harness-design"];
 const SHARED_SKILL_FILES = ["scripts/figma-reader.js", "assets/resource-card.txt",
+  "references/visual-assets.md", "assets/library-sources.txt",
   "references/work-templates.md", "assets/figma-work-templates.json",
   "references/design-description.md", "assets/design-description.txt",
   "third-party/design-md/LICENSE", "third-party/design-md/NOTICE.md", "LICENSE"];
@@ -126,6 +127,7 @@ export function validateSkill(directory) {
   const required = ["SKILL.md", "agents/openai.yaml", "LICENSE", "scripts/figma-reader.js",
     "references/workflow.md", "references/figma-operations.md", "references/figma-console.md",
     "references/figma-use.md", "references/evaluation.md", "references/sources.md", "assets/resource-card.txt",
+    "references/visual-assets.md", "assets/library-sources.txt",
     "references/work-templates.md", "assets/figma-work-templates.json",
     "references/design-description.md", "assets/design-description.txt",
     "third-party/design-md/LICENSE", "third-party/design-md/NOTICE.md"];
@@ -135,6 +137,8 @@ export function validateSkill(directory) {
   } else {
     required.push("references/context-loading.md", "references/interview.md", "references/knowledge-update.md",
       "references/impeccable.md", "assets/requirement-page.txt", "assets/writeback-delta.txt",
+      "references/prototyping.md", "assets/interaction-prototype.txt", "references/ui-ux-pro-max.md",
+      "third-party/ui-ux-pro-max/LICENSE", "third-party/ui-ux-pro-max/NOTICE.md",
       "third-party/impeccable/LICENSE", "third-party/impeccable/NOTICE.md");
   }
   for (const relative of required) {

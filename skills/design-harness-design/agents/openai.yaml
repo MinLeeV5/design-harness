@@ -1,4 +1,4 @@
 interface:
   display_name: "Design Harness · Design"
-  short_description: "按需读取项目 Harness，逐题访谈后生成 Figma 多方案并确认知识回写"
-  default_prompt: "用 $design-harness-design 读取这个 Figma 项目的 Harness，和我逐题澄清需求，再输出多个 UI/UX 方案供选择。"
+  short_description: "按项目依据先确认主流程与分支原型，复用资产后细化视觉并确认知识回写"
+  default_prompt: "用 $design-harness-design 读取项目 Harness，逐题确认流程，先做主流程可点击原型，再逐条补分支，最后复用项目资产细化视觉。"

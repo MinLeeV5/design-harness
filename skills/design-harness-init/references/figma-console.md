@@ -17,6 +17,7 @@
 | 用户指向选中对象 | `figma_get_selection` | 已确认目标文件后读取，不能以选区替代用户明确 URL |
 | Token、变量与样式盘点 | `figma_get_variables`、`figma_get_styles` | 先概览，再按 collection、名称、mode 过滤；变量使用分页，修改后需要时刷新缓存；样式回退结果不能当成完整变量库 |
 | 查找并核对现有组件 | `figma_search_components`、`figma_get_component_details` | 进入组件操作时按相关名称/类别查询并限制条数；重新核对 nodeId、key、属性及源文件，不跨项目全库搜索 |
+| 查询已知团队库与素材 | `figma_get_library_components`、`figma_get_library_variables` 等当前能力 | 使用真实库文件定位，按 [资产约定](visual-assets.md) 过滤；单库结果不等于完整 Teams 清单，缺目录能力如实说明 |
 | 在已确认集合内新增/更新变量 | `figma_batch_create_variables`、`figma_batch_update_variables` | 批量优于逐条调用；collectionId、modeId 与变量 ID 来自本次读取，按当前批量上限拆分 |
 | 建立已批准的新 Token 集合与模式 | `figma_setup_design_tokens` | 仅用于确需新集合的范围；已有集合复用，不为更新现有变量重建整套系统 |
 | 创建组件变体集 | `figma_create_component_set`；不足时 `figma_execute` | 使用已确认的属性轴与目标 parentId，按项目风格布置；每个变体仍需具体设计和验证，克隆组合不等于状态已设计 |

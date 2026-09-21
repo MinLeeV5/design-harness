@@ -18,6 +18,8 @@
 
 变量、颜色/文字样式是 **Figma 文件级资产**。Harness Page 承载其目录、语义、使用范例与来源，而不是变量的物理存储范围。变量记录真实 collection/variable ID；不能拿普通节点 ID 代替。可跨 Page 使用已批准变量与组件，但不能据此更改历史资产。
 
+设计风格模块还登记 `style/library-sources` 或已有同义资源，按 [Library 约定](visual-assets.md) 与 [来源蓝图](../assets/library-sources.txt) 维护库引用、适用范围、认可状态和图标/插画/色彩规则。它使用现有 `DH / Resource` 读取链；实际 token、组件和模板继续由对应模块索引，不新增入口全量资产清单。
+
 工作模板采用插件的通用蓝图与项目文档配置。设计风格模块可用 `documentation/work-templates` 资源链接可见 TEXT `DH / Work Templates`，记录模板 ID/版本、项目覆盖配置及真实原生资产引用；按 [工作模板约定](work-templates.md) 维护，不新增一份通用流程副本。
 
 产品的设计语言在设计风格模块以 `style/design-description` 资源呈现，按 [DESIGN.md 式描述](design-description.md) 解释视觉意图与应用方法，并链接 tokens、布局与组件。显示标题可沿用 DESIGN.md，载体仍是 `DH / Resource`；它与文档工作模板配置分开，不把产品规范重复成另一套 token 库。

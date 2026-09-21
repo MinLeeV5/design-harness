@@ -1,11 +1,11 @@
 ---
 name: design-harness-design
-description: 根据 Figma 项目的 Design Harness 按需加载设计约束，通过逐题访谈明确新需求，输出可比较的 UI/UX 方案，并在用户选择后确认知识回写。用于已有项目的新需求设计、方案比较与迭代。
+description: 根据 Figma 项目的 Design Harness 逐题访谈，先梳理流程，再分步确认主流程与分支的可点击原型，最后细化视觉并确认知识回写。用于已有项目的新需求设计、交互迭代与局部方案比较。
 ---
 
 # Design Harness · Design
 
-用户给出 Figma 项目和需求后，先找到项目的 Harness 入口，再开始需求访谈。采用项目已有设计语言，输出能支持用户选择的多套方案。
+先读取 Harness，再逐题访谈。默认一套主方案：流程骨架 → 主流程可点击低保真原型 → 分支逐条确认 → 统一视觉细化。关键分歧用局部备选帮助决策，纯文案或配色等小改动按影响范围简化。
 
 ## 执行
 
@@ -13,11 +13,11 @@ description: 根据 Figma 项目的 Design Harness 按需加载设计约束，�
 
 1. 按 [Design 工作流](references/workflow.md) 推进。首次访问 Figma 时先按 [工具探测与选择](references/figma-operations.md) 检查实际连接、目标文件并匹配本次操作，再按 [上下文契约](references/context-loading.md) 读取入口、相关模块概览与所需资源。
 2. 访谈前读 [访谈机制](references/interview.md)。自己查明可发现的事实，每次只问一个关键问题，给出推荐与理由，随需求成熟度调整提问形式。
-3. 需求和决策承载于对话。可以用临时草图帮助讨论；在用户确认整体理解之前，不生成正式 Figma 方案，不创建本地 `brief.md`。
-4. 确认后，为本次需求建立独立 Figma Page，或继续本需求已经授权的 Page。按 [Figma 工作模板与文档排版](references/work-templates.md) 用产品与设计语言组织标题、段落、列表和链接，组合场景流程、方案对比和资源说明，应用项目文档配置。按 [工具衔接与写入](references/figma-operations.md) 为组件复用、布局、文案与截图选择对应工具，按需加载 Console 或 use_figma 指引。
-5. 设计与评价时按 [Impeccable 加载与适配](references/impeccable.md) 获取最新相关指导；涉及设计语言说明时按 [DESIGN.md 式描述](references/design-description.md) 解释视觉意图与精确依据。项目已确认的规范优先；通用建议填补空白，不替换项目风格。
-6. 将 [嵌入式检查](references/evaluation.md) 用于方案生成、修正和比较。提供关键页面、必要状态与交互说明；只有需要验证交互差异时才制作可点击原型。
-7. 用户选择后，按 [知识更新](references/knowledge-update.md) 展示具体增量，确认后更新 Harness。可以沉淀“已确认设计／待实现”，不必等代码落地。
+3. 先确认整体需求与页面范围，再建立或继续本需求独立 Page。确认流程骨架后，按 [交互原型](references/prototyping.md) 先完成主流程，确认后逐条展开分支；持续逐题访谈，不把访谈集中在出稿之前。需求和决策承载于对话，不创建本地 `brief.md`。
+4. 交互确认后细化视觉。按 [视觉资产与 Library](references/visual-assets.md) 先复用适用项目资产与团队库，再补矢量图标、可编辑示意图或生成插画。按 [工作模板与图形表达](references/work-templates.md) 组织流程与说明，用图形和少量必要文案降低理解成本。
+5. 按问题读取 [Impeccable](references/impeccable.md) 或 [UI/UX Pro Max 适配](references/ui-ux-pro-max.md) 的最新相关指导；涉及设计语言说明时使用 [DESIGN.md 式描述](references/design-description.md)。项目规范优先，不引入另一套强制工作流或运行依赖。
+6. 在各阶段按 [嵌入式检查](references/evaluation.md) 回读资产、检查截图并实际走查原型；分别说明连接配置、真实点击和产品运行的验证情况。阶段确认直接承接，不为每个细节重复审批。
+7. 最终设计确认后，按 [知识更新](references/knowledge-update.md) 展示具体增量，获准后更新 Harness。可以沉淀“已确认设计／待实现”，不必等代码落地。
 
 ## 关键边界
 
@@ -25,5 +25,6 @@ description: 根据 Figma 项目的 Design Harness 按需加载设计约束，�
 - 只读取本次任务需要的内容。遇到未整理的必要模块时，明确缺什么，针对性补齐或由用户限定范围；不为一个小需求重做全项目。
 - 项目代码不必每次要求用户重新提供；需要核对实现时，先用入口的一条仓库链接与已有上下文确认来源，再按需定位代码。正文不回填源码路径、符号或版本记录；只有必要来源仍无法确定或访问时才询问。
 - 新证据影响已确认决策时解释具体冲突，再讨论该点；不要重新采访已确定的全部内容。
+- 新功能或交互变化默认经过分阶段原型确认；原型能力受限时先说明缺口，静态稿只能帮助讨论，调整交付方式需用户选择。
 - 选择方案不自动等于同意所有规范变更。知识回写按具体增量确认；此前明确授权相同增量时直接执行。
 - 只做当前范围的设计、评价与知识维护；不自动修改产品代码、发布组件库或操作历史页面。

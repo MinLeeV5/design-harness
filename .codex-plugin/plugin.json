@@ -1,13 +1,13 @@
 {
   "name": "design-harness",
-  "version": "0.1.1+codex.20260918094044",
+  "version": "0.1.1",
   "homepage": "https://github.com/MinLeeV5/design-harness",
   "repository": "https://github.com/MinLeeV5/design-harness",
   "description": "以 Figma 为项目设计知识载体，提供上下文初始化与新需求设计两项能力：按需加载项目约束，逐题访谈明确需求，生成可比较的 UI/UX 方案，并在确认后更新设计知识。",
   "author": {
     "name": "Min Lee"
   },
-  "license": "MIT；Impeccable 与 DESIGN.md 适配内容采用 Apache-2.0",
+  "license": "MIT；Impeccable 适配内容采用 Apache-2.0",
   "keywords": [
     "设计",
     "Figma",

@@ -12,7 +12,7 @@ flowchart LR
     init --> harness[("项目 Harness<br/>知识与资产")]
     harness --> design["Design<br/>访谈与设计"]
     request["新需求"] --> design
-    design --> proposals["需求 Page<br/>比较与选择"]
+    design --> proposals["需求 Page<br/>流程、原型与视觉"]
     proposals -.->|已批准的知识增量| harness
 
     classDef input fill:#F3F4F6,stroke:#8B95A4,color:#293547
@@ -29,21 +29,21 @@ flowchart LR
 
 | 入口 | 给它什么 | 它会做什么 |
 | --- | --- | --- |
-| `$design-harness-init` | Figma 项目 + 代码仓库 | 先整理现状，逐模块确认，再补齐代码已有而 Figma 缺失的知识与资产 |
-| `$design-harness-design` | Figma 项目 + 新需求 | 读取入口并按需加载资源，逐题访谈，确认后生成多个方案，选定后确认知识回写 |
+| `$design-harness-init` | Figma 项目 + 代码仓库 | 整理现状、适用 Library 来源与复用规则，逐模块确认后补齐代码已有而 Figma 缺失的知识与资产 |
+| `$design-harness-design` | Figma 项目 + 新需求 | 逐题确认流程，先做主流程可点击低保真原型，再逐条补分支，统一细化视觉后确认知识回写 |
 
 示例：
 
 > 用 $design-harness-init 根据这个 Figma 项目和代码仓库建立 Harness。先整理现状，每个模块先给我看具体提案，确认后再生成。
 
-> 用 $design-harness-design 读取这个 Figma 项目的 Harness，帮我设计新的设备连接流程。先逐题讨论，再生成方案供我选择。
+> 用 $design-harness-design 读取这个 Figma 项目的 Harness，帮我设计新的设备连接流程。先确认流程骨架，再边体验原型边讨论，主流程确认后再做分支，最后细化视觉。
 
 会话已有 Figma、仓库、范围和确认时直接沿用，不重复要求填写。团队使用需要可访问的项目及 Figma 原生读写能力；本插件不自带 Figma 连接器或账号权限。只有读取能力时仍可完成调查和访谈，写入缺口会明确报告。
 
 ## 项目知识放在哪里
 
 - **Figma 的 design-harness Page**：AGENTS 式入口、项目上下文、风格约束、token/变量说明与样例、布局、组件库、模板库、场景库、已确认知识和需求索引。
-- **每次需求的独立 Page**：确认后的需求摘要、多方案、关键页面、必要状态、交互说明、选择与知识增量记录。
+- **每次需求的独立 Page**：确认后的流程骨架、主流程与逐条分支原型、关键分歧的局部备选、最终视觉、确认范围与知识增量。
 - **代码仓库**：Agent 核查当前实现的依据，通过入口的仓库链接按需查找相关代码。
 - **这个插件仓库**：通用 Skill、工作流、评价标准、Figma 内容蓝图与读取助手。
 
@@ -85,6 +85,16 @@ flowchart LR
 
 所有写入 Figma 的文档都遵循 [可读性约定](skills/design-harness-init/references/work-templates.md#文档排版与可读性)，包括入口、模块/资源说明与需求摘要。借用 Markdown 的标题、段落、列表、表格和链接层级，用原生富文本与 Auto Layout 呈现；正文定宽、自适应增高，按项目风格安排字重、行距与留白。`DH / Entry` 等语义 TEXT 保留完整设计内容和定位，回读与整体/局部截图分别检查。蓝图不是待直接粘贴的纯文本成品。
 
+产品界面与评审说明都优先图形配必要短文：流程图表达任务路径，状态画面呈现反馈，局部对照帮助取舍。保留有歧义图标的短标签、重要操作后果、可读取规则和定位，不用统一字数或图文比例衡量清晰度。工作模板蓝图 1.3.0 支持主流程/分支关系、原型入口和局部比较；升级仍遵守项目现有资产与确认范围。
+
+## Library 与插画如何使用
+
+Init 在设计风格模块登记 `style/library-sources`，记录适用库、真实引用、使用范围及图标/插画/色彩规则；变量、组件和模板仍由各自模块维护。Design 按需复核来源，先找项目认可资产与已启用团队 Library，再查相关可访问库。未找到合适资源、资源不适用和访问受限分别表达，不把检索失败当作不存在。
+
+缺口按类型补齐：通用图标优先成熟且风格一致的矢量来源，关系与步骤优先可编辑示意图，必要情境插画按项目上下文生成。低保真阶段只补交互判断必需的图示，正式插画在视觉阶段完善，并完成实际导入、裁切与渲染检查。颜色沿用项目语义变量；生成位图不冒充矢量或原生组件。
+
+[视觉资产指引](skills/design-harness-init/references/visual-assets.md) 与 [来源蓝图](skills/design-harness-init/assets/library-sources.txt) 随两个 Skill 携带。它们通过当前可用工具工作，不捆绑图像服务、图标库或 Figma 连接器；缺少能力时明确未完成项。使用资产、登记来源与管理/发布源库的授权范围分别核对。
+
 ## Skill 组织
 
 两个 Skill 各自携带本地文档、蓝图、脚本、外部来源入口和许可证，可以单独复制使用。`SKILL.md` 说明入口与读取时机，参考内容按需加载；需要上游指导时在线读取最新内容。
@@ -102,14 +112,14 @@ skills/
   design-harness-design/
     SKILL.md
     agents/openai.yaml
-    references/   # 读取、访谈、方案流程、评价、回写、Impeccable
-    assets/       # 需求 Page、知识增量、资源说明蓝图
+    references/   # 读取、访谈、原型、视觉资产、评价、回写与社区指导
+    assets/       # 需求 Page、原型、Library 来源与知识增量蓝图
     scripts/      # Figma 读取助手
-    third-party/  # Impeccable 与 DESIGN.md 的许可证/声明
+    third-party/  # Impeccable、UI/UX Pro Max 与 DESIGN.md 的许可证/声明
     LICENSE
 ```
 
-根目录保留插件配置、品牌资源、开发校验/打包脚本、测试和维护文档。根目录 `assets/` 仅供插件展示使用；两个 Skill 不依赖这些品牌资源或根目录的运行文档，也不互相跨目录读取。随两者携带的读取助手、资源说明蓝图、工作模板约定与蓝图、设计描述指引与蓝图/许可声明、原创许可证通过一致性校验保持同步。
+根目录保留插件配置、品牌资源、开发校验/打包脚本、测试和维护文档。根目录 `assets/` 仅供插件展示使用；两个 Skill 不依赖这些品牌资源或根目录的运行文档，也不互相跨目录读取。随两者携带的读取助手、资源说明蓝图、视觉资产指引与 Library 来源蓝图、工作模板约定与蓝图、设计描述指引与蓝图/许可声明、原创许可证通过一致性校验保持同步。
 
 ## 工作方式
 
@@ -153,56 +163,42 @@ flowchart TB
 
 若无缺失，阶段一核验完成后即可用于后续设计。未确认的内容继续调整提案；已有同一范围的明确批准时直接沿用。变量、组件、模板和场景需要真实可复用资产，不能只用一份索引表示补齐完成。
 
-### Design：从新需求到可选择的方案
+### Design：先确认交互，再细化视觉
 
-先在项目约束下明确需求，再生成正式方案。评价嵌入设计过程；用户选定方案后，另行确认具体知识增量。
+新功能或交互变化默认按下图分步推进，纯文案/配色等不影响操作的小改动可按范围简化。已有明确确认直接承接，需求与流程骨架可在一次具体确认中完成。
 
 ```mermaid
 flowchart TB
-    subgraph align["需求确认"]
-        direction LR
-        load["按需读取<br/>项目 Harness"]
-        interview["逐题访谈<br/>推荐与取舍"]
-        agree["用户确认<br/>整体需求"]
-        load --> interview --> agree
-    end
-
-    subgraph create["方案设计"]
-        direction LR
-        alternatives["需求 Page<br/>多套设计方案"]
-        evaluate["设计中评价<br/>检查与修正"]
-        choose["用户选择<br/>确定方案"]
-        alternatives --> evaluate --> choose
-    end
-
-    subgraph learn["知识沉淀"]
-        direction LR
-        changes["具体知识增量<br/>展示回写提案"]
-        accept["用户确认<br/>回写内容"]
-        update["更新 Harness<br/>保留来源"]
-        changes --> accept --> update
-    end
-
-    align --> create --> learn
+    load["读取项目依据<br/>逐题访谈"] --> agree["确认整体需求<br/>与流程骨架"]
+    agree --> main["主流程<br/>可点击低保真原型"]
+    main --> mainOK["体验、访谈<br/>确认主流程"]
+    mainOK -->|有适用分支| branch["当前分支<br/>原型与恢复路径"]
+    branch --> branchOK["体验、访谈<br/>确认当前分支"]
+    branchOK -->|还有分支| branch
+    branchOK -->|范围内交互已确认| visual["统一细化视觉<br/>复用 Library 与必要配图"]
+    mainOK -->|无适用分支| visual
+    visual --> finalOK["验证并确认<br/>最终设计"]
+    finalOK --> delta["展示具体<br/>知识增量"]
+    delta --> approve["确认回写范围"]
+    approve --> harness["更新 Harness<br/>资产、规则与索引"]
 
     classDef action fill:#EAF2FF,stroke:#779EC8,color:#153A66
     classDef human fill:#FFF2D6,stroke:#C5A05F,color:#7A4B16
     classDef asset fill:#E7F5EE,stroke:#77A68C,color:#1E5437
-    class load,interview,evaluate,changes action
-    class agree,choose,accept human
-    class alternatives,update asset
-    style align fill:#F8FAFC,stroke:#CBD5E1,color:#334155
-    style create fill:#F8FAFC,stroke:#CBD5E1,color:#334155
-    style learn fill:#F8FAFC,stroke:#CBD5E1,color:#334155
+    class load,main,branch,visual,delta action
+    class agree,mainOK,branchOK,finalOK,approve human
+    class harness asset
 ```
 
-每次提问给出推荐与理由，开放问题、真实取舍、情境检验按需要使用。访谈结论承载于对话，确认后在需求 Page 附摘要；没有本地 `brief.md` 或 `run.json` 要求。
+默认一套主方案；遇到关键交互分歧，用对应片段比较收益与代价，选定后并回。用户明确要求完整多方案时才展开。每轮只问一个关键问题并给推荐，访谈贯穿原型设计；已委托的细节与范围内修复直接完成。
 
-项目规范优先，Impeccable 提供通用补充。默认交付关键页面、必要状态和交互说明；可点击原型按比较需要增加。每个方案必须有实质差异，评价直接检查任务、资产和实际渲染。
+流程骨架先标明重要分支与结构约束，主流程先做到可点击、可走查，确认后逐条补分支。低保真可复用已有项目组件，重点是操作、返回与反馈；交互确认后再统一处理视觉与正式插画。新事实影响已确认路径时，只重新讨论相关决定。
 
-第三方资料随所属 Skill 管理：Init 保留 Harness 架构来源，Design 保留 Impeccable 来源与适配规则，两者各自携带 DESIGN.md 描述方法的来源与声明。每次任务首次需要某份外部指导时，读取上游默认分支的最新相关文档，不固定版本或维护版本锁；同一任务可复用已经读过的内容。获取失败时说明缺口，并继续项目依据能够支持的工作。在线阅读上游指导不要求安装其 CLI、hooks 或完整工作流。
+[原型指引](skills/design-harness-design/references/prototyping.md) 区分真实连接、预览点击和产品运行。可见箭头、静态截图不能替代可点击原型；缺少能力时报告具体缺口，调整交付由用户选择。生成位图不代表设备或后端能力已实现，模拟外部事件需明确标识。
 
-“倾向代码”用于还原当前事实；已确认的新设计可先以**已确认设计／待实现**沉淀，后续盘点不能用旧实现覆盖它。用户已经明确批准的相同内容与范围不重复确认。
+社区方法按问题补充：Impeccable 提供设计与评价指导，UI/UX Pro Max 提供 UX、视觉与平台规则。使用实际平台与项目规范，不强制运行上游设计系统生成、安装、持久化、独立审计或多 Agent 流程。首次需要某份指导时读取默认分支最新内容，不维护版本锁；失败时说明未取得最新指导，并继续项目依据支持的工作。
+
+第三方资料随所属 Skill 管理：Init 保留 Harness 架构来源，Design 保留 Impeccable 与 UI/UX Pro Max 的来源/许可与适配，两者携带 DESIGN.md 的来源和声明。“倾向代码”用于还原当前事实；已确认的新设计可标为**已确认设计／待实现**，后续不能用旧实现覆盖。阶段交互确认和最终设计、知识回写的范围分开记录。
 
 ## 如何选择 Figma 工具
 
@@ -295,10 +291,11 @@ codex plugin add design-harness@design-harness
 
 - [Init 入口](skills/design-harness-init/SKILL.md) · [模块产出标准](skills/design-harness-init/references/modules.md) · [Init 检查](skills/design-harness-init/references/evaluation.md)
 - [Design 入口](skills/design-harness-design/SKILL.md) · [访谈机制](skills/design-harness-design/references/interview.md) · [Design 检查](skills/design-harness-design/references/evaluation.md)
-- [知识更新](skills/design-harness-design/references/knowledge-update.md) · [Impeccable 指导](skills/design-harness-design/references/impeccable.md)
+- [交互原型](skills/design-harness-design/references/prototyping.md) · [Library 与视觉资产](skills/design-harness-design/references/visual-assets.md) · [知识更新](skills/design-harness-design/references/knowledge-update.md)
+- [Impeccable 指导](skills/design-harness-design/references/impeccable.md) · [UI/UX Pro Max 适配](skills/design-harness-design/references/ui-ux-pro-max.md)
 - [Init 工具选择](skills/design-harness-init/references/figma-operations.md) · [Init Console 操作](skills/design-harness-init/references/figma-console.md) · [Design Console 操作](skills/design-harness-design/references/figma-console.md)
 - [Init 来源与许可](skills/design-harness-init/references/sources.md) · [Design 来源与许可](skills/design-harness-design/references/sources.md) · [验证范围](docs/validation.md)
 
 辅助脚本测试验证读取范围、截断续读与分发包一致性，不能证明真实项目的设计质量。实际运行 Init/Design 时仍需按工作流完成具体模块的用户确认、原生资产检查和截图核验。
 
-原创部分采用 [MIT](LICENSE)；Impeccable 与 DESIGN.md 适配内容遵循 Apache-2.0，并保留对应许可与声明。
+原创部分与 UI/UX Pro Max 适配采用 MIT；Impeccable 与 DESIGN.md 适配内容遵循 Apache-2.0，各来源保留对应许可与声明，详见 [原创许可证](LICENSE) 和各 Skill 来源说明。
