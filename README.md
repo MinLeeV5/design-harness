@@ -44,12 +44,16 @@ flowchart LR
 
 - **Figma 的 design-harness Page**：AGENTS 式入口、项目上下文、风格约束、token/变量说明与样例、布局、组件库、模板库、场景库、已确认知识和需求索引。
 - **每次需求的独立 Page**：确认后的需求摘要、多方案、关键页面、必要状态、交互说明、选择与知识增量记录。
-- **代码仓库**：当前实现和来源映射的依据。项目知识链接到具体文件、符号、资源和版本。
+- **代码仓库**：Agent 核查当前实现的依据，通过入口的仓库链接按需查找相关代码。
 - **这个插件仓库**：通用 Skill、工作流、评价标准、Figma 内容蓝图与读取助手。
 
 变量与样式本身是 Figma 文件级资产，Harness Page 统一呈现其语义、索引和用法。组件必须是可复用的原生资产，索引或截图不能代替组件库。
 
-入口只保留少量全局约束和模块目录。Agent 从入口读到相关模块概览，再读取所需资源和依赖；不会默认把整张 Page 或整个文件加载到上下文。Init 的 [上下文契约](skills/design-harness-init/references/context-contract.md) 定义建立方式，Design 的 [读取约定](skills/design-harness-design/references/context-loading.md) 定义按需读取与回写定位。
+`Design Harness / Contract 1` 入口只保留一条经实际 remote 核实、无凭据的仓库链接，便于有权限的成员和 Agent 找到代码。Figma 正文面向设计师，描述产品行为、设计规则和状态；源码路径、类/函数名、commit、拉取命令与核查日志由 Agent 在任务中按需查询，不另建技术附录或本地技术档案。
+
+项目上下文聚焦产品定位、用户任务、使用环境、渠道差异和业务边界。具体页面行为放到布局、组件或场景模块，概览只链接相关资源。设计资产的精确值、token 名称与真实 Figma 引用仍保留；“已实现”“待实现”及必要的“待实机验证”分开表达。
+
+入口同时保留少量全局约束和模块目录。Agent 从入口读到相关模块概览，再读取所需资源和依赖；不会默认把整张 Page 或整个文件加载到上下文。Init 的 [上下文契约](skills/design-harness-init/references/context-contract.md) 定义建立方式，Design 的 [读取约定](skills/design-harness-design/references/context-loading.md) 定义按需读取与回写定位。旧 Contract 1 保持可读，源码字段不再必填；精简内容与排版时沿用既有节点和授权范围。
 
 ```mermaid
 flowchart LR
@@ -63,6 +67,24 @@ flowchart LR
     class entry,modules,resources,evidence context
 ```
 
+## 设计语言如何描述
+
+设计风格模块参考 [Google DESIGN.md](https://github.com/google-labs-code/design.md) 的方式，将视觉意图、用途和边界与精确 token 联系起来。按总览、颜色、字体、布局、层次与纵深、形状、组件、应当与避免组织适用章节；每节说明“为什么这样设计、何时使用”，并链接项目真实变量、样式和组件，避免只列形容词或数值。
+
+[设计描述指引](skills/design-harness-init/references/design-description.md) 与 [内容蓝图](skills/design-harness-init/assets/design-description.txt) 随两个 Skill 携带。项目内容放在 Figma 的 `style/design-description` 资源，显示标题可为 DESIGN.md；无需额外创建本地文件。已有 DESIGN.md 作为来源核对，实际导出格式只在用户要求时处理。产品设计语言与文档排版配置分开，当前代码基线与已确认待实现设计分别保留。
+
+编写或修订描述时按需读取上游默认分支最新规范与写作理念，项目已确认规则优先；不安装上游 CLI，也不锁定其格式版本。适配说明与上游 Apache-2.0 许可证随各 Skill 分发。
+
+## 内置 Figma 工作模板
+
+[工作模板约定](skills/design-harness-init/references/work-templates.md) 与 [构建蓝图](skills/design-harness-init/assets/figma-work-templates.json) 提供三类可组合结构：场景流程、方案对比、规范资源。它们随两个 Skill 独立分发，不依赖固定 Figma 文件或额外连接器。
+
+优先复用项目已有的兼容原生模板；缺少时在已授权范围内生成 Auto Layout Frame、必要组件与实例，并回读、截图检查。分发包中的蓝图不是已安装的 Figma 组件库；构建与验证完成后才记录原生资产完成。
+
+通用内容结构由插件维护；字体、文档配色、参与端名称、画面比例和实际资产引用保存在项目设计风格模块的 `documentation/work-templates` 资源中。产品页面模板继续归项目模板库。旧通用流程分区可在明确迁移范围内移除，原稿风格资产及已填写的需求/决策先迁移并修复引用。
+
+所有写入 Figma 的文档都遵循 [可读性约定](skills/design-harness-init/references/work-templates.md#文档排版与可读性)，包括入口、模块/资源说明与需求摘要。借用 Markdown 的标题、段落、列表、表格和链接层级，用原生富文本与 Auto Layout 呈现；正文定宽、自适应增高，按项目风格安排字重、行距与留白。`DH / Entry` 等语义 TEXT 保留完整设计内容和定位，回读与整体/局部截图分别检查。蓝图不是待直接粘贴的纯文本成品。
+
 ## Skill 组织
 
 两个 Skill 各自携带本地文档、蓝图、脚本、外部来源入口和许可证，可以单独复制使用。`SKILL.md` 说明入口与读取时机，参考内容按需加载；需要上游指导时在线读取最新内容。
@@ -75,7 +97,7 @@ skills/
     references/   # 整理流程、上下文契约、模块标准、状态与检查
     assets/       # Harness 入口、模块概览、资源说明蓝图
     scripts/      # Figma 读取助手
-    third-party/  # Harness 架构参考的许可证
+    third-party/  # Harness 架构与 DESIGN.md 参考的许可证/声明
     LICENSE
   design-harness-design/
     SKILL.md
@@ -83,11 +105,11 @@ skills/
     references/   # 读取、访谈、方案流程、评价、回写、Impeccable
     assets/       # 需求 Page、知识增量、资源说明蓝图
     scripts/      # Figma 读取助手
-    third-party/  # 本 Skill 使用的 Impeccable 许可证与声明
+    third-party/  # Impeccable 与 DESIGN.md 的许可证/声明
     LICENSE
 ```
 
-根目录保留插件配置、品牌资源、开发校验/打包脚本、测试和维护文档。根目录 `assets/` 仅供插件展示使用；两个 Skill 不依赖这些品牌资源或根目录的运行文档，也不互相跨目录读取。随两者携带的读取助手、资源说明蓝图与原创许可证通过一致性校验保持同步。
+根目录保留插件配置、品牌资源、开发校验/打包脚本、测试和维护文档。根目录 `assets/` 仅供插件展示使用；两个 Skill 不依赖这些品牌资源或根目录的运行文档，也不互相跨目录读取。随两者携带的读取助手、资源说明蓝图、工作模板约定与蓝图、设计描述指引与蓝图/许可声明、原创许可证通过一致性校验保持同步。
 
 ## 工作方式
 
@@ -178,7 +200,7 @@ flowchart TB
 
 项目规范优先，Impeccable 提供通用补充。默认交付关键页面、必要状态和交互说明；可点击原型按比较需要增加。每个方案必须有实质差异，评价直接检查任务、资产和实际渲染。
 
-第三方资料随所属 Skill 管理：Init 保留 Harness 架构来源，Design 保留 Impeccable 来源与适配规则。每次任务首次需要某份外部指导时，读取上游默认分支的最新相关文档，不固定版本或维护版本锁；同一任务可复用已经读过的内容。获取失败时说明缺口，并继续项目依据能够支持的工作。在线阅读上游指导不要求安装其 CLI、hooks 或完整工作流。
+第三方资料随所属 Skill 管理：Init 保留 Harness 架构来源，Design 保留 Impeccable 来源与适配规则，两者各自携带 DESIGN.md 描述方法的来源与声明。每次任务首次需要某份外部指导时，读取上游默认分支的最新相关文档，不固定版本或维护版本锁；同一任务可复用已经读过的内容。获取失败时说明缺口，并继续项目依据能够支持的工作。在线阅读上游指导不要求安装其 CLI、hooks 或完整工作流。
 
 “倾向代码”用于还原当前事实；已确认的新设计可先以**已确认设计／待实现**沉淀，后续盘点不能用旧实现覆盖它。用户已经明确批准的相同内容与范围不重复确认。
 
@@ -279,4 +301,4 @@ codex plugin add design-harness@design-harness
 
 辅助脚本测试验证读取范围、截断续读与分发包一致性，不能证明真实项目的设计质量。实际运行 Init/Design 时仍需按工作流完成具体模块的用户确认、原生资产检查和截图核验。
 
-原创部分采用 [MIT](LICENSE)；Impeccable 适配内容遵循 Apache-2.0，并保留上游声明。
+原创部分采用 [MIT](LICENSE)；Impeccable 与 DESIGN.md 适配内容遵循 Apache-2.0，并保留对应许可与声明。

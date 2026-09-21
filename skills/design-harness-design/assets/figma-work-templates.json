@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "kit": "design-harness-work-templates",
+  "version": "1.2.0",
+  "artifactKind": "native-figma-construction-blueprint",
+  "namespace": "DH Docs",
+  "defaults": {
+    "scope": "documentation-only",
+    "font": "resolve-from-project-and-available-fonts",
+    "colors": {
+      "canvas": "#FFFFFF",
+      "text": "#242A33",
+      "mutedText": "#596579",
+      "sceneAccent": "#165DFF",
+      "actorSurface": "#BEDAFF",
+      "annotationSurface": "#E8F3FF",
+      "border": "#D8DEE8"
+    },
+    "typography": {"title": 32, "section": 24, "subsection": 20, "body": 18, "caption": 14, "code": 16},
+    "reading": {"textColumnWidth": 720, "lineHeightPercent": 150, "paragraphSpacing": 12, "listIndent": 24},
+    "spacing": {"section": 48, "column": 32, "item": 16, "padding": 24},
+    "screenAspectRatio": "from-source",
+    "actorNames": "from-task",
+    "stepCount": "from-task"
+  },
+  "documentPresentation": {
+    "appliesTo": ["harness-entry", "module-overview", "resource-spec", "template-config", "requirement-index", "requirement-summary", "writeback-delta"],
+    "blocks": [
+      {"role": "title", "typography": "title", "presentation": "文档主标题；Contract/版本标签使用次要样式。"},
+      {"role": "section", "typography": "section", "presentation": "章节标题，以字重和段前间距区分层级。"},
+      {"role": "subsection", "typography": "subsection", "presentation": "章节内的小节，与所属正文保持紧密。"},
+      {"role": "paragraph", "typography": "body", "presentation": "短段落，字段名适度加粗，定宽自动增高。"},
+      {"role": "list", "typography": "body", "presentation": "原生列表或项目符号/编号、悬挂缩进；索引可用分组列表。"},
+      {"role": "table", "typography": "body", "presentation": "表头与对齐列、行高随内容增长；遵循语义 TEXT 的完整读取约束。"},
+      {"role": "code", "typography": "code", "presentation": "必要的设计 token 或资源标识可用等宽字体，名称与值完整；不用于源码或命令区域。"},
+      {"role": "link", "typography": "body", "presentation": "有意义的标签；完整 URL 或节点 ID 同时保留在可见正文。"},
+      {"role": "status", "typography": "body", "presentation": "明确状态文字与克制强调，不仅靠颜色传达。"},
+      {"role": "metadata", "typography": "caption", "presentation": "设计版本、日期等次要信息；必要的设计来源链接保持可读。"}
+    ],
+    "contractTextNodes": ["DH / Entry", "DH / Module", "DH / Resource", "DH / Work Templates"],
+    "constraints": [
+      "正文用产品行为、设计规则与状态表达；源码信息只保留入口的一条仓库链接，不另建技术附录或隐藏副本。",
+      "项目上下文写产品与业务概览；具体页面行为归入布局、组件或场景模块。",
+      "在可见原生 TEXT 内按范围设置层级，保留设计内容与原有节点 ID；旧源码定位字段不再必填。",
+      "不能将文本蓝图全文同字号平铺；普通说明可用 Auto Layout 分段，语义 TEXT 内优先用富文本与分组列表。",
+      "必要的长链接保持完整，视觉换行不改变地址；不以缩小整页字体解决溢出。",
+      "项目文档配置优先，默认值仅填空缺；正文回读与整体/局部截图分别检查。"
+    ]
+  },
+  "primitives": [
+    {
+      "id": "doc/label",
+      "nativeType": "COMPONENT",
+      "properties": {"label": "TEXT", "role": "VARIANT"},
+      "roles": ["scene", "actor", "step", "status"],
+      "layout": "AUTO_LAYOUT",
+      "usage": "场景、参与端、步骤及状态标签；每种角色有文字表达，按需要建立变体。"
+    },
+    {
+      "id": "doc/annotation",
+      "nativeType": "COMPONENT",
+      "properties": {"heading": "TEXT", "body": "TEXT"},
+      "layout": "AUTO_LAYOUT",
+      "usage": "画面下方的前置、操作、反馈、异常或来源说明；正文随内容增高。"
+    },
+    {
+      "id": "doc/viewport",
+      "nativeType": "FRAME",
+      "layout": "SOURCE_ASPECT_RATIO",
+      "usage": "放置可编辑产品画面、组件实例或已标记的原稿参考；保留原始设计尺寸与来源。"
+    }
+  ],
+  "templates": [
+    {
+      "id": "work/scenario-flow",
+      "name": "场景流程",
+      "nativeType": "FRAME",
+      "layout": "AUTO_LAYOUT",
+      "uses": ["doc/label", "doc/annotation", "doc/viewport"],
+      "requiredSlots": ["task", "entryConditions", "actors", "steps", "outcomes", "sources"],
+      "optionalSlots": ["branches", "recovery", "verification"],
+      "structure": [
+        "场景标识与用户任务",
+        "前置条件、参与端及阅读顺序",
+        "步骤列 × 参与端行：标题 → 画面或明确的无操作说明 → 交互注释",
+        "关联分支、恢复路径与结果",
+        "设计依据、实现状态与必要的待验证事项"
+      ],
+      "repetition": {"actors": "one-or-more", "steps": "one-or-more"},
+      "constraints": [
+        "同列保持同一步骤的语义；使用横向 Auto Layout 组织步骤、纵向组织参与端。",
+        "标题和说明随内容增高；跨端比较时对齐对应区域，避免长文打乱步骤关系。",
+        "复杂分支另行展开并明确起止关系，不把分支画面排成必经步骤。"
+      ]
+    },
+    {
+      "id": "work/proposal-comparison",
+      "name": "方案对比",
+      "nativeType": "FRAME",
+      "layout": "AUTO_LAYOUT",
+      "uses": ["doc/label", "doc/annotation", "doc/viewport"],
+      "requiredSlots": ["sharedTask", "comparisonAxes", "proposals", "evidence", "selectionState"],
+      "optionalSlots": ["recommendation", "tradeoffs", "openQuestions"],
+      "structure": [
+        "共同任务、约束与比较维度",
+        "各方案：主张 → 关键画面或场景引用 → 按同一维度说明收益和代价",
+        "证据、推荐理由与待核实事项",
+        "真实选择记录或尚未选择"
+      ],
+      "repetition": {"proposals": "from-confirmed-scope", "comparisonAxes": "shared-across-proposals"},
+      "constraints": [
+        "方案列宽和信息层级一致，允许按内容增长；超宽时分组，保留共同评价维度。",
+        "方案数量和差异沿用已确认范围；模板不自动确定优胜方案。"
+      ]
+    },
+    {
+      "id": "work/resource-spec",
+      "name": "规范资源",
+      "nativeType": "FRAME",
+      "layout": "AUTO_LAYOUT",
+      "uses": ["doc/label", "doc/annotation"],
+      "requiredSlots": ["resourceId", "purposeAndScope", "assetOrRule", "usage", "sources", "designState", "implementationState"],
+      "optionalSlots": ["properties", "states", "dependencies", "confirmation", "supersedes", "verification"],
+      "structure": [
+        "标题、稳定资源 ID 与适用范围",
+        "真实资产、实例或可执行规则",
+        "使用条件、必要属性与状态",
+        "设计依据、依赖、设计状态、实现状态及必要的验证限制",
+        "实际确认记录与变更关系"
+      ],
+      "repetition": {"examples": "as-needed"},
+      "constraints": [
+        "资源旁保留可读取的原生 TEXT DH / Resource，使用资源说明蓝图的字段。",
+        "说明卡自身是文档 Frame；只有内部真实组件才记录为产品组件。",
+        "确认记录来自实际对话；缺少事实时标为未核实，不能由模板默认生成已确认状态。"
+      ]
+    }
+  ]
+}

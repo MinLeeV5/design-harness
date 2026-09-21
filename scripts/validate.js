@@ -7,8 +7,75 @@ import {isWithin, isFile, walk} from "./files.js";
 
 export const ROOT = path.resolve(import.meta.dirname, "..");
 export const SKILL_NAMES = ["design-harness-init", "design-harness-design"];
-const SHARED_SKILL_FILES = ["scripts/figma-reader.js", "assets/resource-card.txt", "LICENSE"];
+const SHARED_SKILL_FILES = ["scripts/figma-reader.js", "assets/resource-card.txt",
+  "references/work-templates.md", "assets/figma-work-templates.json",
+  "references/design-description.md", "assets/design-description.txt",
+  "third-party/design-md/LICENSE", "third-party/design-md/NOTICE.md", "LICENSE"];
 const PNG_SIGNATURE = Buffer.from("89504e470d0a1a0a", "hex");
+
+function validateWorkTemplates(filename) {
+  const errors = [];
+  let kit;
+  try { kit = JSON.parse(fs.readFileSync(filename, "utf8")); }
+  catch (error) { return [`Invalid work template JSON: ${error.message}`]; }
+  if (kit.schemaVersion !== 1 || kit.artifactKind !== "native-figma-construction-blueprint" ||
+    typeof kit.version !== "string" || !Array.isArray(kit.primitives) || !Array.isArray(kit.templates)) {
+    return ["Invalid work template catalog structure"];
+  }
+  const blocks = kit.documentPresentation?.blocks;
+  const typography = kit.defaults?.typography;
+  if (!Array.isArray(blocks) || !blocks.length || !typography || typeof typography !== "object") {
+    errors.push("Missing work template document presentation");
+  } else {
+    const roles = new Set();
+    for (const block of blocks) {
+      if (!block || typeof block.role !== "string" || !block.role || roles.has(block.role)) {
+        errors.push("Missing or duplicate work template document role");
+        continue;
+      }
+      roles.add(block.role);
+      if (!Object.hasOwn(typography, block.typography) || !Number.isFinite(typography[block.typography]) ||
+        typography[block.typography] <= 0) {
+        errors.push(`Unresolved or invalid work template typography: ${block.role}`);
+      }
+    }
+  }
+  const reading = kit.defaults?.reading;
+  for (const [field, allowZero] of [["textColumnWidth", false], ["lineHeightPercent", false],
+    ["paragraphSpacing", true], ["listIndent", true]]) {
+    const value = reading?.[field];
+    if (!Number.isFinite(value) || (allowZero ? value < 0 : value <= 0)) {
+      errors.push(`Invalid work template reading layout: ${field}`);
+    }
+  }
+  const ids = new Set();
+  const primitives = new Set(kit.primitives.map(item => item.id));
+  for (const item of [...kit.primitives, ...kit.templates]) {
+    if (typeof item.id !== "string" || !item.id || ids.has(item.id)) {
+      errors.push("Missing or duplicate work template asset ID");
+    }
+    ids.add(item.id);
+    if (!["FRAME", "COMPONENT", "COMPONENT_SET"].includes(item.nativeType)) {
+      errors.push(`Invalid native type in work template: ${item.id}`);
+    }
+  }
+  for (const template of kit.templates) {
+    if (!Array.isArray(template.uses) || template.uses.some(id => !primitives.has(id))) {
+      errors.push(`Unresolved work template primitive: ${template.id}`);
+    }
+    const required = template.requiredSlots;
+    const optional = template.optionalSlots;
+    if (!Array.isArray(required) || !required.length || !Array.isArray(optional)) {
+      errors.push(`Missing work template slots: ${template.id}`);
+    } else {
+      const slots = [...required, ...optional];
+      if (slots.some(slot => typeof slot !== "string" || !slot) || new Set(slots).size !== slots.length) {
+        errors.push(`Invalid or conflicting work template slots: ${template.id}`);
+      }
+    }
+  }
+  return errors;
+}
 
 function validateBranding(root, manifest) {
   const errors = [];
@@ -58,7 +125,10 @@ export function validateSkill(directory) {
 
   const required = ["SKILL.md", "agents/openai.yaml", "LICENSE", "scripts/figma-reader.js",
     "references/workflow.md", "references/figma-operations.md", "references/figma-console.md",
-    "references/figma-use.md", "references/evaluation.md", "references/sources.md", "assets/resource-card.txt"];
+    "references/figma-use.md", "references/evaluation.md", "references/sources.md", "assets/resource-card.txt",
+    "references/work-templates.md", "assets/figma-work-templates.json",
+    "references/design-description.md", "assets/design-description.txt",
+    "third-party/design-md/LICENSE", "third-party/design-md/NOTICE.md"];
   if (name === "design-harness-init") {
     required.push("references/context-contract.md", "references/modules.md", "references/asset-state.md",
       "assets/harness-entry.txt", "assets/module-overview.txt", "third-party/harness-designing-plugin/LICENSE");
@@ -74,6 +144,7 @@ export function validateSkill(directory) {
   }
   if (errors.length) return errors;
 
+  errors.push(...validateWorkTemplates(path.join(skill, "assets/figma-work-templates.json")));
   const files = [...walk(skill)];
   for (const filename of files) {
     if (fs.lstatSync(filename).isSymbolicLink()) {

@@ -182,7 +182,8 @@ describe("Plugin distribution", () => {
 
   test("Empty bundled notices prevent packaging", () => {
     for (const relative of ["skills/design-harness-init/third-party/harness-designing-plugin/LICENSE",
-      "skills/design-harness-design/third-party/impeccable/LICENSE", "skills/design-harness-design/third-party/impeccable/NOTICE.md"]) {
+      "skills/design-harness-design/third-party/impeccable/LICENSE", "skills/design-harness-design/third-party/impeccable/NOTICE.md",
+      ...SKILL_NAMES.flatMap(name => ["LICENSE", "NOTICE.md"].map(file => `skills/${name}/third-party/design-md/${file}`))]) {
       const filename = path.join(root, relative);
       const original = fs.readFileSync(filename);
       fs.writeFileSync(filename, "");
@@ -193,7 +194,8 @@ describe("Plugin distribution", () => {
 
   test("Missing skills or workflow assets prevent packaging", () => {
     for (const relative of ["skills/design-harness-init/SKILL.md", "skills/design-harness-init/assets/harness-entry.txt",
-      "skills/design-harness-init/references/figma-console.md", "skills/design-harness-design/references/figma-use.md"]) {
+      "skills/design-harness-init/references/figma-console.md", "skills/design-harness-design/references/figma-use.md",
+      ...SKILL_NAMES.flatMap(name => ["references/design-description.md", "assets/design-description.txt"].map(file => `skills/${name}/${file}`))]) {
       const filename = path.join(root, relative);
       const original = fs.readFileSync(filename);
       fs.unlinkSync(filename);
@@ -238,12 +240,62 @@ describe("Plugin distribution", () => {
   });
 
   test("Diverging shared resources are detected", () => {
-    for (const relative of ["scripts/figma-reader.js", "assets/resource-card.txt", "LICENSE"]) {
+    for (const relative of ["scripts/figma-reader.js", "assets/resource-card.txt",
+      "references/work-templates.md", "assets/figma-work-templates.json",
+      "references/design-description.md", "assets/design-description.txt",
+      "third-party/design-md/LICENSE", "third-party/design-md/NOTICE.md", "LICENSE"]) {
       const filename = path.join(root, "skills/design-harness-design", relative);
       const original = fs.readFileSync(filename);
       fs.appendFileSync(filename, "\n");
       assert.ok(validate(root).some(error => error.includes("Shared skill resource differs")));
       fs.writeFileSync(filename, original);
     }
+  });
+
+  test("Document typography references and reading dimensions must be usable", () => {
+    const skill = path.join(root, "skills/design-harness-init");
+    const filename = path.join(skill, "assets/figma-work-templates.json");
+    const original = fs.readFileSync(filename);
+    for (const mutate of [
+      kit => delete kit.documentPresentation,
+      kit => kit.documentPresentation.blocks.push({...kit.documentPresentation.blocks[0]}),
+      kit => kit.documentPresentation.blocks[0].typography = "missing-style",
+      kit => kit.defaults.typography.body = 0,
+      kit => kit.defaults.reading.textColumnWidth = -1,
+      kit => kit.defaults.reading.lineHeightPercent = "150",
+      kit => delete kit.defaults.reading.paragraphSpacing
+    ]) {
+      const kit = JSON.parse(original);
+      mutate(kit);
+      fs.writeFileSync(filename, JSON.stringify(kit));
+      assert.ok(validateSkill(skill).some(error => error.includes("work template")));
+      assert.throws(() => packagePlugin(path.join(base, "out"), root), /work template/);
+    }
+    const adjusted = JSON.parse(original);
+    adjusted.defaults.typography.body = 20;
+    adjusted.defaults.reading = {textColumnWidth: 640, lineHeightPercent: 160, paragraphSpacing: 0, listIndent: 0};
+    fs.writeFileSync(filename, JSON.stringify(adjusted));
+    assert.deepEqual(validateSkill(skill), []);
+    fs.writeFileSync(filename, original);
+  });
+
+  test("Broken work template dependencies and slots prevent distribution", () => {
+    const skill = path.join(root, "skills/design-harness-init");
+    const filename = path.join(skill, "assets/figma-work-templates.json");
+    const original = fs.readFileSync(filename);
+    for (const mutate of [
+      kit => kit.templates[0].uses.push("missing/primitive"),
+      kit => kit.templates[0].optionalSlots.push(kit.templates[0].requiredSlots[0]),
+      kit => kit.primitives.push({...kit.primitives[0]})
+    ]) {
+      const kit = JSON.parse(original);
+      mutate(kit);
+      fs.writeFileSync(filename, JSON.stringify(kit));
+      assert.ok(validateSkill(skill).some(error => error.includes("work template")));
+      assert.throws(() => packagePlugin(path.join(base, "out"), root), /work template/);
+    }
+    fs.writeFileSync(filename, "{broken");
+    assert.ok(validateSkill(skill).some(error => error.includes("Invalid work template JSON")));
+    fs.writeFileSync(filename, original);
   });
 });

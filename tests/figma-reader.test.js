@@ -79,6 +79,34 @@ for (const skill of ["design-harness-init", "design-harness-design"]) {
       assert.equal(f.entryText.characters, before);
     });
 
+    test("Compact and legacy styled entries remain readable without inspecting presentation", async () => {
+      const repositoryUrl = "https://example.invalid/team/product.git";
+      const entries = [
+        ["Design Harness / Contract 1", "示例项目 · 设计上下文入口",
+          "仓库：" + repositoryUrl, "适用范围：帮助用户完成日常任务",
+          "模块目录", "• context / 项目上下文 → 10:4"].join("\n"),
+        // Existing technical metadata stays readable during read-only work, without being required.
+        ["Design Harness / Contract 1", "Remote：upstream", "Clone URL：" + repositoryUrl,
+          "仓库内目录：apps/client", "基线：main / " + "a1b2c3d4".repeat(5),
+          "git clone '" + repositoryUrl + "' 'project copy'", "模块目录", "context → 10:4"].join("\n")
+      ];
+      for (const contents of entries) {
+        const f = fixture();
+        f.entryText.characters = contents;
+        // Rich text has mixed formatting; plain characters must remain sufficient for the contract.
+        f.entryText.fontSize = Symbol("mixed");
+        f.entryText.getStyledTextSegments = () => { throw Error("formatting should not be required"); };
+        Object.defineProperty(f.entryText, "hyperlink", {get() { throw Error("link-only knowledge"); }});
+        const decoration = f.node("10:7", "TEXT", "Visual title", f.entry, "");
+        Object.defineProperty(decoration, "characters", {get() { throw Error("unrequested sibling"); }});
+        const result = plain(await read(f.figma, {action: "read", pageId: f.harness.id, nodeIds: [f.entryText.id]}));
+        assert.equal(result.truncated, false);
+        assert.deepEqual(result.textNodes.map(node => [node.id, node.text]), [[f.entryText.id, contents]]);
+        assert.deepEqual(f.fetched, [f.harness.id, f.entryText.id]);
+        assert.equal(f.entryText.characters, contents);
+      }
+    });
+
     test("Cross-page targets fail before content is read", async () => {
       const f = fixture();
       Object.defineProperty(f.foreign, "characters", {get() { throw Error("read leak"); }});

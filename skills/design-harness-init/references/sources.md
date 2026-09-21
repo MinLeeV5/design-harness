@@ -7,6 +7,11 @@
 - [设计 Harness 文章](https://rexandduckie.substack.com/p/stop-chasing-design-tools-start-building)：Context / Skills / Workflow / Evaluation / Knowledge 的概念背景，未复制文章正文。
 - [BilLogic/harness-designing-plugin](https://github.com/BilLogic/harness-designing-plugin)：架构与评价思路的参考。需要时从仓库当前默认分支的 README 定位相关说明；本 Skill 独立实现 Figma 初始化，不分发或执行上游工作流与脚本。随附其 [MIT 许可证](../third-party/harness-designing-plugin/LICENSE)。
 
+## 设计语言描述
+
+- [google-labs-code/design.md](https://github.com/google-labs-code/design.md)：设计语言的结构化描述方式，结合精确 token、视觉意图、用途与边界。首次编写或修订相关描述时，读取默认分支的 [格式说明](https://github.com/google-labs-code/design.md/blob/HEAD/docs/spec.md) 与 [写作理念](https://github.com/google-labs-code/design.md/blob/HEAD/PHILOSOPHY.md)。
+- 本 Skill 的 [Figma 适配](design-description.md) 和 [内容蓝图](../assets/design-description.txt) 按 Apache-2.0 保留 [许可证](../third-party/design-md/LICENSE) 与 [来源/修改声明](../third-party/design-md/NOTICE.md)。使用项目真实资产，不复制示例品牌或安装上游 CLI；维护适配时核对当前许可与声明。
+
 ## 获取方式
 
 每次任务首次需要某份外部资料时，通过可用的网页或仓库读取工具获取默认分支最新内容；不固定 tag、commit 或版本锁。只读与当前问题有关的文档，同一任务已读取的内容可复用；用户要求刷新时重新获取。链接失效时从仓库当前目录定位新路径。
