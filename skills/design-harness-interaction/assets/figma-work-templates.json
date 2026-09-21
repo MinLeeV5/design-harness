@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "kit": "design-harness-work-templates",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "artifactKind": "native-figma-construction-blueprint",
   "namespace": "DH Docs",
   "defaults": {
@@ -215,7 +215,7 @@
     },
     {
       "id": "work/proposal-comparison",
-      "name": "局部方案对比",
+      "name": "代表方案对比",
       "nativeType": "FRAME",
       "layout": "AUTO_LAYOUT",
       "uses": [
@@ -233,22 +233,28 @@
       "optionalSlots": [
         "recommendation",
         "tradeoffs",
-        "openQuestions"
+        "openQuestions",
+        "selectionRationale",
+        "integrationScope",
+        "integratedPreview",
+        "integratedConfirmation"
       ],
       "structure": [
-        "共同任务、约束与比较维度",
-        "局部备选：主张 → 对应片段与原型入口 → 同一维度的简短收益和代价",
+        "共同任务、约束、代表画面范围与比较维度",
+        "候选方案：主张 → 实际片段/代表画面与必要原型入口 → 同一维度的收益和代价",
         "证据、推荐理由与待核实事项",
-        "真实选择记录或尚未选择"
+        "真实选择及理由，或尚未选择",
+        "需要整合时呈现主方向、融合范围、整合代表稿与该版本的确认"
       ],
       "repetition": {
         "proposals": "from-confirmed-scope",
         "comparisonAxes": "shared-across-proposals"
       },
       "constraints": [
-        "方案列宽和信息层级一致，允许按内容增长；超宽时分组，保留共同评价维度。",
-        "默认一套主方案，只在关键交互分歧处用本模板；选定后并回，完整多方案须有用户明确要求。",
-        "方案数量和差异沿用已确认范围；模板不自动确定优胜方案。"
+        "方案列宽和信息层级一致，允许按内容增长；超宽时分组，保留共同内容、状态、尺寸与评价维度。",
+        "交互阶段默认一套主方案，关键分歧才做局部备选；选定后并回。",
+        "视觉阶段先访谈目标，再默认比较 2–3 套代表方案，小修改同样适用；选主方向并按需融合，整合代表稿确认后才完整展开。",
+        "完整多套方案须有用户明确要求；模板不自动确定优胜方案或推定用户批准。"
       ]
     },
     {
