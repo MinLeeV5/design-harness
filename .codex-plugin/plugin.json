@@ -1,13 +1,13 @@
 {
   "name": "design-harness",
-  "version": "0.1.1",
+  "version": "0.1.1+codex.20260918094044",
   "homepage": "https://github.com/MinLeeV5/design-harness",
   "repository": "https://github.com/MinLeeV5/design-harness",
-  "description": "以 Figma 为项目设计知识载体，提供上下文初始化与新需求设计两项能力：按需加载项目约束，逐题访谈明确需求，生成可比较的 UI/UX 方案，并在确认后更新设计知识。",
+  "description": "以 Figma 为项目设计知识载体，逐题确认流程，先完成主流程与分支原型，再复用项目资产细化视觉，并在确认后更新设计知识。",
   "author": {
     "name": "Min Lee"
   },
-  "license": "MIT；Impeccable 适配内容采用 Apache-2.0",
+  "license": "MIT；Impeccable 与 DESIGN.md 适配内容采用 Apache-2.0",
   "keywords": [
     "设计",
     "Figma",
@@ -20,21 +20,21 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Design Harness · 设计工作流",
-    "shortDescription": "在 Figma 中沉淀项目设计知识，逐题访谈后生成多套方案，并确认知识回写",
-    "longDescription": "初始化：从已有 Figma 项目与代码仓库逐模块整理上下文，先盘点现状，再经用户确认补齐设计知识与原生资产。新需求设计：按需读取项目约束，通过逐题访谈明确需求，在独立页面生成可比较的 UI/UX 方案，并在设计过程中检查方案质量。用户选定方案并确认具体知识增量后，回写项目设计知识。项目规范优先，区分已实现内容与已确认但待实现的设计。",
+    "shortDescription": "整理项目知识与 Library 来源，分步确认交互原型，再细化视觉并回写",
+    "longDescription": "初始化：从 Figma、适用团队 Library 与代码逐模块整理项目依据，确认后补齐已有实现的知识与资产。新需求设计：先确认整体需求与流程骨架，再边体验边访谈，先完成主流程可点击低保真原型，再逐条确认分支，最后统一细化视觉。默认一套主方案，关键分歧比较局部备选；优先复用项目资产，必要时补矢量图标、示意图或情境插画。最终设计与具体知识增量确认后回写 Harness。",
     "developerName": "Min Lee",
     "websiteURL": "https://github.com/MinLeeV5/design-harness",
     "category": "Productivity",
     "capabilities": [
-      "初始化 Figma 项目设计知识与资产",
+      "初始化项目知识与 Library 复用规则",
       "按需逐层加载项目上下文",
-      "通过逐题访谈明确设计需求",
-      "生成可比较的 UI/UX 设计方案",
+      "逐题确认主流程与分支交互原型",
+      "复用视觉资产并补齐必要图示与插画",
       "经用户确认后更新项目设计知识"
     ],
     "defaultPrompt": [
-      "用 $design-harness-init 根据这个 Figma 项目和代码仓库，初始化项目设计知识与可复用资产。",
-      "用 $design-harness-design 读取项目设计约束，逐题讨论这个需求，再生成多个方案供我选择。"
+      "用 $design-harness-init 根据这个 Figma 项目和代码仓库，整理设计知识、Library 来源与可复用资产。",
+      "用 $design-harness-design 先确认流程并做主流程可点击原型，再逐条补分支，最后细化视觉。"
     ],
     "brandColor": "#A259FF",
     "composerIcon": "./assets/icon.png",

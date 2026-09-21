@@ -87,13 +87,23 @@ flowchart LR
 
 产品界面与评审说明都优先图形配必要短文：流程图表达任务路径，状态画面呈现反馈，局部对照帮助取舍。保留有歧义图标的短标签、重要操作后果、可读取规则和定位，不用统一字数或图文比例衡量清晰度。工作模板蓝图 1.3.0 支持主流程/分支关系、原型入口和局部比较；升级仍遵守项目现有资产与确认范围。
 
-## Library 与插画如何使用
+## Library、图标与插画如何使用
 
 Init 在设计风格模块登记 `style/library-sources`，记录适用库、真实引用、使用范围及图标/插画/色彩规则；变量、组件和模板仍由各自模块维护。Design 按需复核来源，先找项目认可资产与已启用团队 Library，再查相关可访问库。未找到合适资源、资源不适用和访问受限分别表达，不把检索失败当作不存在。
 
 缺口按类型补齐：通用图标优先成熟且风格一致的矢量来源，关系与步骤优先可编辑示意图，必要情境插画按项目上下文生成。低保真阶段只补交互判断必需的图示，正式插画在视觉阶段完善，并完成实际导入、裁切与渲染检查。颜色沿用项目语义变量；生成位图不冒充矢量或原生组件。
 
-[视觉资产指引](skills/design-harness-init/references/visual-assets.md) 与 [来源蓝图](skills/design-harness-init/assets/library-sources.txt) 随两个 Skill 携带。它们通过当前可用工具工作，不捆绑图像服务、图标库或 Figma 连接器；缺少能力时明确未完成项。使用资产、登记来源与管理/发布源库的授权范围分别核对。
+内部方法分为三份按需加载的文档，仍只有 Init、Design 两个公开 Skill：
+
+| 方法 | 何时加载 | 负责内容 |
+| --- | --- | --- |
+| [视觉资产选择](skills/design-harness-init/references/visual-assets.md) | 需要查库或选择资产类型 | 来源、适用性、复用与补齐方式 |
+| [图标设计](skills/design-harness-init/references/iconography.md) | 选用、补齐或检查图标 | 语境含义、短标签、家族、矢量制作、视觉重量和实际尺寸 |
+| [插画设计](skills/design-harness-init/references/illustration.md) | 需要示意图或情境插画 | 表达目的、制作说明、代表样图、迭代、必要系列与版面验收 |
+
+Init 用这些维度记录已有规则和代表资产；Design 按当前需求制作与检查，不要求每次都生成图形。图标造型参考 Lucide，理解与评价参考 NN/g，插画方法可查阅 IBM 与 Atlassian 官方页面；项目规范优先，具体家族参数不作为通用默认值。按问题读取最新指导，[来源声明](skills/design-harness-init/third-party/visual-assets/NOTICE.md) 区分本地适配与外部阅读，随包保留 Lucide 许可，不分发外部图标集、插画或其他网站手册。
+
+三份方法与 [来源蓝图](skills/design-harness-init/assets/library-sources.txt) 随两个 Skill 携带。它们通过当前可用工具工作，不捆绑图像服务、图标库或 Figma 连接器；缺少能力时明确未完成项。使用资产、登记来源与管理/发布源库的授权范围分别核对。
 
 ## Skill 组织
 
@@ -107,7 +117,7 @@ skills/
     references/   # 整理流程、上下文契约、模块标准、状态与检查
     assets/       # Harness 入口、模块概览、资源说明蓝图
     scripts/      # Figma 读取助手
-    third-party/  # Harness 架构与 DESIGN.md 参考的许可证/声明
+    third-party/  # Harness、DESIGN.md、视觉指导的许可证/声明
     LICENSE
   design-harness-design/
     SKILL.md
@@ -115,11 +125,11 @@ skills/
     references/   # 读取、访谈、原型、视觉资产、评价、回写与社区指导
     assets/       # 需求 Page、原型、Library 来源与知识增量蓝图
     scripts/      # Figma 读取助手
-    third-party/  # Impeccable、UI/UX Pro Max 与 DESIGN.md 的许可证/声明
+    third-party/  # Impeccable、UI/UX Pro Max、DESIGN.md、视觉指导的许可证/声明
     LICENSE
 ```
 
-根目录保留插件配置、品牌资源、开发校验/打包脚本、测试和维护文档。根目录 `assets/` 仅供插件展示使用；两个 Skill 不依赖这些品牌资源或根目录的运行文档，也不互相跨目录读取。随两者携带的读取助手、资源说明蓝图、视觉资产指引与 Library 来源蓝图、工作模板约定与蓝图、设计描述指引与蓝图/许可声明、原创许可证通过一致性校验保持同步。
+根目录保留插件配置、品牌资源、开发校验/打包脚本、测试和维护文档。根目录 `assets/` 仅供插件展示使用；两个 Skill 不依赖这些品牌资源或根目录的运行文档，也不互相跨目录读取。随两者携带的读取助手、资源说明蓝图、视觉资产选择/图标/插画方法及来源声明与许可、Library 来源蓝图、工作模板约定与蓝图、设计描述指引与蓝图/许可声明、原创许可证通过一致性校验保持同步。
 
 ## 工作方式
 
@@ -198,7 +208,7 @@ flowchart TB
 
 社区方法按问题补充：Impeccable 提供设计与评价指导，UI/UX Pro Max 提供 UX、视觉与平台规则。使用实际平台与项目规范，不强制运行上游设计系统生成、安装、持久化、独立审计或多 Agent 流程。首次需要某份指导时读取默认分支最新内容，不维护版本锁；失败时说明未取得最新指导，并继续项目依据支持的工作。
 
-第三方资料随所属 Skill 管理：Init 保留 Harness 架构来源，Design 保留 Impeccable 与 UI/UX Pro Max 的来源/许可与适配，两者携带 DESIGN.md 的来源和声明。“倾向代码”用于还原当前事实；已确认的新设计可标为**已确认设计／待实现**，后续不能用旧实现覆盖。阶段交互确认和最终设计、知识回写的范围分开记录。
+第三方资料随所属 Skill 管理：Init 保留 Harness 架构来源，Design 保留 Impeccable 与 UI/UX Pro Max 的来源/许可与适配，两者携带 DESIGN.md 和视觉指导的来源及适用声明。“倾向代码”用于还原当前事实；已确认的新设计可标为**已确认设计／待实现**，后续不能用旧实现覆盖。阶段交互确认和最终设计、知识回写的范围分开记录。
 
 ## 如何选择 Figma 工具
 
@@ -292,10 +302,11 @@ codex plugin add design-harness@design-harness
 - [Init 入口](skills/design-harness-init/SKILL.md) · [模块产出标准](skills/design-harness-init/references/modules.md) · [Init 检查](skills/design-harness-init/references/evaluation.md)
 - [Design 入口](skills/design-harness-design/SKILL.md) · [访谈机制](skills/design-harness-design/references/interview.md) · [Design 检查](skills/design-harness-design/references/evaluation.md)
 - [交互原型](skills/design-harness-design/references/prototyping.md) · [Library 与视觉资产](skills/design-harness-design/references/visual-assets.md) · [知识更新](skills/design-harness-design/references/knowledge-update.md)
+- [图标方法](skills/design-harness-design/references/iconography.md) · [插画方法](skills/design-harness-design/references/illustration.md) · [视觉指导来源](skills/design-harness-design/third-party/visual-assets/NOTICE.md)
 - [Impeccable 指导](skills/design-harness-design/references/impeccable.md) · [UI/UX Pro Max 适配](skills/design-harness-design/references/ui-ux-pro-max.md)
 - [Init 工具选择](skills/design-harness-init/references/figma-operations.md) · [Init Console 操作](skills/design-harness-init/references/figma-console.md) · [Design Console 操作](skills/design-harness-design/references/figma-console.md)
 - [Init 来源与许可](skills/design-harness-init/references/sources.md) · [Design 来源与许可](skills/design-harness-design/references/sources.md) · [验证范围](docs/validation.md)
 
 辅助脚本测试验证读取范围、截断续读与分发包一致性，不能证明真实项目的设计质量。实际运行 Init/Design 时仍需按工作流完成具体模块的用户确认、原生资产检查和截图核验。
 
-原创部分与 UI/UX Pro Max 适配采用 MIT；Impeccable 与 DESIGN.md 适配内容遵循 Apache-2.0，各来源保留对应许可与声明，详见 [原创许可证](LICENSE) 和各 Skill 来源说明。
+原创部分与 UI/UX Pro Max 适配采用 MIT；Impeccable 与 DESIGN.md 适配内容遵循 Apache-2.0；Lucide 方法适配保留其 ISC 许可与上游附带声明。外部阅读页面和素材不属于本插件的许可授权范围。详见 [原创许可证](LICENSE) 和各 Skill 来源说明。

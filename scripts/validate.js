@@ -8,7 +8,8 @@ import {isWithin, isFile, walk} from "./files.js";
 export const ROOT = path.resolve(import.meta.dirname, "..");
 export const SKILL_NAMES = ["design-harness-init", "design-harness-design"];
 const SHARED_SKILL_FILES = ["scripts/figma-reader.js", "assets/resource-card.txt",
-  "references/visual-assets.md", "assets/library-sources.txt",
+  "references/visual-assets.md", "references/iconography.md", "references/illustration.md", "assets/library-sources.txt",
+  "third-party/visual-assets/NOTICE.md", "third-party/lucide/LICENSE",
   "references/work-templates.md", "assets/figma-work-templates.json",
   "references/design-description.md", "assets/design-description.txt",
   "third-party/design-md/LICENSE", "third-party/design-md/NOTICE.md", "LICENSE"];
@@ -127,7 +128,8 @@ export function validateSkill(directory) {
   const required = ["SKILL.md", "agents/openai.yaml", "LICENSE", "scripts/figma-reader.js",
     "references/workflow.md", "references/figma-operations.md", "references/figma-console.md",
     "references/figma-use.md", "references/evaluation.md", "references/sources.md", "assets/resource-card.txt",
-    "references/visual-assets.md", "assets/library-sources.txt",
+    "references/visual-assets.md", "references/iconography.md", "references/illustration.md", "assets/library-sources.txt",
+    "third-party/visual-assets/NOTICE.md", "third-party/lucide/LICENSE",
     "references/work-templates.md", "assets/figma-work-templates.json",
     "references/design-description.md", "assets/design-description.txt",
     "third-party/design-md/LICENSE", "third-party/design-md/NOTICE.md"];

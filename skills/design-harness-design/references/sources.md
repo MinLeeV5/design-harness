@@ -17,6 +17,12 @@
 - [google-labs-code/design.md](https://github.com/google-labs-code/design.md)：设计语言描述的结构与写法。编写或修订相关正文时，读取默认分支的 [格式说明](https://github.com/google-labs-code/design.md/blob/HEAD/docs/spec.md) 与 [写作理念](https://github.com/google-labs-code/design.md/blob/HEAD/PHILOSOPHY.md)，把视觉意图与真实 token/组件关联。
 - 本 Skill 的 [Figma 适配](design-description.md) 与 [内容蓝图](../assets/design-description.txt) 保留 [Apache-2.0 许可证](../third-party/design-md/LICENSE) 和 [来源/修改声明](../third-party/design-md/NOTICE.md)。沿用上方按需获取方式；维护适配时核对上游最新许可。既有项目设计语言优先，旧描述不会因上游变化自动失效。
 
+## 图标与插画方法
+
+从 [视觉资产选择](visual-assets.md) 按需要进入 [图标](iconography.md) 或 [插画](illustration.md) 方法。Lucide 提供图标造型与一致性的参考，NN/g 提供识别与语境理解的评价思路，IBM 和 Atlassian 的官方页面用于在线查阅插画表达与使用场景。具体规则依项目与所选资产体系确定，不把通用指导或图像生成工具等同于素材来源。
+
+按上方方式读取官方现行页面或默认分支；本地执行规则不是上游规范快照。适配与外部阅读的区别、版权归属和限制见 [视觉指导来源声明](../third-party/visual-assets/NOTICE.md)，Lucide 的 [上游 LICENSE](../third-party/lucide/LICENSE) 随包保留。没有复制 IBM、Atlassian、NN/g 的正文或素材，也不把它们声明为本插件 MIT 授权内容。
+
 ## 访谈方法
 
 用户提供的 harness-cli brainstorming 与 grilling 是逐题访谈、推荐理由和成熟度判断的思路来源。[访谈机制](interview.md) 为本 Skill 独立编写，不复制或分发外部 Skill，也不要求安装它们。需要重新研究这些方法时，读取用户当前提供的来源，不要求特定旧版本。

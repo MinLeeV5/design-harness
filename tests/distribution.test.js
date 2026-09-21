@@ -60,7 +60,8 @@ describe("Plugin distribution", () => {
       assert.deepEqual(fs.readFileSync(path.join(plugin, branding[field])), fs.readFileSync(path.join(root, branding[field])));
     }
     for (const relative of [
-      ...SKILL_NAMES.flatMap(name => ["references/visual-assets.md", "assets/library-sources.txt", "assets/figma-work-templates.json"]
+      ...SKILL_NAMES.flatMap(name => ["references/visual-assets.md", "references/iconography.md", "references/illustration.md",
+        "third-party/visual-assets/NOTICE.md", "third-party/lucide/LICENSE", "assets/library-sources.txt", "assets/figma-work-templates.json"]
         .map(file => `skills/${name}/${file}`)),
       ...["references/prototyping.md", "assets/interaction-prototype.txt", "references/ui-ux-pro-max.md",
         "third-party/ui-ux-pro-max/LICENSE", "third-party/ui-ux-pro-max/NOTICE.md"].map(file => `skills/design-harness-design/${file}`)
@@ -192,6 +193,7 @@ describe("Plugin distribution", () => {
     for (const relative of ["skills/design-harness-init/third-party/harness-designing-plugin/LICENSE",
       "skills/design-harness-design/third-party/impeccable/LICENSE", "skills/design-harness-design/third-party/impeccable/NOTICE.md",
       "skills/design-harness-design/third-party/ui-ux-pro-max/LICENSE", "skills/design-harness-design/third-party/ui-ux-pro-max/NOTICE.md",
+      ...SKILL_NAMES.flatMap(name => ["third-party/visual-assets/NOTICE.md", "third-party/lucide/LICENSE"].map(file => `skills/${name}/${file}`)),
       ...SKILL_NAMES.flatMap(name => ["LICENSE", "NOTICE.md"].map(file => `skills/${name}/third-party/design-md/${file}`))]) {
       const filename = path.join(root, relative);
       const original = fs.readFileSync(filename);
@@ -206,7 +208,8 @@ describe("Plugin distribution", () => {
       "skills/design-harness-init/references/figma-console.md", "skills/design-harness-design/references/figma-use.md",
       ...["references/prototyping.md", "assets/interaction-prototype.txt", "references/ui-ux-pro-max.md"]
         .map(file => `skills/design-harness-design/${file}`),
-      ...SKILL_NAMES.flatMap(name => ["references/visual-assets.md", "assets/library-sources.txt"].map(file => `skills/${name}/${file}`)),
+      ...SKILL_NAMES.flatMap(name => ["references/visual-assets.md", "references/iconography.md", "references/illustration.md",
+        "assets/library-sources.txt"].map(file => `skills/${name}/${file}`)),
       ...SKILL_NAMES.flatMap(name => ["references/design-description.md", "assets/design-description.txt"].map(file => `skills/${name}/${file}`))]) {
       const filename = path.join(root, relative);
       const original = fs.readFileSync(filename);
@@ -253,7 +256,8 @@ describe("Plugin distribution", () => {
 
   test("Diverging shared resources are detected", () => {
     for (const relative of ["scripts/figma-reader.js", "assets/resource-card.txt",
-      "references/visual-assets.md", "assets/library-sources.txt",
+      "references/visual-assets.md", "references/iconography.md", "references/illustration.md", "assets/library-sources.txt",
+      "third-party/visual-assets/NOTICE.md", "third-party/lucide/LICENSE",
       "references/work-templates.md", "assets/figma-work-templates.json",
       "references/design-description.md", "assets/design-description.txt",
       "third-party/design-md/LICENSE", "third-party/design-md/NOTICE.md", "LICENSE"]) {

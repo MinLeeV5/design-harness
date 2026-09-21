@@ -13,7 +13,7 @@ description: 从已有 Figma 项目与代码仓库建立或增量更新 Design H
 
 1. 按 [Init 工作流](references/workflow.md) 工作：先整理全部存量，再分模块补齐代码已实现的缺失资产。
 2. 首次访问 Figma 时先按 [工具探测与选择](references/figma-operations.md) 检查实际连接、目标文件并匹配本次操作，再读 [Figma 上下文契约](references/context-contract.md) 定位或建立入口。复用已确认内容与节点，避免重复建库。
-3. 整理具体模块时读 [模块产出标准](references/modules.md) 对应部分；按 [Library 与视觉资产](references/visual-assets.md) 发现适用来源、登记复用规则，按 [DESIGN.md 式描述](references/design-description.md) 解释视觉意图和精确依据。每个模块先展示可审阅的内容和变更计划，确认后才生成到 Figma。
+3. 整理具体模块时读 [模块产出标准](references/modules.md) 对应部分；按 [视觉资产选择与 Library](references/visual-assets.md) 发现适用来源，需要记录或检查图标/插画时再读对应方法，按 [DESIGN.md 式描述](references/design-description.md) 解释视觉意图和精确依据。每个模块先展示可审阅的内容和变更计划，确认后才生成到 Figma。
 4. 写入文档前，按 [Figma 工作模板与图形表达](references/work-templates.md) 用流程图、状态画面、代表资产和必要短文组织内容，保留可读规则与定位，沿用项目文档配置；产品页面模板继续归入模板库。
 5. 写入时按 [工具衔接与写入](references/figma-operations.md) 选择可完成本模块需求的工具；按需加载 Console 或 use_figma 指引。真实变量、组件和模板需要原生可编辑资产，索引或截图不能代替它们。
 6. 写入后按 [嵌入式检查](references/evaluation.md) 验证对应产物。结束时说明完成模块、证据链接和未完成原因。
