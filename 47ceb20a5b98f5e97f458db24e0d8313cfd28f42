@@ -1,0 +1,99 @@
+skills/design-harness-init/references/workflow.md
+  9f762a2ddc7c180b 17
+README.md
+  ff1dacfd2784cf4e 47
+skills/design-harness-init/references/design-description.md
+  9f762a2ddc7c180b 1-6,8-39,41-42
+  ff1dacfd2784cf4e 7,40
+AGENTS.md
+  9f762a2ddc7c180b 18
+skills/design-harness-init/references/work-templates.md
+  9f762a2ddc7c180b 1-2,4-14,49-52,56,58-64,66-71,73-95
+  ff1dacfd2784cf4e 3,43,53-54,57
+skills/design-harness-init/references/context-contract.md
+  11a9ddc8748ec723 23-24
+  9f762a2ddc7c180b 21-22
+skills/design-harness-init/references/evaluation.md
+  9f762a2ddc7c180b 10-12,19-26
+  11a9ddc8748ec723 27-28
+scripts/validate.js
+  9f762a2ddc7c180b 38-46,73-79
+  ff1dacfd2784cf4e 10-13,16-35
+docs/validation.md
+  9f762a2ddc7c180b 32-39
+tests/figma-reader.test.js
+  9f762a2ddc7c180b 82-108
+.codex-plugin/plugin.json
+  9f762a2ddc7c180b 3
+skills/design-harness-init/references/modules.md
+  11a9ddc8748ec723 16,19
+  9f762a2ddc7c180b 24,46,53
+tests/distribution.test.js
+  9f762a2ddc7c180b 276-293
+  ff1dacfd2784cf4e 243-245
+skills/design-harness-init/assets/design-description.txt
+  9f762a2ddc7c180b 1-44
+skills/design-harness-init/assets/harness-entry.txt
+  9f762a2ddc7c180b 15,20,23
+skills/design-harness-init/assets/figma-work-templates.json
+  9f762a2ddc7c180b 1-3,5-18,39-41,125-126,128-129,134-139
+  ff1dacfd2784cf4e 4,19-38,44-123,127,130-133
+skills/design-harness-init/assets/resource-card.txt
+  9f762a2ddc7c180b 1
+skills/design-harness-init/references/asset-state.md
+  9f762a2ddc7c180b 3,7,10,17
+skills/design-harness-init/references/sources.md
+  11a9ddc8748ec723 10-14
+skills/design-harness-init/assets/module-overview.txt
+  9f762a2ddc7c180b 12,14
+  11a9ddc8748ec723 15-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.8",
+  "base_commit_sha": "47ceb20a5b98f5e97f458db24e0d8313cfd28f42",
+  "prompts": {
+    "11a9ddc8748ec723": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0b2d7-894d-7ee3-b790-41a46b1fa920",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 367,
+      "total_deletions": 6,
+      "accepted_lines": 124,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/888aa61a0cc576cb708851ba441cb8d0debb5626b586a7c74a3868e60c57852f"
+    },
+    "9f762a2ddc7c180b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0b383-28a5-74d3-a622-28e39f4dab2f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 1032,
+      "total_deletions": 197,
+      "accepted_lines": 392,
+      "overriden_lines": 13,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/45c1c77b9606b7ad24d9e89b57ba14b9f84dcd8e171b0f29f888d038932ab91c"
+    },
+    "ff1dacfd2784cf4e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0be00-4f76-7580-bb32-ab41651c1ef5",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 4705,
+      "total_deletions": 2549,
+      "accepted_lines": 3425,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/380a058ee5e39f8f0daed206efe29f8d42b477f75b85f8c1d4dceb8b5a57a399"
+    }
+  }
+}
