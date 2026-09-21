@@ -1,0 +1,30 @@
+README.md
+  ff1dacfd2784cf4e 13,32,38-43,77
+docs/validation.md
+  ff1dacfd2784cf4e 3,16,36-43,66,69,89,101,103
+.codex-plugin/plugin.json
+  ff1dacfd2784cf4e 24,31,38
+AGENTS.md
+  ff1dacfd2784cf4e 13-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.8",
+  "base_commit_sha": "52fad223cef88913419f3849e0a6ff7d4e71d521",
+  "prompts": {
+    "ff1dacfd2784cf4e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0be00-4f76-7580-bb32-ab41651c1ef5",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 243,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/76604a92ab41bdc8cc76b50b5a93b3ed0d692054869d63901925d937cdf18c00"
+    }
+  }
+}
