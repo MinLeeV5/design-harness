@@ -21,21 +21,21 @@
   "interface": {
     "displayName": "Design Harness · 设计工作流",
     "shortDescription": "四个独立设计阶段，以交付物和确认结论交接，由用户控制推进",
-    "longDescription": "初始化、交互设计、视觉设计和知识回写四个独立 Skill，均由用户显式启动。交互阶段逐题访谈，先确认主流程原型再逐条处理分支；视觉阶段承接确认稿，复用项目 Library 并按需补齐图标与插画；回写阶段只沉淀批准的知识增量。每阶段维护可见 Figma 交接记录，支持新任务恢复；下游发现上游问题时提出建议，由用户决定是否返回。",
+    "longDescription": "初始化、交互设计、视觉设计和知识回写四个独立 Skill，均由用户显式启动。交互阶段逐题访谈，先确认主流程原型再逐条处理分支；视觉阶段先访谈目标，默认比较 2–3 套代表方案，小修改也适用；选主方向并整合确认后，复用 Library 展开完整设计；回写阶段只沉淀批准的知识增量。每阶段维护可见 Figma 交接记录，支持新任务恢复；下游发现上游问题时提出建议，由用户决定是否返回。",
     "developerName": "Min Lee",
     "websiteURL": "https://github.com/MinLeeV5/design-harness",
     "category": "Productivity",
     "capabilities": [
       "逐模块初始化项目知识与 Library 复用规则",
       "先主流程后分支的交互原型与访谈",
-      "承接确认交互的视觉细化与资产复用",
+      "视觉目标访谈、代表方案比较与整合确认",
       "按批准增量更新 Harness 资源与索引",
       "可见交接记录与阶段恢复，人工控制切换"
     ],
     "defaultPrompt": [
       "用 $design-harness-init 根据这个 Figma 项目和仓库，逐模块整理并补齐设计依据。",
       "用 $design-harness-interaction 先确认流程骨架与主流程原型，再逐条处理分支，完成后交接。",
-      "用 $design-harness-visual 读取这份交互交接，在已确认行为范围内复用 Library 并细化视觉。"
+      "用 $design-harness-visual 承接这份交互交接，先访谈目标，再比较 2–3 套代表方案，整合确认后展开。"
     ],
     "brandColor": "#A259FF",
     "composerIcon": "./assets/icon.png",

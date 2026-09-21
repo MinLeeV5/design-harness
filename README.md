@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | `$design-harness-init` | Figma 项目与代码仓库 | 逐模块确认存量知识与 Library 来源，补齐代码已有而设计缺失的资产；交付 Harness 与初始化记录后停止 |
 | `$design-harness-interaction` | 新需求、项目依据或交互交接 | 逐题访谈，先确认流程骨架和主流程可点击低保真原型，再逐条完成分支；交付交互基线后停止 |
-| `$design-harness-visual` | 已确认的交互或行为明确的现有界面 | 复用 Library，细化版面、信息表达、图标、插画和颜色；交付确认稿与候选知识增量后停止 |
+| `$design-harness-visual` | 已确认的交互或行为明确的现有界面 | 先访谈目标并比较 2–3 套代表方案，选主方向及整合确认后完整展开；交付确认稿与候选知识增量后停止 |
 | `$design-harness-writeback` | 已确认设计与候选知识增量 | 展示具体增量，按批准范围更新 Harness 资源、状态与索引；核验实际结果后停止 |
 
 ```mermaid
@@ -29,11 +29,17 @@ flowchart LR
 
 > 用 $design-harness-interaction 读取这个项目的 Harness，先梳理流程。主流程原型确认后再逐条做分支，完成后给我交接链接。
 
-> 用 $design-harness-visual 承接这份交互交接，只完成已确认范围的视觉设计。发现交互问题时先提出建议，由我决定是否返回。
+> 用 $design-harness-visual 承接这份交互交接，先访谈视觉目标，再给我 2–3 套代表方案。选主方向并整合确认后再完整展开；交互问题由我决定是否返回。
 
 > 用 $design-harness-writeback 读取这份确认稿，列出具体知识增量，按已批准范围更新 Harness。
 
 会话已有范围与明确确认时直接沿用。可查询事实先自行核实，访谈每次一个问题并给推荐理由。设计确认、验证结果与回写授权分别保留；下游不能以优化为由改写上游已确认的行为。
+
+## 视觉探索与选择
+
+视觉阶段采用“目标访谈 → 2–3 套代表方案 → 对比访谈 → 选主方向并按需融合 → 整合稿确认 → 完整展开”。每项新的视觉需求默认执行，小修改也展示备选并确认；已有风格用于约束探索范围。大需求选择关键页面，小修改聚焦受影响区域，在相同内容、状态、尺寸和交互约束下比较实际画面。
+
+每套方案说明目标、差异、收益与代价，Agent 给出推荐及理由，再逐题讨论具体取舍。用户可以选一个主方向并吸收其他方案的局部优点；整合后检查一致性，确认该代表版本，再展开全部页面。交接保留当前步骤、方案链接、选择理由、融合范围和未决项；同一项需求跨任务或中断恢复时继续已有进度，不重做已完成的探索。详细规则见 [视觉工作流](skills/design-harness-visual/references/workflow.md) 和 [访谈机制](skills/design-harness-visual/references/interview.md)。
 
 ## 交接与恢复
 
@@ -68,7 +74,7 @@ Init 登记既有规则；视觉阶段按需使用 [资产选择](skills/design-
 
 ## 文档与原生资产
 
-[工作模板约定](skills/design-harness-init/references/work-templates.md) 与 [蓝图](skills/design-harness-init/assets/figma-work-templates.json) 提供场景流程、局部方案对比、规范资源三种结构。按当前操作读取所需部分，优先使用项目兼容的原生模板。蓝图 1.4.0 是构建依据，不是已安装的组件库。
+[工作模板约定](skills/design-harness-init/references/work-templates.md) 与 [蓝图](skills/design-harness-init/assets/figma-work-templates.json) 提供场景流程、代表方案对比、规范资源三种结构。按当前操作读取所需部分，优先使用项目兼容的原生模板。蓝图 1.5.0 支持选择理由、融合范围与整合代表稿的呈现，是构建依据，不是已安装的组件库。
 
 项目文档的字体、配色、参与端名称、画面比例和原生模板引用登记在设计风格模块 `documentation/work-templates`，产品 UI 模板独立维护。文档用可见原生富文本和 Auto Layout 表达层级，保留语义 TEXT 的完整定位，回读和实际截图分别检查；不能整篇同字号平铺或用位图替代规则。旧内容迁移只在明确批准的范围进行。
 
