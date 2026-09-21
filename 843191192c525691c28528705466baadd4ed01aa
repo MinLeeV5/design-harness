@@ -1,0 +1,55 @@
+AGENTS.md
+  ff1dacfd2784cf4e 14,29
+skills/design-harness-init/references/work-templates.md
+  ff1dacfd2784cf4e 26-27,29-33,61-62
+tests/distribution.test.js
+  ff1dacfd2784cf4e 68-69
+skills/design-harness-init/references/visual-assets.md
+  ff1dacfd2784cf4e 2,4-22,24,26,28-30,32-34,38-49
+skills/design-harness-init/assets/library-sources.txt
+  ff1dacfd2784cf4e 1-10,12-14
+docs/validation.md
+  ff1dacfd2784cf4e 3,49,51-55,57-62,77-78
+README.md
+  ff1dacfd2784cf4e 89-93,95,97
+skills/design-harness-init/assets/figma-work-templates.json
+  ff1dacfd2784cf4e 35,48-49,54-58,72,87,89,91,94,101,103,108,116,123,134
+  9f762a2ddc7c180b 53
+skills/design-harness-init/assets/resource-card.txt
+  ff1dacfd2784cf4e 10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.8",
+  "base_commit_sha": "843191192c525691c28528705466baadd4ed01aa",
+  "prompts": {
+    "9f762a2ddc7c180b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0b383-28a5-74d3-a622-28e39f4dab2f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 352,
+      "overriden_lines": 2,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/f06755b8b59c0dec45e098281a29e9e5d65e77279dd746c3eed13ea8b68d3e5c"
+    },
+    "ff1dacfd2784cf4e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0be00-4f76-7580-bb32-ab41651c1ef5",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 3024,
+      "overriden_lines": 157,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/1dcb598c5a6ac5e9a9563c5d0d705d2f292697d6413e7df8d6fe8654089dda23"
+    }
+  }
+}
