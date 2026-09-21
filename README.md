@@ -2,261 +2,104 @@
 
 <img src="assets/icon.png" width="80" height="80" alt="Design Harness 彩色组件图标">
 
-一个以项目 Figma 为知识载体的 Codex 设计插件。提供两个入口：**Init 建立项目上下文，Design 在项目约束下完成新需求设计**。
+以项目 Figma 为知识和交接载体的 Codex 设计插件。初始化、交互设计、视觉设计、知识回写各有独立入口，由用户决定何时启动、继续或返回。
 
-图标以四个彩色组件围绕 H 留白组成。浅色与深色使用同一份透明图形，插件主题色为紫色；配色和资源用法见[品牌资源](assets/README.md)。
+## 四个阶段
+
+| 入口 | 输入 | 本阶段交付与停止点 |
+| --- | --- | --- |
+| `$design-harness-init` | Figma 项目与代码仓库 | 逐模块确认存量知识与 Library 来源，补齐代码已有而设计缺失的资产；交付 Harness 与初始化记录后停止 |
+| `$design-harness-interaction` | 新需求、项目依据或交互交接 | 逐题访谈，先确认流程骨架和主流程可点击低保真原型，再逐条完成分支；交付交互基线后停止 |
+| `$design-harness-visual` | 已确认的交互或行为明确的现有界面 | 复用 Library，细化版面、信息表达、图标、插画和颜色；交付确认稿与候选知识增量后停止 |
+| `$design-harness-writeback` | 已确认设计与候选知识增量 | 展示具体增量，按批准范围更新 Harness 资源、状态与索引；核验实际结果后停止 |
 
 ```mermaid
 flowchart LR
-    baseline["原有 Figma<br/>当前代码"] --> init["Init<br/>整理与确认"]
-    init --> harness[("项目 Harness<br/>知识与资产")]
-    harness --> design["Design<br/>访谈与设计"]
-    request["新需求"] --> design
-    design --> proposals["需求 Page<br/>流程、原型与视觉"]
-    proposals -.->|已批准的知识增量| harness
-
-    classDef input fill:#F3F4F6,stroke:#8B95A4,color:#293547
-    classDef action fill:#EAF2FF,stroke:#779EC8,color:#153A66
-    classDef asset fill:#E7F5EE,stroke:#77A68C,color:#1E5437
-    class baseline,request input
-    class init,design action
-    class harness,proposals asset
+    init[初始化] -->|交付 Harness| context[(项目依据)]
+    context --> interaction[交互设计]
+    interaction -->|用户启动下一阶段| visual[视觉设计]
+    visual -->|用户启动下一阶段| writeback[知识回写]
+    writeback -->|批准的增量| context
+    visual -.->|提出问题，由用户决定返回| interaction
 ```
 
-插件提供通用方法，项目的设计知识与资产沉淀在 Figma；每次需求产生的已确认知识再回到项目 Harness。
-
-## 使用
-
-| 入口 | 给它什么 | 它会做什么 |
-| --- | --- | --- |
-| `$design-harness-init` | Figma 项目 + 代码仓库 | 整理现状、适用 Library 来源与复用规则，逐模块确认后补齐代码已有而 Figma 缺失的知识与资产 |
-| `$design-harness-design` | Figma 项目 + 新需求 | 逐题确认流程，先做主流程可点击低保真原型，再逐条补分支，统一细化视觉后确认知识回写 |
+每个入口配置 `allow_implicit_invocation: false`，不自动串联阶段、不自动创建任务。建议每个阶段新开任务，只带交付物和确认结论；同一任务切换 Skill 不会清空此前上下文。已有项目可从适用阶段开始，不强制空跑前置阶段。
 
 示例：
 
-> 用 $design-harness-init 根据这个 Figma 项目和代码仓库建立 Harness。先整理现状，每个模块先给我看具体提案，确认后再生成。
+> 用 $design-harness-interaction 读取这个项目的 Harness，先梳理流程。主流程原型确认后再逐条做分支，完成后给我交接链接。
 
-> 用 $design-harness-design 读取这个 Figma 项目的 Harness，帮我设计新的设备连接流程。先确认流程骨架，再边体验原型边讨论，主流程确认后再做分支，最后细化视觉。
+> 用 $design-harness-visual 承接这份交互交接，只完成已确认范围的视觉设计。发现交互问题时先提出建议，由我决定是否返回。
 
-会话已有 Figma、仓库、范围和确认时直接沿用，不重复要求填写。团队使用需要可访问的项目及 Figma 原生读写能力；本插件不自带 Figma 连接器或账号权限。只有读取能力时仍可完成调查和访谈，写入缺口会明确报告。
+> 用 $design-harness-writeback 读取这份确认稿，列出具体知识增量，按已批准范围更新 Harness。
 
-## 项目知识放在哪里
+会话已有范围与明确确认时直接沿用。可查询事实先自行核实，访谈每次一个问题并给推荐理由。设计确认、验证结果与回写授权分别保留；下游不能以优化为由改写上游已确认的行为。
 
-- **Figma 的 design-harness Page**：AGENTS 式入口、项目上下文、风格约束、token/变量说明与样例、布局、组件库、模板库、场景库、已确认知识和需求索引。
-- **每次需求的独立 Page**：确认后的流程骨架、主流程与逐条分支原型、关键分歧的局部备选、最终视觉、确认范围与知识增量。
-- **代码仓库**：Agent 核查当前实现的依据，通过入口的仓库链接按需查找相关代码。
-- **这个插件仓库**：通用 Skill、工作流、评价标准、Figma 内容蓝图与读取助手。
+## 交接与恢复
 
-变量与样式本身是 Figma 文件级资产，Harness Page 统一呈现其语义、索引和用法。组件必须是可复用的原生资产，索引或截图不能代替组件库。
+每个阶段在已授权 Figma 区域维护可见原生 TEXT `DH / Handoff`：Init 位于 Harness Page，其余位于同一需求 Page 的各自区域。记录目标与范围、采用的上游版本、当前步骤、真实产物链接、实际确认、未决/暂缓/待验证项和下一步；不保存整段对话、第三方手册或工具日志。
 
-`Design Harness / Contract 1` 入口只保留一条经实际 remote 核实、无凭据的仓库链接，便于有权限的成员和 Agent 找到代码。Figma 正文面向设计师，描述产品行为、设计规则和状态；源码路径、类/函数名、commit、拉取命令与核查日志由 Agent 在任务中按需查询，不另建技术附录或本地技术档案。
+新任务或上下文压缩后，先读当前阶段的 [交接约定](skills/design-harness-interaction/references/handoff.md) 和指定交接节点，再核对真实产物，按当前问题补读项目资源。记录过期或冲突时只核实影响当前决定的缺口，不能凭“已完成”文字推定资产或批准存在。Figma 暂不可写时报告尚未持久化的限制。
 
-项目上下文聚焦产品定位、用户任务、使用环境、渠道差异和业务边界。具体页面行为放到布局、组件或场景模块，概览只链接相关资源。设计资产的精确值、token 名称与真实 Figma 引用仍保留；“已实现”“待实现”及必要的“待实机验证”分开表达。
+[交接蓝图](skills/design-harness-interaction/assets/stage-handoff.txt) 是表达结构，不是自动状态机。用户控制跨阶段启动与返回；部分交付不会自动推动后续工作，也不要求创建本地 brief、run.json 或其他流程档案。
 
-入口同时保留少量全局约束和模块目录。Agent 从入口读到相关模块概览，再读取所需资源和依赖；不会默认把整张 Page 或整个文件加载到上下文。Init 的 [上下文契约](skills/design-harness-init/references/context-contract.md) 定义建立方式，Design 的 [读取约定](skills/design-harness-design/references/context-loading.md) 定义按需读取与回写定位。旧 Contract 1 保持可读，源码字段不再必填；精简内容与排版时沿用既有节点和授权范围。
+## 项目知识与渐进读取
 
-```mermaid
-flowchart LR
-    entry["Harness 入口<br/>约束与目录"]
-    modules["相关模块<br/>概览与索引"]
-    resources["所需资源<br/>变量与组件等"]
-    evidence["必要依赖<br/>节点与代码"]
-    entry --> modules --> resources --> evidence
+- **Harness Page**：项目上下文、设计风格、Tokens/变量、布局、组件、模板、场景及需求索引。变量和样式本身是文件级资产，组件必须是原生资产。
+- **独立需求 Page**：交互产物、视觉产物和各阶段交接，已确认版本与候选修改保持可区分。
+- **代码仓库**：核查当前实现的依据；入口只留一条经 remote 核实的仓库链接。源码路径、符号、commit 和核查日志由 Agent 按需查询，不进入 Figma 正文或隐藏附录。
+- **本插件**：通用方法、读取助手、内容蓝图和维护工具，不包含具体业务项目记录。
 
-    classDef context fill:#E7F5EE,stroke:#77A68C,color:#1E5437
-    class entry,modules,resources,evidence context
-```
+读取遵循入口 → 相关模块 → 必要资源 → 实际资产与依赖。具体页面行为归布局、组件或场景，项目上下文保留产品定位、用户任务、使用环境、渠道差异和业务边界。当前实现、已确认待实现设计与验证限制分开保留，旧代码不推翻已确认的未来设计。
 
-## 设计语言如何描述
+[上下文契约](skills/design-harness-init/references/context-contract.md) 用于建立知识，[读取约定](skills/design-harness-interaction/references/context-loading.md) 用于按需使用。旧 Contract 1 保持可读，不因新增交接结构或资源名称要求重建整个项目。
 
-设计风格模块参考 [Google DESIGN.md](https://github.com/google-labs-code/design.md) 的方式，将视觉意图、用途和边界与精确 token 联系起来。按总览、颜色、字体、布局、层次与纵深、形状、组件、应当与避免组织适用章节；每节说明“为什么这样设计、何时使用”，并链接项目真实变量、样式和组件，避免只列形容词或数值。
+## 视觉资产与外部方法
 
-[设计描述指引](skills/design-harness-init/references/design-description.md) 与 [内容蓝图](skills/design-harness-init/assets/design-description.txt) 随两个 Skill 携带。项目内容放在 Figma 的 `style/design-description` 资源，显示标题可为 DESIGN.md；无需额外创建本地文件。已有 DESIGN.md 作为来源核对，实际导出格式只在用户要求时处理。产品设计语言与文档排版配置分开，当前代码基线与已确认待实现设计分别保留。
+先查项目认可来源、已启用团队 Library 和本次相关的可访问库，再按适用性复用。检索受限、没有匹配资产和确实不存在分别表达；查库不自动授权启用、发布或改源库。
 
-编写或修订描述时按需读取上游默认分支最新规范与写作理念，项目已确认规则优先；不安装上游 CLI，也不锁定其格式版本。适配说明与上游 Apache-2.0 许可证随各 Skill 分发。
+Init 登记既有规则；视觉阶段按需使用 [资产选择](skills/design-harness-visual/references/visual-assets.md)、[图标方法](skills/design-harness-visual/references/iconography.md) 或 [插画方法](skills/design-harness-visual/references/illustration.md)。通用图标优先一致的矢量，功能关系用可编辑示意图，情境插画按上下文生成并检查实际导入、透明背景、裁切和渲染。颜色沿用项目语义变量。图标和插画仍是内部能力，不另增公开入口。
 
-## 内置 Figma 工作模板
+产品界面与评审说明以图形配必要短文降低理解成本。保留有歧义图标的短标签、操作后果、必要规则和真实定位，不用删字指标替代清晰度。
 
-[工作模板约定](skills/design-harness-init/references/work-templates.md) 与 [构建蓝图](skills/design-harness-init/assets/figma-work-templates.json) 提供三类可组合结构：场景流程、方案对比、规范资源。它们随两个 Skill 独立分发，不依赖固定 Figma 文件或额外连接器。
+交互、视觉各自按问题取用 Impeccable 和 UI/UX Pro Max；先定位相关章节，再读取必要段落，不先加载完整 Skill 或审计流程。Init 与视觉维护的设计语言描述参考 [Google DESIGN.md](https://github.com/google-labs-code/design.md)，关联视觉意图、用途、边界和真实 token，项目内容留在 Figma 的 `style/design-description`，不强制本地 DESIGN.md。知识回写只转写已确认描述。
 
-优先复用项目已有的兼容原生模板；缺少时在已授权范围内生成 Auto Layout Frame、必要组件与实例，并回读、截图检查。分发包中的蓝图不是已安装的 Figma 组件库；构建与验证完成后才记录原生资产完成。
+外部内容读取官方现行页面或默认分支最新部分，不固定版本或分发手册快照；项目规范优先。访问失败时说明限制。Lucide、NN/g、IBM 与 Atlassian 的方法及许可边界见 [视觉指导声明](skills/design-harness-visual/third-party/visual-assets/NOTICE.md)，方法参考与素材授权分别判断。
 
-通用内容结构由插件维护；字体、文档配色、参与端名称、画面比例和实际资产引用保存在项目设计风格模块的 `documentation/work-templates` 资源中。产品页面模板继续归项目模板库。旧通用流程分区可在明确迁移范围内移除，原稿风格资产及已填写的需求/决策先迁移并修复引用。
+## 文档与原生资产
 
-所有写入 Figma 的文档都遵循 [可读性约定](skills/design-harness-init/references/work-templates.md#文档排版与可读性)，包括入口、模块/资源说明与需求摘要。借用 Markdown 的标题、段落、列表、表格和链接层级，用原生富文本与 Auto Layout 呈现；正文定宽、自适应增高，按项目风格安排字重、行距与留白。`DH / Entry` 等语义 TEXT 保留完整设计内容和定位，回读与整体/局部截图分别检查。蓝图不是待直接粘贴的纯文本成品。
+[工作模板约定](skills/design-harness-init/references/work-templates.md) 与 [蓝图](skills/design-harness-init/assets/figma-work-templates.json) 提供场景流程、局部方案对比、规范资源三种结构。按当前操作读取所需部分，优先使用项目兼容的原生模板。蓝图 1.4.0 是构建依据，不是已安装的组件库。
 
-产品界面与评审说明都优先图形配必要短文：流程图表达任务路径，状态画面呈现反馈，局部对照帮助取舍。保留有歧义图标的短标签、重要操作后果、可读取规则和定位，不用统一字数或图文比例衡量清晰度。工作模板蓝图 1.3.0 支持主流程/分支关系、原型入口和局部比较；升级仍遵守项目现有资产与确认范围。
+项目文档的字体、配色、参与端名称、画面比例和原生模板引用登记在设计风格模块 `documentation/work-templates`，产品 UI 模板独立维护。文档用可见原生富文本和 Auto Layout 表达层级，保留语义 TEXT 的完整定位，回读和实际截图分别检查；不能整篇同字号平铺或用位图替代规则。旧内容迁移只在明确批准的范围进行。
 
-## Library、图标与插画如何使用
+## Skill 组织与连接器
 
-Init 在设计风格模块登记 `style/library-sources`，记录适用库、真实引用、使用范围及图标/插画/色彩规则；变量、组件和模板仍由各自模块维护。Design 按需复核来源，先找项目认可资产与已启用团队 Library，再查相关可访问库。未找到合适资源、资源不适用和访问受限分别表达，不把检索失败当作不存在。
-
-缺口按类型补齐：通用图标优先成熟且风格一致的矢量来源，关系与步骤优先可编辑示意图，必要情境插画按项目上下文生成。低保真阶段只补交互判断必需的图示，正式插画在视觉阶段完善，并完成实际导入、裁切与渲染检查。颜色沿用项目语义变量；生成位图不冒充矢量或原生组件。
-
-内部方法分为三份按需加载的文档，仍只有 Init、Design 两个公开 Skill：
-
-| 方法 | 何时加载 | 负责内容 |
-| --- | --- | --- |
-| [视觉资产选择](skills/design-harness-init/references/visual-assets.md) | 需要查库或选择资产类型 | 来源、适用性、复用与补齐方式 |
-| [图标设计](skills/design-harness-init/references/iconography.md) | 选用、补齐或检查图标 | 语境含义、短标签、家族、矢量制作、视觉重量和实际尺寸 |
-| [插画设计](skills/design-harness-init/references/illustration.md) | 需要示意图或情境插画 | 表达目的、制作说明、代表样图、迭代、必要系列与版面验收 |
-
-Init 用这些维度记录已有规则和代表资产；Design 按当前需求制作与检查，不要求每次都生成图形。图标造型参考 Lucide，理解与评价参考 NN/g，插画方法可查阅 IBM 与 Atlassian 官方页面；项目规范优先，具体家族参数不作为通用默认值。按问题读取最新指导，[来源声明](skills/design-harness-init/third-party/visual-assets/NOTICE.md) 区分本地适配与外部阅读，随包保留 Lucide 许可，不分发外部图标集、插画或其他网站手册。
-
-三份方法与 [来源蓝图](skills/design-harness-init/assets/library-sources.txt) 随两个 Skill 携带。它们通过当前可用工具工作，不捆绑图像服务、图标库或 Figma 连接器；缺少能力时明确未完成项。使用资产、登记来源与管理/发布源库的授权范围分别核对。
-
-## Skill 组织
-
-两个 Skill 各自携带本地文档、蓝图、脚本、外部来源入口和许可证，可以单独复制使用。`SKILL.md` 说明入口与读取时机，参考内容按需加载；需要上游指导时在线读取最新内容。
+每个 Skill 自包含 `SKILL.md`、`agents/`、`references/`、`assets/`、`scripts/` 和适用许可证。入口只路由当前阶段；共享内容按使用方复制并做一致性校验，不引用插件根目录或兄弟 Skill。交互不携带插画生成与回写指引，知识回写不携带设计访谈或第三方设计指南。
 
 ```text
 skills/
   design-harness-init/
-    SKILL.md
-    agents/openai.yaml
-    references/   # 整理流程、上下文契约、模块标准、状态与检查
-    assets/       # Harness 入口、模块概览、资源说明蓝图
-    scripts/      # Figma 读取助手
-    third-party/  # Harness、DESIGN.md、视觉指导的许可证/声明
-    LICENSE
-  design-harness-design/
-    SKILL.md
-    agents/openai.yaml
-    references/   # 读取、访谈、原型、视觉资产、评价、回写与社区指导
-    assets/       # 需求 Page、原型、Library 来源与知识增量蓝图
-    scripts/      # Figma 读取助手
-    third-party/  # Impeccable、UI/UX Pro Max、DESIGN.md、视觉指导的许可证/声明
-    LICENSE
+  design-harness-interaction/
+  design-harness-visual/
+  design-harness-writeback/
 ```
 
-根目录保留插件配置、品牌资源、开发校验/打包脚本、测试和维护文档。根目录 `assets/` 仅供插件展示使用；两个 Skill 不依赖这些品牌资源或根目录的运行文档，也不互相跨目录读取。随两者携带的读取助手、资源说明蓝图、视觉资产选择/图标/插画方法及来源声明与许可、Library 来源蓝图、工作模板约定与蓝图、设计描述指引与蓝图/许可声明、原创许可证通过一致性校验保持同步。
+先发现工具和实际参数，再探测连接并核对文件/Page，按本次操作选择专用工具或脚本。支持 figma-console-mcp 与 `use_figma`，不把任一连接器设为硬依赖。工具已注册不等于已连接；某工具的 fileKey 不代表切换了其他工具的活动文件。超时先查实际结果，只补缺项，不换连接器重放整次写入。
 
-## 工作方式
+插件不自带 Figma 账号权限或图像生成服务。能力不足时继续有依据的调查和可审阅工作，明确尚未生成的资产与验证限制。
 
-图中的黄色节点表示用户确认或选择，蓝色节点表示整理、设计与检查，绿色节点表示 Figma 中的产物。
-
-### Init：先整理现状，再补齐缺失
-
-两个阶段内部都按模块推进。先把全部适用模块的现状整理清楚，再处理代码已经实现、Figma 尚未覆盖的内容。
-
-```mermaid
-flowchart TB
-    subgraph inventory["阶段一 · 逐模块整理存量"]
-        direction LR
-        inspect["调查并提案<br/>Figma 与代码"]
-        confirm["用户确认<br/>本模块内容"]
-        organize["整理到<br/>Harness Page"]
-        check["回读检查<br/>结构与渲染"]
-        inspect --> confirm --> organize --> check
-    end
-
-    subgraph complete["阶段二 · 按需补齐缺失"]
-        direction LR
-        delta["提出补齐内容<br/>附代码依据"]
-        approve["用户确认<br/>本次补齐内容"]
-        build["补齐原生资产<br/>与必要状态"]
-        verify["回读检查<br/>绑定与渲染"]
-        delta --> approve --> build --> verify
-    end
-
-    inventory -->|全部适用模块已整理| complete
-
-    classDef action fill:#EAF2FF,stroke:#779EC8,color:#153A66
-    classDef human fill:#FFF2D6,stroke:#C5A05F,color:#7A4B16
-    classDef asset fill:#E7F5EE,stroke:#77A68C,color:#1E5437
-    class inspect,check,delta,verify action
-    class confirm,approve human
-    class organize,build asset
-    style inventory fill:#F8FAFC,stroke:#CBD5E1,color:#334155
-    style complete fill:#F8FAFC,stroke:#CBD5E1,color:#334155
-```
-
-若无缺失，阶段一核验完成后即可用于后续设计。未确认的内容继续调整提案；已有同一范围的明确批准时直接沿用。变量、组件、模板和场景需要真实可复用资产，不能只用一份索引表示补齐完成。
-
-### Design：先确认交互，再细化视觉
-
-新功能或交互变化默认按下图分步推进，纯文案/配色等不影响操作的小改动可按范围简化。已有明确确认直接承接，需求与流程骨架可在一次具体确认中完成。
-
-```mermaid
-flowchart TB
-    load["读取项目依据<br/>逐题访谈"] --> agree["确认整体需求<br/>与流程骨架"]
-    agree --> main["主流程<br/>可点击低保真原型"]
-    main --> mainOK["体验、访谈<br/>确认主流程"]
-    mainOK -->|有适用分支| branch["当前分支<br/>原型与恢复路径"]
-    branch --> branchOK["体验、访谈<br/>确认当前分支"]
-    branchOK -->|还有分支| branch
-    branchOK -->|范围内交互已确认| visual["统一细化视觉<br/>复用 Library 与必要配图"]
-    mainOK -->|无适用分支| visual
-    visual --> finalOK["验证并确认<br/>最终设计"]
-    finalOK --> delta["展示具体<br/>知识增量"]
-    delta --> approve["确认回写范围"]
-    approve --> harness["更新 Harness<br/>资产、规则与索引"]
-
-    classDef action fill:#EAF2FF,stroke:#779EC8,color:#153A66
-    classDef human fill:#FFF2D6,stroke:#C5A05F,color:#7A4B16
-    classDef asset fill:#E7F5EE,stroke:#77A68C,color:#1E5437
-    class load,main,branch,visual,delta action
-    class agree,mainOK,branchOK,finalOK,approve human
-    class harness asset
-```
-
-默认一套主方案；遇到关键交互分歧，用对应片段比较收益与代价，选定后并回。用户明确要求完整多方案时才展开。每轮只问一个关键问题并给推荐，访谈贯穿原型设计；已委托的细节与范围内修复直接完成。
-
-流程骨架先标明重要分支与结构约束，主流程先做到可点击、可走查，确认后逐条补分支。低保真可复用已有项目组件，重点是操作、返回与反馈；交互确认后再统一处理视觉与正式插画。新事实影响已确认路径时，只重新讨论相关决定。
-
-[原型指引](skills/design-harness-design/references/prototyping.md) 区分真实连接、预览点击和产品运行。可见箭头、静态截图不能替代可点击原型；缺少能力时报告具体缺口，调整交付由用户选择。生成位图不代表设备或后端能力已实现，模拟外部事件需明确标识。
-
-社区方法按问题补充：Impeccable 提供设计与评价指导，UI/UX Pro Max 提供 UX、视觉与平台规则。使用实际平台与项目规范，不强制运行上游设计系统生成、安装、持久化、独立审计或多 Agent 流程。首次需要某份指导时读取默认分支最新内容，不维护版本锁；失败时说明未取得最新指导，并继续项目依据支持的工作。
-
-第三方资料随所属 Skill 管理：Init 保留 Harness 架构来源，Design 保留 Impeccable 与 UI/UX Pro Max 的来源/许可与适配，两者携带 DESIGN.md 和视觉指导的来源及适用声明。“倾向代码”用于还原当前事实；已确认的新设计可标为**已确认设计／待实现**，后续不能用旧实现覆盖。阶段交互确认和最终设计、知识回写的范围分开记录。
-
-## 如何选择 Figma 工具
-
-先发现当前工具，探测连接并核对目标文件，再匹配本次需求。figma-console-mcp 与 `use_figma` 都是可选执行方式；用户指定、目标访问能力和具体操作共同决定选择。
-
-```mermaid
-flowchart LR
-    probe["发现并探测工具<br/>核对文件与权限"]
-    available{"能力可用？"}
-    fallback["换用可用连接器<br/>或先做只读工作"]
-    read["读取上下文<br/>有界读取或查询"]
-    assets["变量与组件操作<br/>匹配专用工具"]
-    compose["Page 与布局<br/>匹配脚本工具"]
-    verify["写入后回读<br/>截图核验"]
-    result["可核对的结果"]
-
-    probe --> available
-    available -->|否| fallback
-    available -->|读取| read
-    available -->|资产操作| assets
-    available -->|页面编排| compose
-    read --> result
-    assets --> verify
-    compose --> verify
-    verify --> result
-
-    classDef action fill:#EAF2FF,stroke:#779EC8,color:#153A66
-    classDef context fill:#E7F5EE,stroke:#77A68C,color:#1E5437
-    classDef note fill:#F3F4F6,stroke:#8B95A4,color:#293547
-    class probe,available,read,assets,compose,verify action
-    class result context
-    class fallback note
-```
-
-发现 Console 后先检查实际连接。变量批量操作、组件实例化和属性修改优先匹配适用的专用工具；Page 编排与局部脚本可使用 `figma_execute` 或 `use_figma`。只加载所选方式的说明，不通过多个连接器重复执行同一次写入。
-
-工具已注册不代表已连接，也不代表拥有写权限。所有写入仍遵循上方工作流中的确认范围；部分操作不可用时，继续完成其他有依据、可执行的工作。
+图标品牌资源由根目录管理，四个色块与透明 H 留白共用浅深图形；见 [品牌说明](assets/README.md)。它们不属于 Skill 的运行依赖。
 
 ## 安装与团队分发
 
-当前发布版本为 **0.1.1**。团队成员可直接从 GitHub 安装：
+源码修改不会自动更新已安装插件；新入口需发布或按本地开发流程刷新后生效。当前基础版本为 **0.1.1**。团队成员可直接从 GitHub 安装：
 
 ```sh
 codex plugin marketplace add MinLeeV5/design-harness --ref main
 codex plugin add design-harness@design-harness
 ```
 
-安装后新建任务，使用 `$design-harness-init` 或 `$design-harness-design`。更新时执行：
+安装后新建任务，显式调用所需阶段 Skill。更新时执行：
 
 ```sh
 codex plugin marketplace upgrade design-harness
@@ -278,7 +121,7 @@ npm run package -- --out dist/build
 
 仓库的 [.nvmrc](.nvmrc) 默认选择 Node.js 22；使用 nvm 时可先执行 `nvm use`。
 
-`npm run check` 可一次完成校验和全部测试。打包使用 [fflate](https://github.com/101arrowz/fflate) 这一项开发依赖；依赖安装后，校验、测试与打包均可离线运行。直接使用两个 Skill 不需要安装这些开发依赖。
+`npm run check` 可一次完成校验和全部测试。打包使用 [fflate](https://github.com/101arrowz/fflate) 这一项开发依赖；依赖安装后，校验、测试与打包均可离线运行。直接使用这些 Skill 不需要安装这些开发依赖。
 
 输出 zip 与 SHA-256，重复构建使用新的输出目录，避免覆盖旧包。解压后包含 marketplace 根目录和插件：
 
@@ -295,18 +138,14 @@ codex plugin marketplace add /path/to/design-harness
 codex plugin add design-harness@design-harness
 ```
 
-上述路径是解压后的 marketplace 根目录，需要替换为实际位置；解压后的源目录需保留。此操作注册本地包，不发布到远端市场。安装后新建任务使用两个入口。
+上述路径是解压后的 marketplace 根目录，需要替换为实际位置；解压后的源目录需保留。此操作注册本地包，不发布到远端市场。安装后新建任务使用所需阶段入口。
 
-## 维护与阅读
+## 维护与验证
 
-- [Init 入口](skills/design-harness-init/SKILL.md) · [模块产出标准](skills/design-harness-init/references/modules.md) · [Init 检查](skills/design-harness-init/references/evaluation.md)
-- [Design 入口](skills/design-harness-design/SKILL.md) · [访谈机制](skills/design-harness-design/references/interview.md) · [Design 检查](skills/design-harness-design/references/evaluation.md)
-- [交互原型](skills/design-harness-design/references/prototyping.md) · [Library 与视觉资产](skills/design-harness-design/references/visual-assets.md) · [知识更新](skills/design-harness-design/references/knowledge-update.md)
-- [图标方法](skills/design-harness-design/references/iconography.md) · [插画方法](skills/design-harness-design/references/illustration.md) · [视觉指导来源](skills/design-harness-design/third-party/visual-assets/NOTICE.md)
-- [Impeccable 指导](skills/design-harness-design/references/impeccable.md) · [UI/UX Pro Max 适配](skills/design-harness-design/references/ui-ux-pro-max.md)
-- [Init 工具选择](skills/design-harness-init/references/figma-operations.md) · [Init Console 操作](skills/design-harness-init/references/figma-console.md) · [Design Console 操作](skills/design-harness-design/references/figma-console.md)
-- [Init 来源与许可](skills/design-harness-init/references/sources.md) · [Design 来源与许可](skills/design-harness-design/references/sources.md) · [验证范围](docs/validation.md)
+- [Init](skills/design-harness-init/SKILL.md) · [交互](skills/design-harness-interaction/SKILL.md) · [视觉](skills/design-harness-visual/SKILL.md) · [知识回写](skills/design-harness-writeback/SKILL.md)
+- [交接契约](skills/design-harness-interaction/references/handoff.md) · [原型制作](skills/design-harness-interaction/references/prototyping.md) · [知识增量](skills/design-harness-writeback/references/knowledge-update.md)
+- [验证范围与试运行情境](docs/validation.md) · [仓库协作规范](AGENTS.md)
 
-辅助脚本测试验证读取范围、截断续读与分发包一致性，不能证明真实项目的设计质量。实际运行 Init/Design 时仍需按工作流完成具体模块的用户确认、原生资产检查和截图核验。
+自动检查覆盖四个入口的结构、独立复制、共享资源、交接文本的有界读取与打包一致性。它们不能证明真实 Figma 交互、设计质量、用户批准或上下文压缩后的行为；实际项目需要分别核验。
 
-原创部分与 UI/UX Pro Max 适配采用 MIT；Impeccable 与 DESIGN.md 适配内容遵循 Apache-2.0；Lucide 方法适配保留其 ISC 许可与上游附带声明。外部阅读页面和素材不属于本插件的许可授权范围。详见 [原创许可证](LICENSE) 和各 Skill 来源说明。
+原创部分与 UI/UX Pro Max 适配采用 MIT；Impeccable 与 DESIGN.md 适配采用 Apache-2.0；Lucide 方法适配保留 ISC 许可及上游附带声明。外部页面和素材不属于本插件许可范围，详见 [原创许可证](LICENSE) 及各阶段的来源说明。

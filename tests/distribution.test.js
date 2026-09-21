@@ -8,7 +8,7 @@ import {spawnSync} from "node:child_process";
 import {pathToFileURL} from "node:url";
 import {unzipSync} from "fflate";
 import {packagePlugin} from "../scripts/package-plugin.js";
-import {ROOT, SKILL_NAMES, validate, validateSkill} from "../scripts/validate.js";
+import {ROOT, SKILL_NAMES, SHARED_SKILL_GROUPS, requiredSkillFiles, validate, validateSkill} from "../scripts/validate.js";
 
 const ignored = new Set([".git", "dist", "node_modules", "coverage", ".nyc_output", ".DS_Store"]);
 const digest = data => createHash("sha256").update(data).digest("hex");
@@ -31,6 +31,18 @@ describe("Plugin distribution", () => {
     const cache = path.join(base, "cache", "design-harness", version);
     fs.cpSync(root, cache, {recursive: true});
     assert.deepEqual(validate(cache), []);
+  });
+
+  test("Each phase requires explicit invocation in its distributed metadata", () => {
+    for (const name of SKILL_NAMES) {
+      const filename = path.join(root, "skills", name, "agents/openai.yaml");
+      const original = fs.readFileSync(filename, "utf8");
+      for (const replacement of ["allow_implicit_invocation: true", ""]) {
+        fs.writeFileSync(filename, original.replace("allow_implicit_invocation: false", replacement));
+        assert.ok(validate(root).some(error => error.includes("require explicit invocation")), name);
+      }
+      fs.writeFileSync(filename, original);
+    }
   });
 
   test("Packaged marketplace validates and runs after extraction to a new location", () => {
@@ -59,13 +71,7 @@ describe("Plugin distribution", () => {
     for (const field of ["composerIcon", "logo", "logoDark"]) {
       assert.deepEqual(fs.readFileSync(path.join(plugin, branding[field])), fs.readFileSync(path.join(root, branding[field])));
     }
-    for (const relative of [
-      ...SKILL_NAMES.flatMap(name => ["references/visual-assets.md", "references/iconography.md", "references/illustration.md",
-        "third-party/visual-assets/NOTICE.md", "third-party/lucide/LICENSE", "assets/library-sources.txt", "assets/figma-work-templates.json"]
-        .map(file => `skills/${name}/${file}`)),
-      ...["references/prototyping.md", "assets/interaction-prototype.txt", "references/ui-ux-pro-max.md",
-        "third-party/ui-ux-pro-max/LICENSE", "third-party/ui-ux-pro-max/NOTICE.md"].map(file => `skills/design-harness-design/${file}`)
-    ]) {
+    for (const relative of SKILL_NAMES.flatMap(name => requiredSkillFiles(name).map(file => `skills/${name}/${file}`))) {
       assert.deepEqual(fs.readFileSync(path.join(plugin, relative)), fs.readFileSync(path.join(root, relative)));
     }
   });
@@ -190,11 +196,8 @@ describe("Plugin distribution", () => {
   });
 
   test("Empty bundled notices prevent packaging", () => {
-    for (const relative of ["skills/design-harness-init/third-party/harness-designing-plugin/LICENSE",
-      "skills/design-harness-design/third-party/impeccable/LICENSE", "skills/design-harness-design/third-party/impeccable/NOTICE.md",
-      "skills/design-harness-design/third-party/ui-ux-pro-max/LICENSE", "skills/design-harness-design/third-party/ui-ux-pro-max/NOTICE.md",
-      ...SKILL_NAMES.flatMap(name => ["third-party/visual-assets/NOTICE.md", "third-party/lucide/LICENSE"].map(file => `skills/${name}/${file}`)),
-      ...SKILL_NAMES.flatMap(name => ["LICENSE", "NOTICE.md"].map(file => `skills/${name}/third-party/design-md/${file}`))]) {
+    for (const relative of SKILL_NAMES.flatMap(name => requiredSkillFiles(name)
+      .filter(file => /(?:^|\/)(?:LICENSE|NOTICE\.md)$/.test(file)).map(file => `skills/${name}/${file}`))) {
       const filename = path.join(root, relative);
       const original = fs.readFileSync(filename);
       fs.writeFileSync(filename, "");
@@ -204,13 +207,15 @@ describe("Plugin distribution", () => {
   });
 
   test("Missing skills or workflow assets prevent packaging", () => {
-    for (const relative of ["skills/design-harness-init/SKILL.md", "skills/design-harness-init/assets/harness-entry.txt",
-      "skills/design-harness-init/references/figma-console.md", "skills/design-harness-design/references/figma-use.md",
-      ...["references/prototyping.md", "assets/interaction-prototype.txt", "references/ui-ux-pro-max.md"]
-        .map(file => `skills/design-harness-design/${file}`),
-      ...SKILL_NAMES.flatMap(name => ["references/visual-assets.md", "references/iconography.md", "references/illustration.md",
-        "assets/library-sources.txt"].map(file => `skills/${name}/${file}`)),
-      ...SKILL_NAMES.flatMap(name => ["references/design-description.md", "assets/design-description.txt"].map(file => `skills/${name}/${file}`))]) {
+    for (const relative of [
+      "skills/design-harness-init/SKILL.md", "skills/design-harness-init/assets/harness-entry.txt",
+      "skills/design-harness-interaction/references/prototyping.md", "skills/design-harness-interaction/assets/interaction-prototype.txt",
+      "skills/design-harness-visual/assets/visual-delivery.txt", "skills/design-harness-visual/references/iconography.md",
+      "skills/design-harness-visual/references/illustration.md", "skills/design-harness-visual/references/ui-ux-pro-max.md",
+      "skills/design-harness-writeback/references/knowledge-update.md", "skills/design-harness-writeback/assets/writeback-delta.txt",
+      ...SKILL_NAMES.flatMap(name => ["references/handoff.md", "assets/stage-handoff.txt", "references/figma-console.md",
+        "references/figma-use.md"].map(file => `skills/${name}/${file}`))
+    ]) {
       const filename = path.join(root, relative);
       const original = fs.readFileSync(filename);
       fs.unlinkSync(filename);
@@ -244,7 +249,7 @@ describe("Plugin distribution", () => {
 
   test("A skill cannot reference a sibling skill", () => {
     const skill = path.join(root, "skills/design-harness-init");
-    fs.appendFileSync(path.join(skill, "SKILL.md"), "\n[sibling dependency](../design-harness-design/references/interview.md)\n");
+    fs.appendFileSync(path.join(skill, "SKILL.md"), "\n[sibling dependency](../design-harness-interaction/references/interview.md)\n");
     assert.ok(validateSkill(skill).some(error => error.includes("escapes skill")));
   });
 
@@ -255,17 +260,17 @@ describe("Plugin distribution", () => {
   });
 
   test("Diverging shared resources are detected", () => {
-    for (const relative of ["scripts/figma-reader.js", "assets/resource-card.txt",
-      "references/visual-assets.md", "references/iconography.md", "references/illustration.md", "assets/library-sources.txt",
-      "third-party/visual-assets/NOTICE.md", "third-party/lucide/LICENSE",
-      "references/work-templates.md", "assets/figma-work-templates.json",
-      "references/design-description.md", "assets/design-description.txt",
-      "third-party/design-md/LICENSE", "third-party/design-md/NOTICE.md", "LICENSE"]) {
-      const filename = path.join(root, "skills/design-harness-design", relative);
-      const original = fs.readFileSync(filename);
-      fs.appendFileSync(filename, "\n");
-      assert.ok(validate(root).some(error => error.includes("Shared skill resource differs")));
-      fs.writeFileSync(filename, original);
+    for (const {skills, files} of SHARED_SKILL_GROUPS) {
+      for (const relative of files) {
+        // Exercise every consumer, including later copies in a group of more than two.
+        for (const name of skills) {
+          const filename = path.join(root, "skills", name, relative);
+          const original = fs.readFileSync(filename);
+          fs.appendFileSync(filename, "\n");
+          assert.ok(validate(root).some(error => error.includes("Shared skill resource differs")), `${name}/${relative}`);
+          fs.writeFileSync(filename, original);
+        }
+      }
     }
   });
 

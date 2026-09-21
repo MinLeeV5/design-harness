@@ -3,7 +3,7 @@
   "version": "0.1.1+codex.20260918094044",
   "homepage": "https://github.com/MinLeeV5/design-harness",
   "repository": "https://github.com/MinLeeV5/design-harness",
-  "description": "以 Figma 为项目设计知识载体，逐题确认流程，先完成主流程与分支原型，再复用项目资产细化视觉，并在确认后更新设计知识。",
+  "description": "以 Figma 为项目知识与交接载体，将初始化、交互设计、视觉设计和知识回写分为四个独立阶段，由用户控制启动与返回。",
   "author": {
     "name": "Min Lee"
   },
@@ -20,21 +20,22 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Design Harness · 设计工作流",
-    "shortDescription": "整理项目知识与 Library 来源，分步确认交互原型，再细化视觉并回写",
-    "longDescription": "初始化：从 Figma、适用团队 Library 与代码逐模块整理项目依据，确认后补齐已有实现的知识与资产。新需求设计：先确认整体需求与流程骨架，再边体验边访谈，先完成主流程可点击低保真原型，再逐条确认分支，最后统一细化视觉。默认一套主方案，关键分歧比较局部备选；优先复用项目资产，必要时补矢量图标、示意图或情境插画。最终设计与具体知识增量确认后回写 Harness。",
+    "shortDescription": "四个独立设计阶段，以交付物和确认结论交接，由用户控制推进",
+    "longDescription": "初始化、交互设计、视觉设计和知识回写四个独立 Skill，均由用户显式启动。交互阶段逐题访谈，先确认主流程原型再逐条处理分支；视觉阶段承接确认稿，复用项目 Library 并按需补齐图标与插画；回写阶段只沉淀批准的知识增量。每阶段维护可见 Figma 交接记录，支持新任务恢复；下游发现上游问题时提出建议，由用户决定是否返回。",
     "developerName": "Min Lee",
     "websiteURL": "https://github.com/MinLeeV5/design-harness",
     "category": "Productivity",
     "capabilities": [
-      "初始化项目知识与 Library 复用规则",
-      "按需逐层加载项目上下文",
-      "逐题确认主流程与分支交互原型",
-      "复用视觉资产并补齐必要图示与插画",
-      "经用户确认后更新项目设计知识"
+      "逐模块初始化项目知识与 Library 复用规则",
+      "先主流程后分支的交互原型与访谈",
+      "承接确认交互的视觉细化与资产复用",
+      "按批准增量更新 Harness 资源与索引",
+      "可见交接记录与阶段恢复，人工控制切换"
     ],
     "defaultPrompt": [
-      "用 $design-harness-init 根据这个 Figma 项目和代码仓库，整理设计知识、Library 来源与可复用资产。",
-      "用 $design-harness-design 先确认流程并做主流程可点击原型，再逐条补分支，最后细化视觉。"
+      "用 $design-harness-init 根据这个 Figma 项目和仓库，逐模块整理并补齐设计依据。",
+      "用 $design-harness-interaction 先确认流程骨架与主流程原型，再逐条处理分支，完成后交接。",
+      "用 $design-harness-visual 读取这份交互交接，在已确认行为范围内复用 Library 并细化视觉。"
     ],
     "brandColor": "#A259FF",
     "composerIcon": "./assets/icon.png",

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Design Harness · 交互设计"
+  short_description: "逐题访谈并先完成主流程原型，再逐条确认分支，交付可继续使用的交互结论。"
+  default_prompt: "用 $design-harness-interaction 基于这个项目先确认流程骨架，再完成主流程和逐条分支的可点击低保真原型。"
+policy:
+  allow_implicit_invocation: false

@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
+import {SKILL_NAMES} from "../scripts/validate.js";
 
 const plain = value => JSON.parse(JSON.stringify(value));
 
@@ -37,7 +38,7 @@ function fixture() {
     module, unrelated, foreign};
 }
 
-for (const skill of ["design-harness-init", "design-harness-design"]) {
+for (const skill of SKILL_NAMES) {
   describe(skill, () => {
     const source = fs.readFileSync(path.join(import.meta.dirname, "../skills", skill, "scripts/figma-reader.js"), "utf8");
     const read = vm.runInNewContext(source + "\nreadDesignHarness;");
@@ -77,6 +78,26 @@ for (const skill of ["design-harness-init", "design-harness-design"]) {
       assert.deepEqual(f.fetched, ["10:1", "10:2", "10:1", "10:4", "10:1", "10:5"]);
       assert.deepEqual(f.switched, ["10:1", "10:1", "10:1"]);
       assert.equal(f.entryText.characters, before);
+    });
+
+    test("A visible phase handoff can be restored without reading other phase artifacts", async () => {
+      const f = fixture();
+      const page = f.node("30:1", "PAGE", "Requirement", f.root);
+      const record = f.node("30:2", "FRAME", "DH / Handoff / Interaction", page);
+      const contents = "阶段交接 / 1\n当前：分支 2\n已确认：主流程 v1\n未确认：分支 2\n产物：30:4\n待验证：产品运行";
+      f.node("30:3", "TEXT", "DH / Handoff", record, contents);
+      const artifact = f.node("30:4", "FRAME", "Main flow v1", page);
+      const visual = f.node("30:5", "FRAME", "Visual delivery", page);
+      for (const node of [artifact, visual, f.unrelated]) {
+        Object.defineProperty(node, "children", {get() { throw Error("unrequested artifact read"); }});
+      }
+      const index = plain(await read(f.figma, {action: "page-index", pageId: page.id}));
+      assert.ok(index.nodes.some(node => node.id === record.id));
+      const result = plain(await read(f.figma, {action: "read", pageId: page.id, nodeIds: [record.id]}));
+      assert.equal(result.truncated, false);
+      assert.equal(result.textNodes[0].text, contents);
+      assert.deepEqual(f.fetched, [page.id, page.id, record.id]);
+      // Readability is covered here, not whether the approval text is true or how an agent acts on it.
     });
 
     test("Compact and legacy styled entries remain readable without inspecting presentation", async () => {

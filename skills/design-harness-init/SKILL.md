@@ -1,34 +1,20 @@
 ---
 name: design-harness-init
-description: 从已有 Figma 项目与代码仓库建立或增量更新 Design Harness，逐模块确认知识、Library 来源与复用规则，再补齐代码已有而 Figma 缺失的变量、组件、模板与场景。
+description: 用户显式启动项目初始化或存量补齐时，从 Figma 与代码逐模块建立 Design Harness，确认知识与 Library 来源，再补齐代码已有而设计缺失的资产。新需求交互、视觉细化与知识回写分别使用独立入口。
 ---
 
-# Design Harness · Init
+# Design Harness · 初始化
 
-把项目的设计依据整理为 Figma 中可阅读、可引用、可复用的 Harness。输入是 Figma 项目和代码仓库；若对话已有这些信息，直接使用。缺少必要输入时只询问缺失项，继续可独立完成的只读盘点。
+只执行初始化或指定模块的增量整理，交付可独立读取的项目设计依据。先读 [当前阶段工作流](references/workflow.md) 与 [交接和恢复](references/handoff.md)，沿用已有范围与确认。
 
-## 执行
+按当前操作加载，不沿链接预读所有文档：
 
-本地文档、蓝图和读取助手均在本 Skill 内；只加载当前步骤涉及的内容。需要了解或补充通用 Harness 架构依据时，按 [外部来源](references/sources.md) 读取上游最新相关内容。
+| 当前需要 | 读取 |
+| --- | --- |
+| 定位或建立项目知识 | [上下文契约](references/context-contract.md)，整理当前模块时读 [产出标准](references/modules.md) 对应部分 |
+| 访问或修改 Figma | [工具选择](references/figma-operations.md)，再读选中的连接器说明 |
+| 核对既有库或设计语言 | [Library 与视觉资产](references/visual-assets.md) 或 [设计描述](references/design-description.md)，只沿当前问题加载 |
+| 写文档、检查交付 | [文档模板](references/work-templates.md) 对应部分、[Init 检查](references/evaluation.md) |
+| 需要额外方法依据 | [外部来源](references/sources.md) 中的相关来源 |
 
-1. 按 [Init 工作流](references/workflow.md) 工作：先整理全部存量，再分模块补齐代码已实现的缺失资产。
-2. 首次访问 Figma 时先按 [工具探测与选择](references/figma-operations.md) 检查实际连接、目标文件并匹配本次操作，再读 [Figma 上下文契约](references/context-contract.md) 定位或建立入口。复用已确认内容与节点，避免重复建库。
-3. 整理具体模块时读 [模块产出标准](references/modules.md) 对应部分；按 [视觉资产选择与 Library](references/visual-assets.md) 发现适用来源，需要记录或检查图标/插画时再读对应方法，按 [DESIGN.md 式描述](references/design-description.md) 解释视觉意图和精确依据。每个模块先展示可审阅的内容和变更计划，确认后才生成到 Figma。
-4. 写入文档前，按 [Figma 工作模板与图形表达](references/work-templates.md) 用流程图、状态画面、代表资产和必要短文组织内容，保留可读规则与定位，沿用项目文档配置；产品页面模板继续归入模板库。
-5. 写入时按 [工具衔接与写入](references/figma-operations.md) 选择可完成本模块需求的工具；按需加载 Console 或 use_figma 指引。真实变量、组件和模板需要原生可编辑资产，索引或截图不能代替它们。
-6. 写入后按 [嵌入式检查](references/evaluation.md) 验证对应产物。结束时说明完成模块、证据链接和未完成原因。
-
-## 判断依据
-
-- 以已核对的当前代码行为为现状依据；Figma 入口只保留一条经 remote 核实的仓库链接，源码定位由 Agent 按需完成。项目上下文写产品与业务概览，具体行为归入布局、组件或场景模块。
-- 对代码与历史稿的冲突给出推荐归一方式，倾向当前代码，并让用户确认具体取舍。不要把代码中的偶然值自动提升为规范。
-- 已确认的新设计即使待实现，也有独立有效性；不得被较旧代码覆盖。核对状态与版本时读 [资源状态与增量对齐](references/asset-state.md)。
-- 项目规范优先于通用设计指导。原稿页面保持原状；复制内容到已授权的 Harness Page。变量和样式属于文件级，另核实其变更范围。
-- 模块确认门禁属于本工作流。先完成事实调查、拟定内容和视觉呈现建议，再请求确认；已明确批准的同一内容不重复询问。门禁等待期间可继续其他只读调查。
-- 用户只要求某个模块时执行该模块及必要依赖，不强制重建整个 Harness。恢复执行时从未完成部分继续。
-
-## 完成意味着什么
-
-Figma 有可独立读取的入口，七类知识有真实内容或明确的适用性说明；代码已存在的缺失部分已按确认范围补齐；资产、来源、状态与索引相符。用户暂缓的项目明确列出，不能以一份差异清单冒充补齐完成。
-
-不要求创建本地项目档案、运行目录或 brief 文件。本插件仓库承载通用方法，项目设计知识留在项目 Figma；源码调查按任务需要进行，不生成技术附录。
+每模块具体提案经确认后写入，已有同范围授权直接沿用。项目规范优先；当前代码用于核实存量，已确认待实现设计按 [资源状态](references/asset-state.md) 保留。完成或暂缓后更新本阶段可见交接记录并停止，由用户启动后续阶段。

@@ -6,13 +6,36 @@ import {fileURLToPath} from "node:url";
 import {isWithin, isFile, walk} from "./files.js";
 
 export const ROOT = path.resolve(import.meta.dirname, "..");
-export const SKILL_NAMES = ["design-harness-init", "design-harness-design"];
-const SHARED_SKILL_FILES = ["scripts/figma-reader.js", "assets/resource-card.txt",
-  "references/visual-assets.md", "references/iconography.md", "references/illustration.md", "assets/library-sources.txt",
-  "third-party/visual-assets/NOTICE.md", "third-party/lucide/LICENSE",
-  "references/work-templates.md", "assets/figma-work-templates.json",
-  "references/design-description.md", "assets/design-description.txt",
-  "third-party/design-md/LICENSE", "third-party/design-md/NOTICE.md", "LICENSE"];
+export const SKILL_NAMES = ["design-harness-init", "design-harness-interaction", "design-harness-visual", "design-harness-writeback"];
+// Shared by consumers, not by every phase: keep runtime resources self-contained without shipping unrelated methods.
+export const SHARED_SKILL_GROUPS = [
+  {skills: SKILL_NAMES, files: ["scripts/figma-reader.js", "assets/resource-card.txt", "LICENSE",
+    "references/handoff.md", "assets/stage-handoff.txt", "references/figma-operations.md",
+    "references/figma-console.md", "references/figma-use.md",
+    "references/work-templates.md", "assets/figma-work-templates.json"]},
+  {skills: SKILL_NAMES.slice(1), files: ["references/context-loading.md"]},
+  {skills: ["design-harness-init", "design-harness-visual"], files: [
+    "references/visual-assets.md", "references/iconography.md", "references/illustration.md", "assets/library-sources.txt",
+    "third-party/visual-assets/NOTICE.md", "third-party/lucide/LICENSE",
+    "references/design-description.md", "assets/design-description.txt",
+    "third-party/design-md/LICENSE", "third-party/design-md/NOTICE.md"]},
+  {skills: ["design-harness-interaction", "design-harness-visual"], files: [
+    "references/ui-ux-pro-max.md", "third-party/ui-ux-pro-max/LICENSE", "third-party/ui-ux-pro-max/NOTICE.md",
+    "third-party/impeccable/LICENSE", "third-party/impeccable/NOTICE.md"]}
+];
+const STAGE_FILES = {
+  "design-harness-init": ["references/context-contract.md", "references/modules.md", "references/asset-state.md",
+    "assets/harness-entry.txt", "assets/module-overview.txt", "third-party/harness-designing-plugin/LICENSE"],
+  "design-harness-interaction": ["references/interview.md", "references/prototyping.md", "references/impeccable.md",
+    "assets/requirement-page.txt", "assets/interaction-prototype.txt"],
+  "design-harness-visual": ["references/interview.md", "references/impeccable.md", "assets/visual-delivery.txt"],
+  "design-harness-writeback": ["references/knowledge-update.md", "assets/writeback-delta.txt"]
+};
+export function requiredSkillFiles(name) {
+  return [...new Set(["SKILL.md", "agents/openai.yaml", "references/workflow.md", "references/evaluation.md",
+    "references/sources.md", ...(STAGE_FILES[name] || []),
+    ...SHARED_SKILL_GROUPS.filter(group => group.skills.includes(name)).flatMap(group => group.files)])];
+}
 const PNG_SIGNATURE = Buffer.from("89504e470d0a1a0a", "hex");
 
 function validateWorkTemplates(filename) {
@@ -125,24 +148,7 @@ export function validateSkill(directory) {
   const errors = [];
   if (!SKILL_NAMES.includes(name)) return [`Unexpected skill name: ${name}`];
 
-  const required = ["SKILL.md", "agents/openai.yaml", "LICENSE", "scripts/figma-reader.js",
-    "references/workflow.md", "references/figma-operations.md", "references/figma-console.md",
-    "references/figma-use.md", "references/evaluation.md", "references/sources.md", "assets/resource-card.txt",
-    "references/visual-assets.md", "references/iconography.md", "references/illustration.md", "assets/library-sources.txt",
-    "third-party/visual-assets/NOTICE.md", "third-party/lucide/LICENSE",
-    "references/work-templates.md", "assets/figma-work-templates.json",
-    "references/design-description.md", "assets/design-description.txt",
-    "third-party/design-md/LICENSE", "third-party/design-md/NOTICE.md"];
-  if (name === "design-harness-init") {
-    required.push("references/context-contract.md", "references/modules.md", "references/asset-state.md",
-      "assets/harness-entry.txt", "assets/module-overview.txt", "third-party/harness-designing-plugin/LICENSE");
-  } else {
-    required.push("references/context-loading.md", "references/interview.md", "references/knowledge-update.md",
-      "references/impeccable.md", "assets/requirement-page.txt", "assets/writeback-delta.txt",
-      "references/prototyping.md", "assets/interaction-prototype.txt", "references/ui-ux-pro-max.md",
-      "third-party/ui-ux-pro-max/LICENSE", "third-party/ui-ux-pro-max/NOTICE.md",
-      "third-party/impeccable/LICENSE", "third-party/impeccable/NOTICE.md");
-  }
+  const required = requiredSkillFiles(name);
   for (const relative of required) {
     const filename = path.join(skill, relative);
     if (!isFile(filename)) errors.push(`Missing skill resource: ${name}/${relative}`);
@@ -169,7 +175,11 @@ export function validateSkill(directory) {
   }
   if (content.replace(/\n$/, "").split("\n").length >= 200) errors.push(`Skill entrypoint too long: ${entry}`);
   const metadata = path.join(skill, "agents/openai.yaml");
-  if (!fs.readFileSync(metadata, "utf8").includes("$" + name)) errors.push(`Prompt must invoke skill: ${metadata}`);
+  const metadataText = fs.readFileSync(metadata, "utf8");
+  if (!metadataText.includes("$" + name)) errors.push(`Prompt must invoke skill: ${metadata}`);
+  if (!/^policy:\s*\n  allow_implicit_invocation: false\s*$/m.test(metadataText)) {
+    errors.push(`Stage must require explicit invocation: ${metadata}`);
+  }
 
   const adjacency = new Map();
   for (const filename of files) {
@@ -234,13 +244,15 @@ export function validate(directory = ROOT) {
   const skills = fs.existsSync(skillRoot) ? fs.readdirSync(skillRoot)
     .map(name => path.join(skillRoot, name)).filter(skill => isFile(path.join(skill, "SKILL.md"))) : [];
   check(skills.length === SKILL_NAMES.length && skills.every(skill => SKILL_NAMES.includes(path.basename(skill))),
-    "Expected only Init and Design public skills");
+    "Expected exactly Init, Interaction, Visual and Writeback public skills");
   for (const skill of skills) errors.push(...validateSkill(skill));
 
-  for (const relative of SHARED_SKILL_FILES) {
-    const copies = SKILL_NAMES.map(name => path.join(skillRoot, name, relative));
-    check(copies.every(isFile) && fs.readFileSync(copies[0]).equals(fs.readFileSync(copies[1])),
-      `Shared skill resource differs: ${relative}`);
+  for (const {skills: consumers, files} of SHARED_SKILL_GROUPS) {
+    for (const relative of files) {
+      const copies = consumers.map(name => path.join(skillRoot, name, relative));
+      check(copies.every(isFile) && copies.slice(1).every(copy => fs.readFileSync(copies[0]).equals(fs.readFileSync(copy))),
+        `Shared skill resource differs: ${relative} (${consumers.join(", ")})`);
+    }
   }
   for (const skill of skills) {
     const license = path.join(skill, "LICENSE");

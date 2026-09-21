@@ -1,4 +1,6 @@
 interface:
-  display_name: "Design Harness · Init"
-  short_description: "从 Figma 与代码整理项目依据和 Library 来源，逐模块确认并补齐设计资产"
-  default_prompt: "用 $design-harness-init 根据这个 Figma 项目和代码仓库建立 Harness，整理现状与适用 Library 来源，再逐模块确认和补齐。"
+  display_name: "Design Harness · 初始化"
+  short_description: "按模块整理项目知识与可复用资产，维护可见进度和确认结论，独立交付初始化结果。"
+  default_prompt: "用 $design-harness-init 根据这个 Figma 项目和仓库整理设计依据，逐模块确认并补齐存量资产。"
+policy:
+  allow_implicit_invocation: false
