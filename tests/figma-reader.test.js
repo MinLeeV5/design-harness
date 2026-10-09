@@ -84,7 +84,9 @@ for (const skill of SKILL_NAMES) {
       const f = fixture();
       const page = f.node("30:1", "PAGE", "Requirement", f.root);
       const record = f.node("30:2", "FRAME", "DH / Handoff / Interaction", page);
-      const contents = "阶段交接 / 1\n当前：分支 2\n已确认：主流程 v1\n未确认：分支 2\n产物：30:4\n待验证：产品运行";
+      const contents = ["阶段交接 / 1", "当前：分支 2", "已确认：主流程 v1", "未确认：分支 2", "产物：30:4",
+        "当前讨论：失败恢复时保留哪些信息", "决定与理由：保留输入，减少重新填写；失败态草图已修订",
+        "仍待回答：取消后是否保存本次输入", "当前稿：待验收", "下一项：未放行", "待验证：产品运行"].join("\n");
       f.node("30:3", "TEXT", "DH / Handoff", record, contents);
       const artifact = f.node("30:4", "FRAME", "Main flow v1", page);
       const visual = f.node("30:5", "FRAME", "Visual delivery", page);

@@ -213,6 +213,7 @@ describe("Plugin distribution", () => {
       "skills/design-harness-visual/assets/visual-delivery.txt", "skills/design-harness-visual/references/iconography.md",
       "skills/design-harness-visual/references/illustration.md", "skills/design-harness-visual/references/ui-ux-pro-max.md",
       "skills/design-harness-writeback/references/knowledge-update.md", "skills/design-harness-writeback/assets/writeback-delta.txt",
+      ...SKILL_NAMES.slice(0, 3).map(name => `skills/${name}/references/interview.md`),
       ...SKILL_NAMES.flatMap(name => ["references/handoff.md", "assets/stage-handoff.txt", "references/figma-console.md",
         "references/figma-use.md"].map(file => `skills/${name}/${file}`))
     ]) {

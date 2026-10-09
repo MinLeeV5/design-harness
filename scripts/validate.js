@@ -24,7 +24,7 @@ export const SHARED_SKILL_GROUPS = [
     "third-party/impeccable/LICENSE", "third-party/impeccable/NOTICE.md"]}
 ];
 const STAGE_FILES = {
-  "design-harness-init": ["references/context-contract.md", "references/modules.md", "references/asset-state.md",
+  "design-harness-init": ["references/context-contract.md", "references/modules.md", "references/asset-state.md", "references/interview.md",
     "assets/harness-entry.txt", "assets/module-overview.txt", "third-party/harness-designing-plugin/LICENSE"],
   "design-harness-interaction": ["references/interview.md", "references/prototyping.md", "references/impeccable.md",
     "assets/requirement-page.txt", "assets/interaction-prototype.txt"],
