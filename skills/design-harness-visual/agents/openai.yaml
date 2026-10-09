@@ -1,6 +1,6 @@
 interface:
   display_name: "Design Harness · 视觉设计"
-  short_description: "先访谈视觉目标，比较 2–3 套代表方案，选主方向并整合确认后展开完整设计。"
-  default_prompt: "用 $design-harness-visual 承接这份交互交接，先访谈目标，再给出 2–3 套代表方案，选定并整合确认后展开设计。"
+  short_description: "访谈目标后逐套逐页探索候选，选定并整合确认后逐项展开，每次等用户放行。"
+  default_prompt: "用 $design-harness-visual 承接交互交接，先访谈目标，逐套逐页制作 2–3 套候选；每次展示后等我放行下一项。"
 policy:
   allow_implicit_invocation: false
