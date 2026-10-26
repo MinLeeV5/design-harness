@@ -4,3 +4,11 @@ coverage/
 .DS_Store
 dist/
 .design-harness/
+
+# Harness managed
+.omc/
+.omx/
+*.tsbuildinfo
+.superpowers
+.harness/skills-state.json
+.harness/skills-backups/

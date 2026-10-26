@@ -260,8 +260,11 @@ export function validate(directory = ROOT) {
       `Skill license must match the original license: ${path.basename(skill)}`);
   }
 
+  // DevKeel 与 OpenSpec 是仓库开发资产；模板中的待生成引用不属于插件文档链接。
   const ignored = new Set([".git", "dist", ".design-harness", "skills", "node_modules", "coverage", ".nyc_output"]);
-  for (const filename of walk(root, (_, entry) => ignored.has(entry.name))) {
+  const development = new Set([".harness", "openspec"]);
+  for (const filename of walk(root, (filename, entry) => ignored.has(entry.name) ||
+    (path.dirname(filename) === root && development.has(entry.name)))) {
     if (!isFile(filename) || path.extname(filename) !== ".md") continue;
     for (const [link, target] of localLinks(filename)) {
       check(isWithin(root, target) && fs.existsSync(target),

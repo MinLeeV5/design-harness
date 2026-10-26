@@ -20,8 +20,12 @@ describe("Plugin distribution", () => {
   beforeEach(() => {
     base = fs.mkdtempSync(path.join(os.tmpdir(), "design-harness-test-"));
     root = path.join(base, "source", "design-harness");
-    fs.cpSync(ROOT, root, {recursive: true,
-      filter: filename => !path.relative(ROOT, filename).split(path.sep).some(part => ignored.has(part))});
+    fs.cpSync(ROOT, root, {recursive: true, filter: filename => {
+      const parts = path.relative(ROOT, filename).split(path.sep);
+      return !parts.some(part => ignored.has(part)) &&
+        ![".harness", "openspec"].includes(parts[0]) &&
+        !(parts[0] === ".agents" && parts.length > 1 && parts[1] !== "plugins");
+    }});
   });
   afterEach(() => fs.rmSync(base, {recursive: true, force: true}));
 
@@ -157,6 +161,28 @@ describe("Plugin distribution", () => {
     assert.ok(!Object.values(files).some(data => Buffer.from(data).includes(marker)));
   });
 
+  test("Development harness templates stay outside plugin validation and distribution", () => {
+    const templates = [
+      ".harness/skills/example/SKILL.md",
+      ".harness/skills-state.json",
+      ".harness/skills-backups/restore.json",
+      "openspec/changes/example/notes.md",
+      "openspec/schemas/full/templates/spec.md"
+    ];
+    for (const relative of templates) {
+      const filename = path.join(root, relative);
+      fs.mkdirSync(path.dirname(filename), {recursive: true});
+      fs.writeFileSync(filename, "[pending artifact](../../brainstorm.md#d-03)\n");
+    }
+    assert.deepEqual(validate(root), []);
+    const result = packagePlugin(path.join(base, "out"), root);
+    const files = unzipSync(fs.readFileSync(result.archive));
+    assert.ok(!Object.keys(files).some(filename => /\/(?:\.harness|openspec)\//.test(filename)));
+    const license = "docs/third-party/devkeel/LICENSE";
+    assert.deepEqual(Buffer.from(files["design-harness/plugins/design-harness/" + license]),
+      fs.readFileSync(path.join(root, license)));
+  });
+
   test("Symlinked files and directories cannot enter the distribution", () => {
     const file = path.join(base, "outside.txt");
     const directory = path.join(base, "outside-dir");
@@ -175,6 +201,10 @@ describe("Plugin distribution", () => {
   test("Broken internal references are reported with a failing CLI exit", () => {
     fs.appendFileSync(path.join(root, "README.md"), "\n[broken](references/missing.md)\n");
     assert.ok(validate(root).some(error => error.includes("Broken/nonportable")));
+    const nested = path.join(root, "docs/openspec/guide.md");
+    fs.mkdirSync(path.dirname(nested), {recursive: true});
+    fs.writeFileSync(nested, "[broken](missing.md)\n");
+    assert.ok(validate(root).some(error => error.includes("docs/openspec/guide.md")));
     const result = spawnSync(process.execPath, ["scripts/validate.js"], {cwd: root, encoding: "utf8"});
     assert.equal(result.status, 1);
     assert.match(result.stderr, /Broken\/nonportable/);
