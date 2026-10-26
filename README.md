@@ -168,9 +168,11 @@ codex plugin add design-harness@design-harness
 
 ## 维护与验证
 
+本仓库通过 DevKeel 接入 Codex 开发能力，使用 `.harness/` 与 `openspec/` 维护仓库协作，见 [仓库 Agent 协作](docs/agent-workflow.md)。这些开发资产不进入 ZIP，也不是四个公开 Skill 的运行依赖；使用方项目的设计知识继续维护在 Figma。
+
 - [Init](skills/design-harness-init/SKILL.md) · [交互](skills/design-harness-interaction/SKILL.md) · [视觉](skills/design-harness-visual/SKILL.md) · [知识回写](skills/design-harness-writeback/SKILL.md)
 - [交接契约](skills/design-harness-interaction/references/handoff.md) · [原型制作](skills/design-harness-interaction/references/prototyping.md) · [知识增量](skills/design-harness-writeback/references/knowledge-update.md)
-- [验证范围与试运行情境](docs/validation.md) · [仓库协作规范](AGENTS.md)
+- [Skill 维护指南](docs/skill-maintenance.md) · [验证范围与试运行情境](docs/validation.md) · [Agent 执行入口](AGENTS.md)
 
 自动检查覆盖四个入口的结构、独立复制、共享资源、交接文本的有界读取与打包一致性。它们不能证明真实 Figma 交互、设计质量、用户批准或上下文压缩后的行为；实际项目需要分别核验。
 
