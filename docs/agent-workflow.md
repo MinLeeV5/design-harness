@@ -1,14 +1,14 @@
 # 仓库 Agent 协作
 
-DevKeel 为本仓库的 Codex 开发会话提供执行入口和通用能力。根目录 [AGENTS.md](../AGENTS.md) 保留常驻约束并按任务路由项目知识；四个公开设计阶段仍须由用户显式启动。
+DevKeel 为本仓库的 Codex 开发会话提供执行入口和通用能力。根目录 [AGENTS.md](../AGENTS.md) 保留常驻约束并按任务路由项目知识；四个公开设计入口仍须由用户显式启动。
 
 ## 知识与约束的归属
 
 | 位置 | 内容与读取条件 |
 | --- | --- |
 | 根 `AGENTS.md` | 每次任务生效的执行契约、仓库边界及条件读取入口；不追加完整历史规范或维护手册 |
-| [Skill 维护指南](skill-maintenance.md) | 修改设计流程、Figma 知识表达、Skill 资源、外部来源或分发约定时，读取对应主题及阶段依据 |
-| [README](../README.md) | 插件定位、四个阶段、用户工作方式、安装与开发命令 |
+| [Skill 维护指南](skill-maintenance.md) | 修改设计流程、本地知识协议、Skill 资源、外部来源或分发约定时，读取对应主题及阶段依据 |
+| [README](../README.md) | 插件定位、四个入口、用户工作方式、安装与开发命令 |
 | 各公开 Skill 的 `references/`、`assets/` 和 `scripts/` | 本阶段的可执行流程、评价、蓝图和运行资源，独立复制仍须完整 |
 | [验证范围](validation.md)、[品牌说明](../assets/README.md) | 分别承载验证细节和品牌资源维护要求 |
 
@@ -27,7 +27,7 @@ DevKeel 为本仓库的 Codex 开发会话提供执行入口和通用能力。�
 | `openspec/` | 本仓库的规范、任务过程与 Lite/Full 模板；是否创建任务记录由用户决定 |
 | `docs/` | 插件使用、开发与验证说明，复用已有文档 |
 
-使用方项目的设计知识、需求页面与阶段交接继续保存在其 Figma Harness 页面，不迁入本仓库的开发目录。DevKeel 接入不启动设计阶段，也不启用 hooks、遥测或自动跨项目学习。
+使用方项目的设计知识、独立需求与交接保存在其代码仓库的 design-harness/，与业务工程运行隔离，不迁入本插件仓库。DevKeel 接入不启动设计入口，也不启用 hooks、遥测或自动跨项目学习。
 
 ZIP 沿用现有文件白名单，不包含 `.harness/`、`openspec/` 或新增的平台链接。插件引用检查也不将这两个开发目录中的模板示例链接当成已生成的插件资产。独立复制某个公开 Skill 时，无需携带 DevKeel 目录或安装其 CLI。
 
@@ -55,6 +55,6 @@ npx devkeel@latest update
 
 新增项目知识时可显式调用 `$domain-init`，基于真实代码和已有约定选择扫描范围，经 review 后合并；需要补齐测试能力时可显式调用 `$verify-init`。已有的 [验证说明](validation.md) 与 `node:test` 测试继续复用，不因初始化额外安装测试框架。
 
-`doctor` 只检查静态入口，OpenSpec 列表只证明 CLI 可运行。仓库检查使用 `npm run check`，分发与模拟 Figma API 的覆盖范围见 [验证说明](validation.md)。这些检查不能替代真实 Figma 验证。安装入口后应在新的 Codex 会话中确认 Skills 是否可发现，不能仅凭链接存在宣称会话已加载。
+`doctor` 只检查静态入口，OpenSpec 列表只证明 CLI 可运行。仓库检查使用 `npm run check`，分发、协议与工作区的覆盖范围见 [验证说明](validation.md)；真实页面体验另用 `npm run test:browser` 验证。安装入口后应在新的 Codex 会话中确认 Skills 是否可发现，不能仅凭链接存在宣称会话已加载。
 
 接入与检查不自动提交、推送或发布。完整安装和维护步骤参见 [DevKeel 接入指南](https://raw.githubusercontent.com/MinLeeV5/devkeel/HEAD/web/public/install.md)。
