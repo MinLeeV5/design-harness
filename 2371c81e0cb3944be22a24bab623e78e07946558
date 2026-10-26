@@ -1,0 +1,350 @@
+.harness/skills/systematic-debugging/scripts/debug-server.js
+  7a2b3b7c7d3b387b 1-362
+.harness/skills/openspec-apply-change/SKILL.md
+  7a2b3b7c7d3b387b 1-105
+.harness/commands/opsx/continue.md
+  7a2b3b7c7d3b387b 1-11
+.harness/skills/commit/SKILL.md
+  7a2b3b7c7d3b387b 1-156
+openspec/config.yaml
+  7a2b3b7c7d3b387b 1-8
+.harness/commands/opsx/verify.md
+  7a2b3b7c7d3b387b 1-11
+.harness/skills/review-orchestrator/references/diff-collection.md
+  7a2b3b7c7d3b387b 1-44
+.harness/skills/technical-design/references/dimensions/D03-runtime-boundaries.md
+  7a2b3b7c7d3b387b 1-26
+.harness/skills/technical-design/SKILL.md
+  7a2b3b7c7d3b387b 1-112
+.harness/skills/commit/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/skills/ui-fidelity-playbook/SKILL.md
+  7a2b3b7c7d3b387b 1-167
+.harness/skills/systematic-debugging/references/instrumentation.md
+  7a2b3b7c7d3b387b 1-87
+.harness/skills/openspec-bulk-archive-change/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/skills/ui-fidelity-playbook/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/skills/jira-defect-orchestrator/references/comment-templates.md
+  7a2b3b7c7d3b387b 1-102
+.harness/skills/systematic-debugging/scripts/bootstrap.js
+  7a2b3b7c7d3b387b 1-44
+.harness/skills/requirement-analysis/references/default-template.md
+  7a2b3b7c7d3b387b 1-67
+.harness/skills/brainstorming/scripts/openspec-status-snapshot.sh
+  7a2b3b7c7d3b387b 1-39
+.harness/skills/jira-defect-orchestrator/references/jira-cli-capabilities.md
+  7a2b3b7c7d3b387b 1-121
+.harness/skills/technical-design/references/dimensions/D01-scope-goals.md
+  7a2b3b7c7d3b387b 1-19
+.harness/skills/technical-design/references/dimensions/D14-risks-decisions.md
+  7a2b3b7c7d3b387b 1-19
+.harness/commands/opsx/onboard.md
+  7a2b3b7c7d3b387b 1-11
+.harness/skills/openspec-ff-change/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-6
+.harness/skills/technical-design/references/domain-profiles/cli.md
+  7a2b3b7c7d3b387b 1-20
+.harness/skills/openspec-archive-change/SKILL.md
+  7a2b3b7c7d3b387b 1-137
+.harness/skills/technical-design/references/domain-profiles/devops.md
+  7a2b3b7c7d3b387b 1-20
+openspec/schemas/lite/schema.yaml
+  7a2b3b7c7d3b387b 1-64
+.harness/skills/jira-defect-orchestrator/scripts/setup-jira-cli.sh
+  7a2b3b7c7d3b387b 1-196
+.harness/skills/openspec-apply-change/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/skills/technical-design/references/domain-profiles/desktop.md
+  7a2b3b7c7d3b387b 1-20
+.harness/skills/test-case-designer/references/testing-dimension-matrix.md
+  7a2b3b7c7d3b387b 1-92
+.harness/skills/brainstorming/SKILL.md
+  7a2b3b7c7d3b387b 1-111
+.harness/skills/brainstorming/references/living-brainstorm.md
+  7a2b3b7c7d3b387b 1-53
+.harness/skills/domain-init/SKILL.md
+  7a2b3b7c7d3b387b 1-291
+.harness/skills/domain-init/references/output-formats.md
+  7a2b3b7c7d3b387b 1-100
+.harness/skills/openspec-verify-change/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/skills/brainstorming/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/skills/technical-design/references/dimension-selection.md
+  7a2b3b7c7d3b387b 1-60
+openspec/schemas/full/templates/tasks.md
+  7a2b3b7c7d3b387b 1-22
+.harness/skills/verify-init/references/scaffolding-principles.md
+  7a2b3b7c7d3b387b 1-39
+.harness/commands/opsx/bulk-archive.md
+  7a2b3b7c7d3b387b 1-11
+.gitignore
+  7a2b3b7c7d3b387b 7-14
+.harness/skills/jira-defect-orchestrator/scripts/render_jira_comment.py
+  7a2b3b7c7d3b387b 1-104
+.harness/skills/openspec-update-change/SKILL.md
+  7a2b3b7c7d3b387b 1-58
+.harness/skills/jira-defect-orchestrator/scripts/resolve_jira_transition.py
+  7a2b3b7c7d3b387b 1-151
+openspec/schemas/full/templates/design.md
+  7a2b3b7c7d3b387b 1-43
+.harness/skills/brainstorming/references/openspec-context.md
+  7a2b3b7c7d3b387b 1-45
+.harness/skills/systematic-debugging/assets/hdbg-node.cjs
+  7a2b3b7c7d3b387b 1-37
+openspec/schemas/lite/templates/tasks.md
+  7a2b3b7c7d3b387b 1-11
+.harness/skills/review-orchestrator/SKILL.md
+  7a2b3b7c7d3b387b 1-82
+.harness/skills/test-case-designer/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/commands/opsx/explore.md
+  7a2b3b7c7d3b387b 1-15
+.harness/skills/openspec-verify-change/SKILL.md
+  7a2b3b7c7d3b387b 1-107
+openspec/schemas/full/templates/verify.md
+  7a2b3b7c7d3b387b 1-34
+.harness/skills/technical-design/references/dimensions/D11-observability-diagnostics.md
+  7a2b3b7c7d3b387b 1-19
+.harness/skills/technical-design/references/domain-profiles/mobile.md
+  7a2b3b7c7d3b387b 1-20
+.harness/skills/jira-defect-orchestrator/SKILL.md
+  7a2b3b7c7d3b387b 1-123
+.harness/skills/technical-design/references/domain-profiles/backend.md
+  7a2b3b7c7d3b387b 1-20
+.harness/skills/systematic-debugging/assets/hdbg-web.js
+  7a2b3b7c7d3b387b 1-37
+.harness/skills/technical-design/references/domain-profiles/native-service.md
+  7a2b3b7c7d3b387b 1-20
+.harness/skills/jira-defect-orchestrator/references/comment-sync-idempotency.md
+  7a2b3b7c7d3b387b 1-59
+.harness/skills/technical-design/references/dimensions/D04-flows-failures.md
+  7a2b3b7c7d3b387b 1-19
+.harness/skills/verify-init/references/output-formats.md
+  7a2b3b7c7d3b387b 1-99
+openspec/schemas/full/templates/brainstorm.md
+  7a2b3b7c7d3b387b 1-50
+.harness/skills/openspec-continue-change/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/skills/systematic-debugging/references/javascript-http.md
+  7a2b3b7c7d3b387b 1-49
+.harness/skills/systematic-debugging/references/java8-http.md
+  7a2b3b7c7d3b387b 1-36
+.harness/skills/technical-design/references/dimensions/D12-compatibility-migration.md
+  7a2b3b7c7d3b387b 1-19
+.harness/skills/domain-init/references/project-index.md
+  7a2b3b7c7d3b387b 1-33
+.harness/skills/openspec-verify-change/scripts/implementation-fingerprint.mjs
+  7a2b3b7c7d3b387b 1-187
+.harness/skills/review-orchestrator/references/output-contract.md
+  7a2b3b7c7d3b387b 1-56
+tests/distribution.test.js
+  7a2b3b7c7d3b387b 23-28,164-185,204-207
+.harness/commands/opsx/new.md
+  7a2b3b7c7d3b387b 1-12
+.harness/skills/openspec-new-change/SKILL.md
+  7a2b3b7c7d3b387b 1-65
+.harness/commands/opsx/apply.md
+  7a2b3b7c7d3b387b 1-11
+.harness/skills/openspec-onboard/SKILL.md
+  7a2b3b7c7d3b387b 1-124
+.harness/skills/technical-design/references/dimensions/D02-architecture-boundaries.md
+  7a2b3b7c7d3b387b 1-25
+.harness/skills/review-orchestrator/references/input-template.md
+  7a2b3b7c7d3b387b 1-27
+.harness/skills/systematic-debugging/scripts/cleanup.js
+  7a2b3b7c7d3b387b 1-379
+.harness/skills/technical-design/references/dimensions/D07-ui-interaction.md
+  7a2b3b7c7d3b387b 1-28
+.harness/skills/openspec-new-change/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/skills/ui-fidelity-playbook/references/workflow.md
+  7a2b3b7c7d3b387b 1-103
+openspec/schemas/lite/templates/brainstorm.md
+  7a2b3b7c7d3b387b 1-50
+.harness/skills/openspec-sync-specs/SKILL.md
+  7a2b3b7c7d3b387b 1-69
+.harness/skills/technical-design/references/dimensions/D08-performance-resource.md
+  7a2b3b7c7d3b387b 1-26
+.harness/skills/jira-defect-orchestrator/references/evidence-playbook.md
+  7a2b3b7c7d3b387b 1-107
+openspec/schemas/full/templates/spec.md
+  7a2b3b7c7d3b387b 1-71
+.harness/skills/verify-init/references/detection-signals.md
+  7a2b3b7c7d3b387b 1-147
+.harness/skills/openspec-ff-change/SKILL.md
+  7a2b3b7c7d3b387b 1-46
+.harness/skills/technical-design/references/dimensions/D13-verification.md
+  7a2b3b7c7d3b387b 1-19
+.harness/skills/technical-design/references/dimensions/D10-security-privacy.md
+  7a2b3b7c7d3b387b 1-33
+.harness/skills/ui-fidelity-playbook/references/traps.md
+  7a2b3b7c7d3b387b 1-98
+.harness/commands/opsx/sync.md
+  7a2b3b7c7d3b387b 1-11
+.harness/skills/openspec-update-change/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/skills/jira-defect-orchestrator/references/defect-playbook.md
+  7a2b3b7c7d3b387b 1-208
+.harness/skills/requirement-analysis/SKILL.md
+  7a2b3b7c7d3b387b 1-110
+.harness/skills/verify-init/references/claude-code.md
+  7a2b3b7c7d3b387b 1-3
+.harness/skills/jira-defect-orchestrator/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/skills/workflow-routing/SKILL.md
+  7a2b3b7c7d3b387b 1-82
+.harness/versions.yml
+  7a2b3b7c7d3b387b 1-29
+docs/third-party/devkeel/LICENSE
+  7a2b3b7c7d3b387b 1-21
+.harness/skills/jira-defect-orchestrator/README.md
+  7a2b3b7c7d3b387b 1-43
+.harness/skills/jira-defect-orchestrator/references/e2e-compact-handoff.md
+  7a2b3b7c7d3b387b 1-30
+.harness/skills/openspec-sync-specs/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/commands/opsx/ff.md
+  7a2b3b7c7d3b387b 1-11
+.harness/skills/technical-design/references/domain-profiles/sdk.md
+  7a2b3b7c7d3b387b 1-20
+.harness/skills/systematic-debugging/assets/Hdbg.java
+  7a2b3b7c7d3b387b 1-100
+.harness/skills/domain-init/references/dimension-pool.md
+  7a2b3b7c7d3b387b 1-61
+.harness/skills/test-case-designer/references/output-contract.md
+  7a2b3b7c7d3b387b 1-44
+.harness/skills/jira-defect-orchestrator/references/confirmation-gates.md
+  7a2b3b7c7d3b387b 1-47
+.harness/skills/openspec-bulk-archive-change/SKILL.md
+  7a2b3b7c7d3b387b 1-84
+.harness/skills/brainstorming/scripts/planning-state.mjs
+  7a2b3b7c7d3b387b 1-104
+.harness/skills/technical-design/references/dimensions/D05-contracts.md
+  7a2b3b7c7d3b387b 1-19
+.harness/skills/verify-init/references/frameworks-index.md
+  7a2b3b7c7d3b387b 1-101
+.harness/skills/systematic-debugging/references/diagnosis.md
+  7a2b3b7c7d3b387b 1-77
+.harness/commands/opsx/update.md
+  7a2b3b7c7d3b387b 1-11
+.harness/skills/review-orchestrator/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/skills/verify-init/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/skills/domain-init/references/detection-signals.md
+  7a2b3b7c7d3b387b 1-115
+.harness/skills/openspec-continue-change/SKILL.md
+  7a2b3b7c7d3b387b 1-72
+.harness/skills/verify-init/SKILL.md
+  7a2b3b7c7d3b387b 1-200
+.harness/skills/technical-design/references/dimensions/D06-data-state.md
+  7a2b3b7c7d3b387b 1-19
+.harness/skills/verify-init/references/codex.md
+  7a2b3b7c7d3b387b 1-3
+.harness/skills/test-case-designer/references/source-analysis.md
+  7a2b3b7c7d3b387b 1-38
+.harness/skills/jira-defect-orchestrator/scripts/detect_mr_target.py
+  7a2b3b7c7d3b387b 1-177
+.harness/skills/technical-design/references/default-template.md
+  7a2b3b7c7d3b387b 1-69
+.harness/skills/openspec-archive-change/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/skills/systematic-debugging/SKILL.md
+  7a2b3b7c7d3b387b 1-70
+.harness/skills/jira-defect-orchestrator/references/multi-issue-coordination.md
+  7a2b3b7c7d3b387b 1-63
+.harness/skills/review-orchestrator/references/mode-strategy.md
+  7a2b3b7c7d3b387b 1-55
+.harness/skills/ui-fidelity-playbook/references/checklist.md
+  7a2b3b7c7d3b387b 1-49
+openspec/schemas/full/templates/retrospective.md
+  7a2b3b7c7d3b387b 1-26
+.harness/skills/requirement-analysis/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/skills/test-case-designer/SKILL.md
+  7a2b3b7c7d3b387b 1-313
+scripts/validate.js
+  7a2b3b7c7d3b387b 263,265-267
+.harness/skills/jira-defect-orchestrator/references/defect-state-machine.md
+  7a2b3b7c7d3b387b 1-60
+.harness/skills/verify-init/references/stack-matrix.md
+  7a2b3b7c7d3b387b 1-74
+.harness/skills/technical-design/references/dimensions/D09-reliability-recovery.md
+  7a2b3b7c7d3b387b 1-19
+openspec/schemas/full/schema.yaml
+  7a2b3b7c7d3b387b 1-157
+.harness/skills/technical-design/references/domain-profiles/frontend.md
+  7a2b3b7c7d3b387b 1-20
+.harness/commands/opsx/archive.md
+  7a2b3b7c7d3b387b 1-12
+.harness/skills/commit/references/merge-request.md
+  7a2b3b7c7d3b387b 1-46
+.harness/skills/domain-init/scripts/sync-submodule-skills.mjs
+  7a2b3b7c7d3b387b 1-338
+.harness/skills/domain-init/references/domain-matrix.md
+  7a2b3b7c7d3b387b 1-40
+.harness/skills/technical-design/references/domain-profiles/custom.md
+  7a2b3b7c7d3b387b 1-20
+.harness/skills/openspec-onboard/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/skills/systematic-debugging/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/skills/domain-init/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/skills/technical-design/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+.harness/skills/workflow-routing/agents/openai.yaml
+  7a2b3b7c7d3b387b 1-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.8.1",
+  "base_commit_sha": "2371c81e0cb3944be22a24bab623e78e07946558",
+  "prompts": {
+    "7a2b3b7c7d3b387b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a169a8-c8c1-7e70-93bd-120d3f08b715",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 9574,
+      "total_deletions": 128,
+      "accepted_lines": 9538,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/312f0d8a9bf0ddfec46930f0fe8b2d3c989cb2f38598a800073a6bace55044fe",
+      "token_usage": {
+        "input_tokens": 487069,
+        "output_tokens": 56261,
+        "cache_read_tokens": 5833600,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "ef2dc52a76016f74": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1216a-2893-7b43-a114-bd1fc3b1884f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 16,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/36b1fc52a125eddf27e78e011d76e432ec9659f2788177ca1a107e15e1186fde",
+      "token_usage": {
+        "input_tokens": 386071,
+        "output_tokens": 44152,
+        "cache_read_tokens": 4937600,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    }
+  }
+}
