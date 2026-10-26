@@ -1,21 +1,16 @@
 ---
 name: design-harness-init
-description: 用户显式启动项目初始化或存量补齐时，从 Figma 与代码逐模块建立 Design Harness，访谈知识的意图与边界，修订并确认提案后补齐存量资产。新需求交互、视觉细化与知识回写分别使用独立入口。
+description: 在项目仓库建立独立设计工作区，沉淀产品上下文、规则、Token、组件与资源，形成可供需求复用的设计基础。
+license: MIT
+metadata:
+  author: Min Lee
+  version: "0.2.0"
 ---
 
 # Design Harness · 初始化
 
-只执行初始化或指定模块的增量整理，交付可独立读取的项目设计依据。先读 [当前阶段工作流](references/workflow.md) 与 [交接和恢复](references/handoff.md)，沿用已有范围与确认。
+由用户显式启动本阶段，承接当前范围、授权与决定。设计交付独立于产品工程，知识保存到项目仓库的 design-harness/，不依赖 Figma。
 
-按当前操作加载，不沿链接预读所有文档：
-
-| 当前需要 | 读取 |
-| --- | --- |
-| 定位或建立项目知识 | [上下文契约](references/context-contract.md)，整理当前模块时读 [产出标准](references/modules.md) 对应部分 |
-| 整理或补齐当前模块 | [模块共创访谈](references/interview.md)，先讨论未决取舍，再形成具体提案 |
-| 访问或修改 Figma | [工具选择](references/figma-operations.md)，再读选中的连接器说明 |
-| 核对既有库或设计语言 | [Library 与视觉资产](references/visual-assets.md) 或 [设计描述](references/design-description.md)，只沿当前问题加载 |
-| 写文档、检查交付 | [文档模板](references/work-templates.md) 对应部分、[Init 检查](references/evaluation.md) |
-| 需要额外方法依据 | [外部来源](references/sources.md) 中的相关来源 |
-
-每模块先回述理解，围绕未决取舍逐题给推荐和理由，按反馈修订；具体提案经确认后写入，已有同范围授权直接沿用，无新取舍不凑问题。项目规范优先；当前代码用于核实存量，已确认待实现设计按 [资源状态](references/asset-state.md) 保留。完成或暂缓后更新本阶段可见交接记录并停止，由用户启动后续阶段。
+先读[工作流](references/workflow.md)。建立工作区读[模板职责](references/workspace.md)，编写文件读[协议](references/protocol.md)，
+预览、Live、检查与固定交付读[操作](references/preview-export.md)，恢复读[交接](references/handoff.md)。
+完成前按[评价](references/evaluation.md)核对真实产物；外部指导按[来源](references/sources.md)定向读取。

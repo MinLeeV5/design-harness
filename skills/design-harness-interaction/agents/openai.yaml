@@ -1,6 +1,6 @@
 interface:
   display_name: "Design Harness · 交互设计"
-  short_description: "逐题共创流程与行为取舍，按反馈修订逐页原型，主流程串联确认后补分支与状态。"
-  default_prompt: "用 $design-harness-interaction 与我逐题共创流程和当前页的行为取舍，按反馈修订实际稿，验收并放行后再做下一项。"
+  short_description: "基于本地设计基础，为独立需求制作可运行 React 原型，将 PRD、UX 说明与页面场景关联，验证完整用户任务。"
+  default_prompt: "使用 $design-harness-interaction 基于本地设计基础，为独立需求制作可运行 React 原型，将 PRD、UX 说明与页面场景关联，验证完整用户任务。"
 policy:
   allow_implicit_invocation: false

@@ -1,0 +1,13 @@
+import fs from "node:fs";
+import path from "node:path";
+import {initialize} from "../skills/design-harness-init/scripts/harness.mjs";
+const project=path.resolve(import.meta.dirname,"../dist/demo");
+fs.mkdirSync(project,{recursive:true});
+const workspace=path.join(project,"design-harness");
+if(!fs.existsSync(workspace)) initialize(project,{example:true});
+const {startServer}=await import(path.join(workspace,"studio/lib/server.mjs"));
+const {origin,server}=await startServer(workspace);
+console.log("Design Harness 示例："+origin);
+console.log("工作区："+workspace);
+process.once("SIGINT",()=>server.close());
+process.once("SIGTERM",()=>server.close());

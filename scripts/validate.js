@@ -7,99 +7,65 @@ import {isWithin, isFile, walk} from "./files.js";
 
 export const ROOT = path.resolve(import.meta.dirname, "..");
 export const SKILL_NAMES = ["design-harness-init", "design-harness-interaction", "design-harness-visual", "design-harness-writeback"];
-// Shared by consumers, not by every phase: keep runtime resources self-contained without shipping unrelated methods.
-export const SHARED_SKILL_GROUPS = [
-  {skills: SKILL_NAMES, files: ["scripts/figma-reader.js", "assets/resource-card.txt", "LICENSE",
-    "references/handoff.md", "assets/stage-handoff.txt", "references/figma-operations.md",
-    "references/figma-console.md", "references/figma-use.md",
-    "references/work-templates.md", "assets/figma-work-templates.json"]},
-  {skills: SKILL_NAMES.slice(1), files: ["references/context-loading.md"]},
-  {skills: ["design-harness-init", "design-harness-visual"], files: [
-    "references/visual-assets.md", "references/iconography.md", "references/illustration.md", "assets/library-sources.txt",
-    "third-party/visual-assets/NOTICE.md", "third-party/lucide/LICENSE",
-    "references/design-description.md", "assets/design-description.txt",
-    "third-party/design-md/LICENSE", "third-party/design-md/NOTICE.md"]},
-  {skills: ["design-harness-interaction", "design-harness-visual"], files: [
-    "references/ui-ux-pro-max.md", "third-party/ui-ux-pro-max/LICENSE", "third-party/ui-ux-pro-max/NOTICE.md",
-    "third-party/impeccable/LICENSE", "third-party/impeccable/NOTICE.md"]}
+// Every public entry carries the same executable template and local protocol.
+export const WORKSPACE_FILES = [
+  ".gitignore",
+  "README.md",
+  "foundation/components.tsx",
+  "foundation/design.md",
+  "foundation/foundation.json",
+  "foundation/tokens.css",
+  "package-lock.json",
+  "package.json",
+  "studio/app.tsx",
+  "studio/assets.d.ts",
+  "studio/assets/harness-icon.png",
+  "studio/cli.mjs",
+  "studio/lib/build.mjs",
+  "studio/lib/protocol.mjs",
+  "studio/lib/server.mjs",
+  "studio/lib/workspace.mjs",
+  "studio/preview.tsx",
+  "studio/starter/candidates/comfortable.json",
+  "studio/starter/candidates/compact.json",
+  "studio/starter/handoff.md",
+  "studio/starter/manifest.json",
+  "studio/starter/requirement.md",
+  "studio/starter/scenarios.json",
+  "studio/starter/src/pages/TaskPage.tsx",
+  "studio/starter/src/pages/task.css",
+  "studio/studio.css",
+  "studio/types.ts",
+  "tsconfig.json",
+  "workspace.json"
 ];
-const STAGE_FILES = {
-  "design-harness-init": ["references/context-contract.md", "references/modules.md", "references/asset-state.md", "references/interview.md",
-    "assets/harness-entry.txt", "assets/module-overview.txt", "third-party/harness-designing-plugin/LICENSE"],
-  "design-harness-interaction": ["references/interview.md", "references/prototyping.md", "references/impeccable.md",
-    "assets/requirement-page.txt", "assets/interaction-prototype.txt"],
-  "design-harness-visual": ["references/interview.md", "references/impeccable.md", "assets/visual-delivery.txt"],
-  "design-harness-writeback": ["references/knowledge-update.md", "assets/writeback-delta.txt"]
-};
+export const SHARED_SKILL_GROUPS = [{
+  skills:SKILL_NAMES,
+  files:["scripts/harness.mjs","references/workspace.md","references/protocol.md","references/preview-export.md","references/handoff.md",
+    ...WORKSPACE_FILES.map(file=>"assets/workspace/"+file)]
+}];
 export function requiredSkillFiles(name) {
-  return [...new Set(["SKILL.md", "agents/openai.yaml", "references/workflow.md", "references/evaluation.md",
-    "references/sources.md", ...(STAGE_FILES[name] || []),
-    ...SHARED_SKILL_GROUPS.filter(group => group.skills.includes(name)).flatMap(group => group.files)])];
+  const licenses=["LICENSE"];
+  if(["design-harness-init","design-harness-visual"].includes(name))
+    licenses.push("references/assets.md","third-party/lucide/LICENSE","third-party/visual-assets/NOTICE.md","third-party/design-md/LICENSE","third-party/design-md/NOTICE.md");
+  if(["design-harness-interaction","design-harness-visual"].includes(name))
+    licenses.push("third-party/impeccable/LICENSE","third-party/impeccable/NOTICE.md","third-party/ui-ux-pro-max/LICENSE","third-party/ui-ux-pro-max/NOTICE.md");
+  if(name==="design-harness-init")licenses.push("third-party/harness-designing-plugin/LICENSE");
+  return ["SKILL.md","agents/openai.yaml","references/workflow.md","references/evaluation.md","references/sources.md",
+    ...licenses,...SHARED_SKILL_GROUPS[0].files];
 }
-const PNG_SIGNATURE = Buffer.from("89504e470d0a1a0a", "hex");
-
-function validateWorkTemplates(filename) {
-  const errors = [];
-  let kit;
-  try { kit = JSON.parse(fs.readFileSync(filename, "utf8")); }
-  catch (error) { return [`Invalid work template JSON: ${error.message}`]; }
-  if (kit.schemaVersion !== 1 || kit.artifactKind !== "native-figma-construction-blueprint" ||
-    typeof kit.version !== "string" || !Array.isArray(kit.primitives) || !Array.isArray(kit.templates)) {
-    return ["Invalid work template catalog structure"];
-  }
-  const blocks = kit.documentPresentation?.blocks;
-  const typography = kit.defaults?.typography;
-  if (!Array.isArray(blocks) || !blocks.length || !typography || typeof typography !== "object") {
-    errors.push("Missing work template document presentation");
-  } else {
-    const roles = new Set();
-    for (const block of blocks) {
-      if (!block || typeof block.role !== "string" || !block.role || roles.has(block.role)) {
-        errors.push("Missing or duplicate work template document role");
-        continue;
-      }
-      roles.add(block.role);
-      if (!Object.hasOwn(typography, block.typography) || !Number.isFinite(typography[block.typography]) ||
-        typography[block.typography] <= 0) {
-        errors.push(`Unresolved or invalid work template typography: ${block.role}`);
-      }
-    }
-  }
-  const reading = kit.defaults?.reading;
-  for (const [field, allowZero] of [["textColumnWidth", false], ["lineHeightPercent", false],
-    ["paragraphSpacing", true], ["listIndent", true]]) {
-    const value = reading?.[field];
-    if (!Number.isFinite(value) || (allowZero ? value < 0 : value <= 0)) {
-      errors.push(`Invalid work template reading layout: ${field}`);
-    }
-  }
-  const ids = new Set();
-  const primitives = new Set(kit.primitives.map(item => item.id));
-  for (const item of [...kit.primitives, ...kit.templates]) {
-    if (typeof item.id !== "string" || !item.id || ids.has(item.id)) {
-      errors.push("Missing or duplicate work template asset ID");
-    }
-    ids.add(item.id);
-    if (!["FRAME", "COMPONENT", "COMPONENT_SET"].includes(item.nativeType)) {
-      errors.push(`Invalid native type in work template: ${item.id}`);
-    }
-  }
-  for (const template of kit.templates) {
-    if (!Array.isArray(template.uses) || template.uses.some(id => !primitives.has(id))) {
-      errors.push(`Unresolved work template primitive: ${template.id}`);
-    }
-    const required = template.requiredSlots;
-    const optional = template.optionalSlots;
-    if (!Array.isArray(required) || !required.length || !Array.isArray(optional)) {
-      errors.push(`Missing work template slots: ${template.id}`);
-    } else {
-      const slots = [...required, ...optional];
-      if (slots.some(slot => typeof slot !== "string" || !slot) || new Set(slots).size !== slots.length) {
-        errors.push(`Invalid or conflicting work template slots: ${template.id}`);
-      }
-    }
-  }
-  return errors;
+const PNG_SIGNATURE=Buffer.from("89504e470d0a1a0a","hex");
+function validateWorkspaceTemplate(directory) {
+  try {
+    const workspace=JSON.parse(fs.readFileSync(path.join(directory,"workspace.json"),"utf8"));
+    const pkg=JSON.parse(fs.readFileSync(path.join(directory,"package.json"),"utf8"));
+    const lock=JSON.parse(fs.readFileSync(path.join(directory,"package-lock.json"),"utf8"));
+    const starter=JSON.parse(fs.readFileSync(path.join(directory,"studio/starter/manifest.json"),"utf8"));
+    if(workspace.schemaVersion!==1 || workspace.templateVersion!=="0.2.0" || pkg.version!==workspace.templateVersion ||
+      lock.version!==pkg.version || starter.schemaVersion!==1 || !Array.isArray(starter.pages) || !starter.pages.length)
+      return ["Invalid React workspace template protocol or version"];
+    return [];
+  } catch(error) {return ["Invalid React workspace template: "+error.message];}
 }
 
 function validateBranding(root, manifest) {
@@ -156,7 +122,7 @@ export function validateSkill(directory) {
   }
   if (errors.length) return errors;
 
-  errors.push(...validateWorkTemplates(path.join(skill, "assets/figma-work-templates.json")));
+  errors.push(...validateWorkspaceTemplate(path.join(skill, "assets/workspace")));
   const files = [...walk(skill)];
   for (const filename of files) {
     if (fs.lstatSync(filename).isSymbolicLink()) {
@@ -261,7 +227,7 @@ export function validate(directory = ROOT) {
   }
 
   // DevKeel 与 OpenSpec 是仓库开发资产；模板中的待生成引用不属于插件文档链接。
-  const ignored = new Set([".git", "dist", ".design-harness", "skills", "node_modules", "coverage", ".nyc_output"]);
+  const ignored = new Set([".git", "dist", ".design-harness", "design-harness", "skills", "node_modules", "coverage", ".nyc_output"]);
   const development = new Set([".harness", "openspec"]);
   for (const filename of walk(root, (filename, entry) => ignored.has(entry.name) ||
     (path.dirname(filename) === root && development.has(entry.name)))) {

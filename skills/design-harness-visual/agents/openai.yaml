@@ -1,6 +1,6 @@
 interface:
   display_name: "Design Harness · 视觉设计"
-  short_description: "共创目标并逐题讨论实际画面，按反馈修订候选与整合稿，确认后逐项展开。"
-  default_prompt: "用 $design-harness-visual 承接交互交接，与我共创目标，逐项探索 2–3 套候选并讨论画面取舍，修订与验收后再放行下一项。"
+  short_description: "在同一可运行 React 需求中细化高保真、多尺寸视觉，通过局部候选、Live 调参与图形资源迭代实际画面。"
+  default_prompt: "使用 $design-harness-visual 在同一可运行 React 需求中细化高保真、多尺寸视觉，通过局部候选、Live 调参与图形资源迭代实际画面。"
 policy:
   allow_implicit_invocation: false

@@ -1,41 +1,42 @@
 {
   "name": "design-harness",
-  "version": "0.1.1+codex.20261009165630",
+  "version": "0.2.0",
   "homepage": "https://github.com/MinLeeV5/design-harness",
   "repository": "https://github.com/MinLeeV5/design-harness",
-  "description": "以 Figma 为项目知识与交接载体，将初始化、交互设计、视觉设计和知识回写分为四个独立阶段，由用户控制启动与返回。",
+  "description": "以本地设计基础和独立需求为核心，使用 React 制作 PRD、UX、UI 一体的可运行设计，支持 Live 迭代与固定 HTML 交付。",
   "author": {
     "name": "Min Lee"
   },
   "license": "MIT；Impeccable 与 DESIGN.md 适配内容采用 Apache-2.0",
   "keywords": [
     "设计",
-    "Figma",
+    "HTML",
+    "React",
     "UI",
     "UX",
     "设计系统",
-    "工作流",
-    "设计评价"
+    "原型",
+    "设计交付"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Design Harness · 设计工作流",
-    "shortDescription": "四个独立设计阶段，以交付物和确认结论交接，由用户控制推进",
-    "longDescription": "初始化、交互设计、视觉设计和知识回写四个独立 Skill，均由用户显式启动。Init 逐模块共创知识意图与边界；交互共创流程与行为取舍，逐页制作主流程，串联确认后补分支与状态；视觉共创目标，逐项探索 2–3 套候选，围绕实际画面讨论并修订，比较及整合确认后逐项展开，小修改同样适用。关键问题每次一题，有推荐与理由，反馈落实为提案或画面变化，再验收与放行下一项；已有决定承接。可见 Figma 交接保存讨论结论、产物与授权，回写仅沉淀批准增量，阶段切换与返回由用户决定。",
+    "shortDescription": "本地设计基础、可运行需求与 Live 迭代，导出固定 HTML 交付",
+    "longDescription": "四个显式入口：初始化本地设计基础，交互与视觉共同迭代同一份 React 产物，按批准增量回写并生成固定 HTML 交付。统一评审工作台支持 PRD/UX 说明定位、多场景多尺寸、候选比较、局部点选与即时调参。每个需求固定基础快照，公共更新不改变既有需求与交付。面向本人与 Agent 的本地评审和离线分享，不依赖 Figma 或业务工程运行。",
     "developerName": "Min Lee",
     "websiteURL": "https://github.com/MinLeeV5/design-harness",
     "category": "Productivity",
     "capabilities": [
-      "逐模块共创项目知识、Library 复用边界与提案",
-      "行为取舍访谈、逐页原型与主流程串联验收",
-      "实际画面共创、视觉候选比较与整合确认",
-      "按批准增量更新 Harness 资源与索引",
-      "逐项放行与可见交接恢复，人工控制推进"
+      "本地初始化规则、Token 与设计组件",
+      "PRD、UX 与 React 可运行界面关联",
+      "多尺寸、多场景与候选比较",
+      "局部点选、即时调参与定位反馈",
+      "固定 HTML 导出、源码快照与显式基础升级"
     ],
     "defaultPrompt": [
-      "用 $design-harness-init 根据这个 Figma 项目和仓库，逐模块讨论关键取舍，修订提案并确认后整理与补齐。",
-      "用 $design-harness-interaction 与我共创流程和逐页行为，按反馈修订实际稿，验收并放行后再做下一项。",
-      "用 $design-harness-visual 与我共创目标，逐项探索 2–3 套候选并讨论实际画面，修订与验收后再放行下一项。"
+      "用 $design-harness-init 基于项目现状建立本地设计基础与独立工作区。",
+      "用 $design-harness-interaction 制作这项需求的可运行原型，并关联 PRD 与 UX 说明。",
+      "用 $design-harness-visual 在现有需求中细化视觉，通过候选比较与 Live 调参评审实际画面。"
     ],
     "brandColor": "#A259FF",
     "composerIcon": "./assets/icon.png",

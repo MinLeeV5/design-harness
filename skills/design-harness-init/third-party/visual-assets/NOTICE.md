@@ -1,6 +1,6 @@
 # 视觉资产指导的来源与引用范围
 
-`references/iconography.md`、`references/illustration.md` 和 `references/visual-assets.md` 是 Design Harness 为项目资产选择、Figma 制作与检查编写的内部方法。按问题在线读取相关来源，不分发上游手册快照、图标集或插画素材，不代表获得任何项目的品牌使用授权。
+`references/assets.md` 是 Design Harness 为项目资产选择、HTML 设计交付与检查编写的内部方法。按问题在线读取相关来源，不分发上游手册快照、图标集或插画素材，不代表获得任何项目的品牌使用授权。
 
 ## Lucide
 

@@ -1,6 +1,6 @@
 interface:
   display_name: "Design Harness · 初始化"
-  short_description: "逐模块共创知识意图与边界，按反馈修订提案，确认后整理与补齐存量资产。"
-  default_prompt: "用 $design-harness-init 根据这个 Figma 项目和仓库，逐题讨论各模块的关键取舍，修订提案并确认后整理与补齐。"
+  short_description: "在项目仓库建立独立设计工作区，沉淀产品上下文、规则、Token、组件与资源，形成可供需求复用的设计基础。"
+  default_prompt: "使用 $design-harness-init 在项目仓库建立独立设计工作区，沉淀产品上下文、规则、Token、组件与资源，形成可供需求复用的设计基础。"
 policy:
   allow_implicit_invocation: false

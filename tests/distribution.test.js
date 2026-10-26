@@ -10,7 +10,7 @@ import {unzipSync} from "fflate";
 import {packagePlugin} from "../scripts/package-plugin.js";
 import {ROOT, SKILL_NAMES, SHARED_SKILL_GROUPS, requiredSkillFiles, validate, validateSkill} from "../scripts/validate.js";
 
-const ignored = new Set([".git", "dist", "node_modules", "coverage", ".nyc_output", ".DS_Store"]);
+const ignored = new Set([".git", "dist", ".design-harness", "design-harness", "node_modules", "coverage", ".nyc_output", ".DS_Store"]);
 const digest = data => createHash("sha256").update(data).digest("hex");
 const readJson = filename => JSON.parse(fs.readFileSync(filename, "utf8"));
 
@@ -149,7 +149,7 @@ describe("Plugin distribution", () => {
 
   test("Working data, dependencies and generated files are excluded", () => {
     const marker = Buffer.from("private-fixture-" + path.basename(base));
-    for (const relative of ["dist/old.zip", ".design-harness/private.txt", "node_modules/unused/README.md",
+    for (const relative of ["dist/old.zip", ".design-harness/private.txt", "design-harness/private.txt", "node_modules/unused/README.md",
       "scripts/node_modules/unused/local.txt", "coverage/local.json", ".nyc_output/local.json", ".git/local", "local-note.txt",
       ".agents/private.txt", ".agents/plugins/private.txt"]) {
       const target = path.join(root, relative);
@@ -237,40 +237,34 @@ describe("Plugin distribution", () => {
   });
 
   test("Missing skills or workflow assets prevent packaging", () => {
-    for (const relative of [
-      "skills/design-harness-init/SKILL.md", "skills/design-harness-init/assets/harness-entry.txt",
-      "skills/design-harness-interaction/references/prototyping.md", "skills/design-harness-interaction/assets/interaction-prototype.txt",
-      "skills/design-harness-visual/assets/visual-delivery.txt", "skills/design-harness-visual/references/iconography.md",
-      "skills/design-harness-visual/references/illustration.md", "skills/design-harness-visual/references/ui-ux-pro-max.md",
-      "skills/design-harness-writeback/references/knowledge-update.md", "skills/design-harness-writeback/assets/writeback-delta.txt",
-      ...SKILL_NAMES.slice(0, 3).map(name => `skills/${name}/references/interview.md`),
-      ...SKILL_NAMES.flatMap(name => ["references/handoff.md", "assets/stage-handoff.txt", "references/figma-console.md",
-        "references/figma-use.md"].map(file => `skills/${name}/${file}`))
+    for(const relative of [
+      "skills/design-harness-init/SKILL.md","skills/design-harness-init/assets/workspace/studio/app.tsx",
+      "skills/design-harness-interaction/references/protocol.md","skills/design-harness-visual/references/assets.md",
+      "skills/design-harness-writeback/references/preview-export.md",
+      ...SKILL_NAMES.map(name=>"skills/"+name+"/scripts/harness.mjs")
     ]) {
-      const filename = path.join(root, relative);
-      const original = fs.readFileSync(filename);
+      const filename=path.join(root,relative),original=fs.readFileSync(filename);
       fs.unlinkSync(filename);
-      assert.throws(() => packagePlugin(path.join(base, "out"), root), /invalid plugin/);
-      fs.writeFileSync(filename, original);
+      assert.throws(()=>packagePlugin(path.join(base,"out"),root),/invalid plugin/);
+      fs.writeFileSync(filename,original);
     }
   });
 
+
   test("Each skill works when copied without the plugin or sibling skill", () => {
-    const code = `import fs from 'node:fs';
-      import vm from 'node:vm';
-      const read = vm.runInNewContext(fs.readFileSync(process.argv[1], 'utf8') + '\\nreadDesignHarness;');
-      read({root: {children: [{id: '1:1', type: 'PAGE', name: 'design-harness'}]}}, {action: 'pages'})
-        .then(result => process.stdout.write(JSON.stringify(result)));`;
-    for (const name of SKILL_NAMES) {
-      const isolated = path.join(base, "isolated " + name, name);
-      fs.cpSync(path.join(root, "skills", name), isolated, {recursive: true});
-      assert.deepEqual(validateSkill(isolated), []);
-      const result = spawnSync(process.execPath, ["--input-type=module", "-e", code, path.join(isolated, "scripts/figma-reader.js")],
-        {cwd: isolated, encoding: "utf8"});
-      assert.equal(result.status, 0, result.stderr);
-      assert.deepEqual(JSON.parse(result.stdout).candidates, ["1:1"]);
+    for(const name of SKILL_NAMES) {
+      const isolated=path.join(base,"isolated "+name,name);
+      fs.cpSync(path.join(root,"skills",name),isolated,{recursive:true});
+      assert.deepEqual(validateSkill(isolated),[]);
+      const project=path.join(base,"project "+name);
+      fs.mkdirSync(project);
+      const result=spawnSync(process.execPath,[path.join(isolated,"scripts/harness.mjs"),"init","--project",project,"--example"],{cwd:isolated,encoding:"utf8"});
+      assert.equal(result.status,0,result.stderr);
+      assert.equal(readJson(path.join(project,"design-harness/requirements/example/manifest.json")).id,"example");
+      assert.ok(fs.existsSync(path.join(project,"design-harness/package-lock.json")));
     }
   });
+
 
   test("A skill cannot reference an existing plugin root document", () => {
     const skill = path.join(root, "skills/design-harness-init");
@@ -305,50 +299,10 @@ describe("Plugin distribution", () => {
     }
   });
 
-  test("Document typography references and reading dimensions must be usable", () => {
-    const skill = path.join(root, "skills/design-harness-init");
-    const filename = path.join(skill, "assets/figma-work-templates.json");
-    const original = fs.readFileSync(filename);
-    for (const mutate of [
-      kit => delete kit.documentPresentation,
-      kit => kit.documentPresentation.blocks.push({...kit.documentPresentation.blocks[0]}),
-      kit => kit.documentPresentation.blocks[0].typography = "missing-style",
-      kit => kit.defaults.typography.body = 0,
-      kit => kit.defaults.reading.textColumnWidth = -1,
-      kit => kit.defaults.reading.lineHeightPercent = "150",
-      kit => delete kit.defaults.reading.paragraphSpacing
-    ]) {
-      const kit = JSON.parse(original);
-      mutate(kit);
-      fs.writeFileSync(filename, JSON.stringify(kit));
-      assert.ok(validateSkill(skill).some(error => error.includes("work template")));
-      assert.throws(() => packagePlugin(path.join(base, "out"), root), /work template/);
-    }
-    const adjusted = JSON.parse(original);
-    adjusted.defaults.typography.body = 20;
-    adjusted.defaults.reading = {textColumnWidth: 640, lineHeightPercent: 160, paragraphSpacing: 0, listIndent: 0};
-    fs.writeFileSync(filename, JSON.stringify(adjusted));
-    assert.deepEqual(validateSkill(skill), []);
-    fs.writeFileSync(filename, original);
-  });
-
-  test("Broken work template dependencies and slots prevent distribution", () => {
-    const skill = path.join(root, "skills/design-harness-init");
-    const filename = path.join(skill, "assets/figma-work-templates.json");
-    const original = fs.readFileSync(filename);
-    for (const mutate of [
-      kit => kit.templates[0].uses.push("missing/primitive"),
-      kit => kit.templates[0].optionalSlots.push(kit.templates[0].requiredSlots[0]),
-      kit => kit.primitives.push({...kit.primitives[0]})
-    ]) {
-      const kit = JSON.parse(original);
-      mutate(kit);
-      fs.writeFileSync(filename, JSON.stringify(kit));
-      assert.ok(validateSkill(skill).some(error => error.includes("work template")));
-      assert.throws(() => packagePlugin(path.join(base, "out"), root), /work template/);
-    }
-    fs.writeFileSync(filename, "{broken");
-    assert.ok(validateSkill(skill).some(error => error.includes("Invalid work template JSON")));
-    fs.writeFileSync(filename, original);
+  test("Invalid React template protocols prevent distribution", () => {
+    const skill=path.join(root,"skills/design-harness-init");
+    fs.writeFileSync(path.join(skill,"assets/workspace/workspace.json"),JSON.stringify({schemaVersion:99,templateVersion:"0.2.0"}));
+    assert.ok(validateSkill(skill).some(error=>error.includes("React workspace template")));
+    assert.throws(()=>packagePlugin(path.join(base,"out"),root),/React workspace template/);
   });
 });

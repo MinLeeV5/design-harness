@@ -1,0 +1,52 @@
+.product-header { min-height:64px; display:flex; align-items:center; gap:12px; padding:12px 28px; background:var(--color-surface); border-bottom:1px solid var(--color-border); }
+.product-header > span:last-child { margin-left:auto; color:var(--color-muted); font-size:13px; }
+.product-mark { color:var(--color-primary); font-size:28px; line-height:1; }
+.task-layout { display:grid; grid-template-columns:230px minmax(0,1fr); min-height:calc(100vh - 64px); }
+.task-nav { background:var(--color-surface); padding:28px 20px; border-right:1px solid var(--color-border); }
+.task-nav h2 { font-size:14px; margin:0 0 18px; }
+.task-nav > button { width:100%; padding:10px; border:1px solid var(--color-border); border-radius:8px; background:var(--color-surface); color:var(--color-primary); text-align:left; }
+.task-history { padding:16px 12px; margin-top:18px; background:var(--color-page); border-radius:8px; overflow-wrap:anywhere; }
+.task-history small, .task-history span { color:var(--color-muted); font-size:12px; }
+.task-history p { margin:6px 0; }
+.task-nav > .muted { margin-top:40px; font-size:12px; }
+.task-main { width:100%; max-width:1000px; margin:0 auto; padding:48px 48px 80px; }
+.task-heading { margin-bottom:28px; }
+.eyebrow { font-size:12px; font-weight:600; color:var(--color-primary); letter-spacing:.04em; margin:0 0 8px; }
+.task-heading h1 { font-size:clamp(24px,2.4vw,32px); line-height:1.4; letter-spacing:-.03em; margin:0 0 10px; }
+.muted { color:var(--color-muted); }
+.product-surface { background:var(--color-surface); padding:var(--content-gap); border:1px solid var(--color-border); border-radius:var(--card-radius); }
+.field-label { display:block; margin-bottom:10px; font-weight:600; }
+.field-label span { color:var(--color-danger); }
+.task-main input { width:100%; min-height:46px; padding:10px 12px; border:1px solid var(--color-border); border-radius:8px; background:var(--color-surface); color:var(--color-text); }
+.task-main input[aria-invalid=true] { border-color:var(--color-danger); }
+.field-help { font-size:12px; margin:10px 0 0; }
+.form-footer { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:var(--content-gap); }
+.form-footer > span { font-size:12px; color:var(--color-muted); }
+.error { color:var(--color-danger); }
+.result-block { margin-top:28px; }
+.result-block h2 { font-size:20px; line-height:1.5; margin:0 0 10px; }
+.progress-list { list-style:none; display:flex; gap:20px; flex-wrap:wrap; padding:0; margin:20px 0; }
+.progress-list li { display:flex; align-items:center; gap:8px; color:var(--color-muted); }
+.progress-list li span { width:26px; height:26px; display:grid; place-items:center; border-radius:50%; background:var(--color-border); font-size:12px; }
+.progress-list .active { color:var(--color-primary); }
+.progress-list .active span { color:white; background:var(--color-primary); }
+.result-title { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.success { color:#18704e; font-size:12px; flex-shrink:0; }
+.report-card { background:var(--color-surface); padding:20px; border:1px solid var(--color-border); border-radius:var(--card-radius); display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.report-card p { margin:4px 0 0; font-size:12px; }
+.report-actions { display:flex; gap:12px; flex-wrap:wrap; }
+.report-actions button { border:0; padding:0; color:var(--color-primary); background:transparent; }
+.report-actions a { color:var(--color-primary); text-decoration:none; }
+.report-preview { white-space:pre-wrap; overflow-wrap:anywhere; padding:20px; background:var(--color-surface); border:1px solid var(--color-border); border-radius:8px; }
+@media(max-width:700px) {
+ .product-header { padding:12px 20px; }
+ .task-layout { display:block; }
+ .task-nav { border-right:0; border-bottom:1px solid var(--color-border); padding:16px 20px; display:flex; align-items:center; gap:16px; }
+ .task-nav h2 { margin:0; white-space:nowrap; }
+ .task-nav > button { width:auto; margin-left:auto; }
+ .task-history, .task-nav > .muted { display:none; }
+ .task-main { padding:28px 20px 48px; }
+ .task-heading h1 { font-size:25px; }
+ .form-footer { align-items:stretch; flex-direction:column; }
+ .report-card, .result-title { align-items:flex-start; flex-direction:column; }
+}

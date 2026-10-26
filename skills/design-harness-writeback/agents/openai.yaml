@@ -1,6 +1,6 @@
 interface:
-  display_name: "Design Harness · 知识回写"
-  short_description: "核对已确认设计与具体知识增量，按批准范围更新 Harness 资源、状态和索引。"
-  default_prompt: "用 $design-harness-writeback 读取这份设计交接，展示具体知识增量并按已批准范围更新项目 Harness。"
+  display_name: "Design Harness · 交付与知识回写"
+  short_description: "按批准增量维护本地公共设计基础，并将独立需求导出为可离线体验、可核验且不会被覆盖的固定 HTML 版本。"
+  default_prompt: "使用 $design-harness-writeback 按批准增量维护本地公共设计基础，并将独立需求导出为可离线体验、可核验且不会被覆盖的固定 HTML 版本。"
 policy:
   allow_implicit_invocation: false
