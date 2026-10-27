@@ -2,7 +2,7 @@
 
 本目录只保存项目设计基础、需求、完整 json-render Spec、Catalog／Registry、React 组件、场景、资产和交接。固定工作台由完整 Design Harness 插件启动，不在此目录维护运行器。
 
-project.json 是资源入口；foundation/ 为公共基础，仅此一份，全部需求与按需导出共享，兼容更新需要核对已有页面。每个候选保存独立完整页面、参数和专属实现。通过当前 Skill 的 scripts/harness.mjs 调用插件工具，具体命令见 Skill 操作说明。
+project.json 是资源入口；foundation/ 为公共基础，仅此一份，全部需求与按需导出共享，兼容更新需要核对已有页面。每个候选保存独立完整页面、参数和专属实现。通过完整插件的 workbench/cli.mjs 调用公共工具，具体命令见 Skill 操作说明。
 
 每个需求在 interactions/*.md 独立编写交互说明，组件只提供稳定定位与导航状态。工作台内置卡片、步骤、规则表和状态对照，随页面与运行状态筛选；场景只保存初始数据。
 

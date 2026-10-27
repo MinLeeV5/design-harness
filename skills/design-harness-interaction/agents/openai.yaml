@@ -1,6 +1,6 @@
 interface:
   display_name: "Design Harness · 交互设计"
-  short_description: "以 Spec 和 React 组件制作可运行交互原型，关联 PRD、场景与说明，验证完整用户任务。"
-  default_prompt: "使用 $design-harness-interaction 基于本地设计基础，为独立需求制作可运行 json-render＋React 原型，将 PRD、UX 说明与页面场景关联，验证完整用户任务。"
+  short_description: "制作可运行交互原型，关联需求、场景与说明，同轮完成获准的公共维护、交接与按需离线交付。"
+  default_prompt: "使用 $design-harness-interaction 基于本地设计基础制作可运行原型，关联 PRD、UX 说明与场景，验证完整用户任务，并完成获准的公共基础维护、交接与按需离线交付。"
 policy:
   allow_implicit_invocation: false

@@ -1,6 +1,6 @@
 interface:
   display_name: "Design Harness · 视觉设计"
-  short_description: "在同一 json-render＋React 需求中细化高保真、多尺寸视觉，通过局部候选、Agent 视觉调整与图形资源迭代实际画面。"
-  default_prompt: "使用 $design-harness-visual 在同一 json-render＋React 需求中细化高保真、多尺寸视觉，通过局部候选、Agent 视觉调整与图形资源迭代实际画面。"
+  short_description: "细化已有需求的高保真、多尺寸视觉与候选，同轮完成获准的公共维护、交接与按需离线交付。"
+  default_prompt: "使用 $design-harness-visual 在已有需求中细化高保真、多尺寸视觉与候选，并完成获准的公共基础维护、交接与按需离线交付。"
 policy:
   allow_implicit_invocation: false

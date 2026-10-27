@@ -1,13 +1,15 @@
 # 预览、编辑与离线交付
 
-需要完整插件及锁定依赖（Node.js 22+）。以下启动器定位插件固定工具，项目不维护工具源码或安装路径。
+命令中的 <插件目录> 为当前 SKILL.md 所在目录向上两级；先确认该目录下有 shared/ 与 workbench/cli.mjs。所有阶段使用同一入口，不需发布或全局安装 npm 包。
+
+需要完整插件及锁定依赖（Node.js 22+）。以下命令直接调用插件公共 CLI，项目不维护工具源码或安装路径。
 
 ```sh
-node <本Skill>/scripts/harness.mjs init --project <项目目录>
-node <本Skill>/scripts/harness.mjs new <需求ID> --project <项目目录> --title <名称>
-node <本Skill>/scripts/harness.mjs serve --project <项目目录> --port 4173
-node <本Skill>/scripts/harness.mjs check --project <项目目录> [需求ID]
-node <本Skill>/scripts/harness.mjs typecheck --project <项目目录>
+node <插件目录>/workbench/cli.mjs init --project <项目目录>
+node <插件目录>/workbench/cli.mjs new <需求ID> --project <项目目录> --title <名称>
+node <插件目录>/workbench/cli.mjs serve --project <项目目录> --port 4173
+node <插件目录>/workbench/cli.mjs check --project <项目目录> [需求ID]
+node <插件目录>/workbench/cli.mjs typecheck --project <项目目录>
 ```
 
 init --example 创建局部合成示例，不代表真实产品完整稿。已有 design-harness/ 拒绝覆盖；--project 可指向资源目录。额外业务依赖用 deps 安装到项目外缓存。
@@ -35,7 +37,7 @@ Agent 同时承载多轮讨论与视觉调整，不再拆分 Live 和聊天入�
 ## 候选与公共基础
 
 ```sh
-node <本Skill>/scripts/harness.mjs clone <需求ID> <原候选> <新候选> --project <项目目录> --title <名称>
+node <插件目录>/workbench/cli.mjs clone <需求ID> <原候选> <新候选> --project <项目目录> --title <名称>
 ```
 
 clone 复制完整 Spec、参数与专属实现，两候选的运行状态独立。所有需求引用项目唯一 foundation；公共更新保持向下兼容并检查既有页面，不复制需求基础或建立升级草稿。
@@ -47,7 +49,7 @@ clone 复制完整 Spec、参数与专属实现，两候选的运行状态独立
 命令行明确指定资源目录之外的 .html 文件：
 
 ```sh
-node <本Skill>/scripts/harness.mjs export <需求ID> --project <项目目录> --out <资源目录之外的文件.html>
+node <插件目录>/workbench/cli.mjs export <需求ID> --project <项目目录> --out <资源目录之外的文件.html>
 ```
 
 export 使用当前 requirements、公共 foundation 与当前插件生成一个 HTML，内嵌工作台、候选、样式、资源、说明与许可，可从 file:// 离线体验。CLI 重新导出可以替换选定文件，构建失败保留原输出；目标不能位于 design-harness 资源目录内，不能是目录或软链接。

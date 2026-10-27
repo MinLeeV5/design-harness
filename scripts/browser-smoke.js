@@ -6,7 +6,7 @@ import os from "node:os";
 import assert from "node:assert/strict";
 import {pathToFileURL} from "node:url";
 import {chromium} from "playwright";
-import {initialize} from "../skills/design-harness-init/scripts/harness.mjs";
+import {initialize} from "../workbench/lib/workspace.mjs";
 import {createRequirement} from "../workbench/lib/workspace.mjs";
 import {startServer} from "../workbench/lib/server.mjs";
 const root=path.resolve(import.meta.dirname,"..");

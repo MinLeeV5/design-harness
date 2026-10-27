@@ -13,8 +13,7 @@
     "check": "npm run validate && npm test",
     "package": "node scripts/package-plugin.js",
     "demo": "node scripts/demo.js",
-    "sync:runtime": "node scripts/sync-runtime.js",
-    "test:browser": "node scripts/browser-smoke.js && node scripts/navigation-smoke.js && node scripts/agent-smoke.js",
+    "test:browser": "node scripts/browser-smoke.js && node scripts/navigation-smoke.js && node scripts/agent-smoke.js && node scripts/roles-smoke.js",
     "workbench": "node workbench/cli.mjs",
     "typecheck": "node workbench/cli.mjs typecheck"
   },

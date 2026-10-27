@@ -4,16 +4,17 @@
 
 面向本人和 Agent 的本地设计插件。插件固定提供评审工作台，项目维护业务设计资源；页面由 json-render Spec 组合，通过 Catalog／Registry 加载项目自定义 React 组件。在同一工作台体验、比较、定位和调整，按需导出可独立离线分享的单文件 HTML。
 
-## 四个入口
+## 三个入口
 
 | 入口 | 职责与停止点 |
 | --- | --- |
 | $design-harness-init | 盘点真实依据，建立项目设计基础、Token、Catalog／Registry 和组件；交付基础后停止 |
-| $design-harness-interaction | 建立独立需求、完整页面 Spec、说明及场景，验证用户任务；完成交互评审后停止 |
-| $design-harness-visual | 在同一 Spec 与组件上细化高保真、多尺寸和候选；完成视觉评审后停止 |
-| $design-harness-writeback | 按批准增量更新公共基础，按请求导出、验证单文件 HTML；交付后停止 |
+| $design-harness-interaction | 建立独立需求、完整页面 Spec、说明及场景，验证用户任务；完成交互评审和交接后停止 |
+| $design-harness-visual | 在同一 Spec 与组件上细化高保真、多尺寸和候选；完成视觉评审和交接后停止 |
 
-四入口显式调用，承接已有范围、授权与决定，不自动串联。明确的小改直接完成，存在关键分歧时比较相应局部或代表候选；不固定生成套数，不逐页逐状态请求放行。
+三入口显式调用，承接已有范围、授权与决定，不自动串联。明确的小改直接完成，存在关键分歧时比较相应局部或代表候选；不固定生成套数，不逐页逐状态请求放行。
+
+交互与视觉设计均在当前任务中完成获准的公共基础更新、验证和交接，按请求导出并验证离线 HTML，无需另启回写阶段；共同规则只维护在[设计维护与交接](shared/references/handoff.md)。工作台内置 Agent 仅写当前候选，公共基础及需求文档由执行 Skill 的外部 Agent 按授权维护。
 
 ## 完整 UI 交付标准
 
@@ -21,7 +22,7 @@
 
 核对包括租户等上下文切换、用户菜单、分割线、准确图标、分页、固定输入区、滚动边界和响应式。产品行为可以本地模拟，界面与交互不能因此省略。模拟说明由评审工作台承载，避免改变产品构图。
 
-视觉保真、实际操作路径、行为真实性和工程检查分别提供证据。构建、类型、检查数量与字节一致不代表完整 UI 或用户验收；未取得现网证据不声称生产一致。详见[交付保真](skills/design-harness-init/references/fidelity.md)。
+视觉保真、实际操作路径、行为真实性和工程检查分别提供证据。构建、类型、检查数量与字节一致不代表完整 UI 或用户验收；未取得现网证据不声称生产一致。详见[交付保真](shared/references/fidelity.md)。
 
 ## 固定工作台与项目资源
 
@@ -77,7 +78,7 @@ node workbench/cli.mjs clone <需求> <原候选> <新候选> --project <项目>
 node workbench/cli.mjs export <需求> --project <项目> --out <资源目录之外的文件.html>
 ```
 
-四入口也可从任意位置运行 node <本Skill>/scripts/harness.mjs 后跟相同命令。每个入口保留自包含指导、轻量启动器及业务模板，运行能力依赖完整插件；单独复制 Skill 不包含工作台。项目无需 npm ci；工具依赖安装在插件，扩展业务依赖用 deps 命令安装到项目之外的缓存。
+三个 Skill 直接引用同一个公共入口 node <插件目录>/workbench/cli.mjs；插件目录为当前 SKILL.md 所在目录向上两级。阶段工作流和评价各自维护，业务模板、公共指导和许可集中在 shared/，随完整插件分发。项目无需 npm ci；工具依赖安装在插件，扩展业务依赖用 deps 命令安装到项目之外的缓存。
 
 初始化拒绝覆盖已有 design-harness/。模板默认基础仍是草稿，应以项目真实规则替换。Figma、Pencil、截图与代码可作为输入，日常运行不依赖这些设计工具，也不导入业务工程模块。
 
@@ -87,7 +88,7 @@ node workbench/cli.mjs export <需求> --project <项目> --out <资源目录之
 
 项目代码在无同源权限的 sandbox iframe 中执行，通过受控消息交换 Spec、场景、定位和错误。交互说明以①②编号覆盖在画面上，点编号关联说明，点说明定位画面；复杂组件可用稳定子目标关联内部区域。点选记录实际 DOM、父层级、样式与重复实例，选中一个元素自动结束点选并恢复业务操作；点选入口只保留在 Agent 输入区。对比模式联动页面、场景、视口和标注目标，方案切换只改变编辑焦点，保留两侧位置与会话；业务输入、任务和 Live 修改仍独立。真实 iframe 尺寸决定响应式，缩放只用于摆放。
 
-页面、标注和说明随实际导航与运行状态同步。工作台切页走真实导航和离开保护，取消离开保留原页；普通导航保留会话，选择预置场景或重置才初始化。每个需求用 interactions/*.md 独立编写说明，工作台内置卡片、步骤、规则表和状态对照；正文、页面和条件写在文档中，组件提供稳定目标与 SDK 接入。详见[交互说明协议](skills/design-harness-init/references/interactions.md)。
+页面、标注和说明随实际导航与运行状态同步。工作台切页走真实导航和离开保护，取消离开保留原页；普通导航保留会话，选择预置场景或重置才初始化。每个需求用 interactions/*.md 独立编写说明，工作台内置卡片、步骤、规则表和状态对照；正文、页面和条件写在文档中，组件提供稳定目标与 SDK 接入。详见[交互说明协议](shared/references/interactions.md)。
 
 Agent 统一支持多轮讨论、元素附件和视觉调整；明确提出修改要求后才生成预览及适用控件，初始不展示预设参数。使用本机 Codex 和当前候选会话，继续调整承接暂存方案及控件值，接受后才写入该候选 Spec／params／React／CSS。纯讨论不改文件；细化失败或取消本轮保留上一版预览，放弃或离开页面／候选清理整条待确认修改。
 
@@ -95,7 +96,7 @@ Agent 统一支持多轮讨论、元素附件和视觉调整；明确提出修�
 
 候选级 CSS 参数独立保存在 params.json。图片和字体通过 ESM 导入并内嵌；图标与素材优先沿用真实项目规则并保留许可。使用 imagegen 时应保存实际结果并核对版面。
 
-[资源协议](skills/design-harness-init/references/protocol.md) · [操作与导出](skills/design-harness-init/references/preview-export.md) · [交接](skills/design-harness-init/references/handoff.md)
+[资源协议](shared/references/protocol.md) · [操作与导出](shared/references/preview-export.md) · [交接](shared/references/handoff.md)
 
 ## 按需导出
 
@@ -103,7 +104,7 @@ Agent 统一支持多轮讨论、元素附件和视觉调整；明确提出修�
 
 requirements/ 是唯一需求来源。工作台“导出离线 HTML”直接下载一个文件，不在项目创建 releases、源码副本、运行器或校验清单。CLI export 要求 --out 指定资源目录外的 .html 文件，可重新导出并替换该文件；资源出错时保留原输出。导出读取当前需求与公共基础，HTML 内嵌实际画面，不会随后续源文件编辑自动变化。
 
-历史差异用 Git 显式记录；真实验收状态、选择理由、对照结论与未决项记录在需求 handoff.md，导出本身不代表验收。公共回写只接受明确批准增量，不自动跨项目学习、后台晋升或遥测。
+历史差异用 Git 显式记录；真实验收状态、选择理由、对照结论与未决项记录在需求 handoff.md，导出本身不代表验收。公共基础只按明确批准增量更新，不自动跨项目学习、后台晋升或遥测。
 
 ## 安装与分发
 
@@ -113,9 +114,9 @@ requirements/ 是唯一需求来源。工作台“导出离线 HTML”直接下�
 npm run package -- --out dist/build-<唯一名称>
 ```
 
-生成完整插件 ZIP 和 SHA-256，拒绝覆盖。解压后通过 marketplace 根目录安装，运行前在完整插件目录 npm ci 安装固定依赖。四个 Skill 和 workbench/ 一起分发；不包含项目知识、node_modules、dist、.harness 或 openspec。
+生成完整插件 ZIP 和 SHA-256，拒绝覆盖。解压后通过 marketplace 根目录安装，运行前在完整插件目录 npm ci 安装固定依赖。三个 Skill、shared/ 和 workbench/ 一起分发；不包含项目知识、node_modules、dist、.harness 或 openspec。
 
-开发源：固定工具在 workbench/，公共业务模板与共享指导在 Init 的 assets/workspace 和 references。npm run sync:runtime 同步四入口，不复制工具到项目。Node.js 22+、ESM 与 npm 为工具运行环境。
+开发源：固定工具在 workbench/，公共业务模板在 shared/workspace/，公共指导在 shared/references/，来源声明在 shared/third-party/。每份公共资源只维护一份，各 Skill 直接引用；项目只复制业务模板。Node.js 22+、ESM 与 npm 为工具运行环境。
 
 ## 维护与验证
 

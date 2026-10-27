@@ -23,7 +23,7 @@
   "interface": {
     "displayName": "Design Harness · 设计工作流",
     "shortDescription": "本地设计基础、可运行需求与 Agent 迭代，按需导出离线 HTML",
-    "longDescription": "四个显式入口：初始化项目设计基础，以 json-render Spec 和 Catalog／Registry 注册的 React 组件共同迭代交互与视觉，按批准增量回写并按需导出单文件 HTML。固定工作台由插件维护，项目只保存一份公共基础和需求资源；隔离预览支持编号说明、多尺寸、候选比较与实例属性编辑。每套候选独立保存完整资源，公共更新保持向下兼容；requirements 为唯一需求来源，历史由 Git 管理，验收记录在 handoff.md。完整 UI 按真实基线核对壳层、组件与状态，本地模拟与生产证据分别报告。",
+    "longDescription": "三个显式入口：初始化项目设计基础，以 json-render Spec 和 Catalog／Registry 注册的 React 组件共同迭代交互与视觉。交互与视觉任务内完成获准的公共基础更新、验证和交接，按需导出单文件 HTML。固定工作台由插件维护，项目只保存一份公共基础和需求资源；隔离预览支持编号说明、多尺寸、候选比较与实例属性编辑。每套候选独立保存完整资源，公共更新保持向下兼容；requirements 为唯一需求来源，历史由 Git 管理，验收记录在 handoff.md。完整 UI 按真实基线核对壳层、组件与状态，本地模拟与生产证据分别报告。",
     "developerName": "Min Lee",
     "websiteURL": "https://github.com/MinLeeV5/design-harness",
     "category": "Productivity",

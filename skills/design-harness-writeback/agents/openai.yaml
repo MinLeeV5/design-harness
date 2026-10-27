@@ -1,6 +1,0 @@
-interface:
-  display_name: "Design Harness · 交付与知识回写"
-  short_description: "按批准增量维护本地公共设计基础，并将独立需求导出为可离线体验的单文件 HTML；历史由 Git 记录，验收状态保留在需求交接中。"
-  default_prompt: "使用 $design-harness-writeback 按批准增量维护本地公共设计基础，并将独立需求导出为可离线体验的单文件 HTML；历史由 Git 记录，验收状态保留在需求交接中。"
-policy:
-  allow_implicit_invocation: false

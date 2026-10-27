@@ -8,7 +8,7 @@ import {spawnSync} from "node:child_process";
 import {pathToFileURL} from "node:url";
 import {unzipSync} from "fflate";
 import {packagePlugin} from "../scripts/package-plugin.js";
-import {ROOT, SKILL_NAMES, SHARED_SKILL_GROUPS, requiredSkillFiles, validate, validateSkill} from "../scripts/validate.js";
+import {ROOT, SKILL_NAMES, SHARED_FILES, SHARED_NOTICES, requiredSkillFiles, validate, validateSkill} from "../scripts/validate.js";
 
 const ignored = new Set([".git", "dist", ".design-harness", "design-harness", "node_modules", "coverage", ".nyc_output", ".DS_Store"]);
 const digest = data => createHash("sha256").update(data).digest("hex");
@@ -35,6 +35,14 @@ describe("Plugin distribution", () => {
     const cache = path.join(base, "cache", "design-harness", version);
     fs.cpSync(root, cache, {recursive: true});
     assert.deepEqual(validate(cache), []);
+  });
+
+  test("Retired skill remnants prevent packaging even without an entrypoint", () => {
+    const legacy = path.join(root, "skills/design-harness-writeback/references");
+    fs.mkdirSync(legacy, {recursive: true});
+    fs.writeFileSync(path.join(legacy, "workflow.md"), "Retired workflow.\n");
+    assert.ok(validate(root).some(error => error.includes("Retired Writeback skill")));
+    assert.throws(() => packagePlugin(path.join(base, "out"), root), /Retired Writeback skill/);
   });
 
   test("Each phase requires explicit invocation in its distributed metadata", () => {
@@ -69,7 +77,10 @@ describe("Plugin distribution", () => {
     const install=spawnSync("npm",["ci","--ignore-scripts","--include=dev","--offline","--no-audit","--no-fund"],{cwd:plugin,encoding:"utf8"});assert.equal(install.status,0,install.stderr);
     for(const name of SKILL_NAMES) {
       const project=path.join(base,"业务 项目 "+name);fs.mkdirSync(project);
-      const run=(...args)=>spawnSync(process.execPath,[path.join(plugin,"skills",name,"scripts/harness.mjs"),...args,"--project",project],{cwd:base,encoding:"utf8"});
+      const entry=path.join(plugin,"skills",name,"SKILL.md"),links=[...fs.readFileSync(entry,"utf8").matchAll(/\[[^\]]*\]\(([^)]+\/cli\.mjs)\)/g)];
+      assert.equal(links.length,1,name+" must link the shared CLI");
+      const cli=path.resolve(path.dirname(entry),links[0][1]);assert.equal(cli,path.join(plugin,"workbench/cli.mjs"));
+      const run=(...args)=>spawnSync(process.execPath,[cli,...args,"--project",project],{cwd:base,encoding:"utf8"});
       const initialized=run("init","--example");assert.equal(initialized.status,0,initialized.stderr);
       const built=run("check");assert.equal(built.status,0,built.stderr);assert.equal(fs.existsSync(path.join(project,"design-harness/studio")),false);
       if(name===SKILL_NAMES[0]){const types=run("typecheck");assert.equal(types.status,0,types.stderr);const output=path.join(base,"exported-example.html"),exported=run("export","example","--out",output);assert.equal(exported.status,0,exported.stderr);assert.match(fs.readFileSync(output,"utf8"),/<!doctype html>/i);assert.equal(fs.existsSync(path.join(project,"design-harness/releases")),false);}
@@ -82,6 +93,9 @@ describe("Plugin distribution", () => {
     const {interface: branding} = readJson(path.join(plugin, ".codex-plugin/plugin.json"));
     for (const field of ["composerIcon", "logo", "logoDark"]) {
       assert.deepEqual(fs.readFileSync(path.join(plugin, branding[field])), fs.readFileSync(path.join(root, branding[field])));
+    }
+    for (const relative of SHARED_FILES.map(file => "shared/" + file)) {
+      assert.deepEqual(fs.readFileSync(path.join(plugin, relative)), fs.readFileSync(path.join(root, relative)));
     }
     for (const relative of SKILL_NAMES.flatMap(name => requiredSkillFiles(name).map(file => `skills/${name}/${file}`))) {
       assert.deepEqual(fs.readFileSync(path.join(plugin, relative)), fs.readFileSync(path.join(root, relative)));
@@ -144,11 +158,12 @@ describe("Plugin distribution", () => {
   });
 
   test("Unicode paths and binary resources survive packaging without changing bytes", () => {
-    const resource = "skills/design-harness-init/assets/样例 图片.bin";
+    const resource = "shared/workspace/assets/样例 图片.bin";
     const bytes = Buffer.from([0, 1, 128, 254, 255, 0, 13, 10]);
+    fs.mkdirSync(path.dirname(path.join(root, resource)), {recursive: true});
     fs.writeFileSync(path.join(root, resource), bytes);
     fs.appendFileSync(path.join(root, "skills/design-harness-init/SKILL.md"),
-      "\n[样例](<assets/" + encodeURIComponent("样例 图片.bin") + ">)\n");
+      "\n[样例](<../../shared/workspace/assets/" + encodeURIComponent("样例 图片.bin") + ">)\n");
     assert.deepEqual(validate(root), []);
     const result = packagePlugin(path.join(base, "out"), root);
     const files = unzipSync(fs.readFileSync(result.archive));
@@ -234,22 +249,19 @@ describe("Plugin distribution", () => {
   });
 
   test("Empty bundled notices prevent packaging", () => {
-    for (const relative of SKILL_NAMES.flatMap(name => requiredSkillFiles(name)
-      .filter(file => /(?:^|\/)(?:LICENSE|NOTICE\.md)$/.test(file)).map(file => `skills/${name}/${file}`))) {
-      const filename = path.join(root, relative);
-      const original = fs.readFileSync(filename);
+    const notices=["LICENSE", ...SHARED_NOTICES.map(file => "shared/third-party/" + file), "workbench/vendor/impeccable/LICENSE", "workbench/vendor/impeccable/NOTICE.md"];
+    for (const relative of notices) {
+      const filename = path.join(root, relative), original = fs.readFileSync(filename);
       fs.writeFileSync(filename, "");
-      assert.throws(() => packagePlugin(path.join(base, "out"), root), /Empty skill resource/);
+      assert.throws(() => packagePlugin(path.join(base, "out"), root), /[Ee]mpty.*(?:resource|license)/);
       fs.writeFileSync(filename, original);
     }
   });
 
-  test("Missing skills or workflow assets prevent packaging", () => {
+  test("Missing skills, shared resources or the central CLI prevent packaging", () => {
     for(const relative of [
-      "skills/design-harness-init/SKILL.md","workbench/app.tsx",
-      "skills/design-harness-interaction/references/protocol.md","skills/design-harness-visual/references/assets.md",
-      "skills/design-harness-writeback/references/preview-export.md",
-      ...SKILL_NAMES.map(name=>"skills/"+name+"/scripts/harness.mjs")
+      ...SKILL_NAMES.map(name => "skills/" + name + "/SKILL.md"),
+      "workbench/app.tsx", "workbench/cli.mjs", ...SHARED_FILES.map(file => "shared/" + file)
     ]) {
       const filename=path.join(root,relative),original=fs.readFileSync(filename);
       fs.unlinkSync(filename);
@@ -258,16 +270,15 @@ describe("Plugin distribution", () => {
     }
   });
 
-
-  test("Each entry keeps complete instructions and reports missing fixed tool when copied alone", () => {
+  test("Phase instructions load shared resources only within a complete plugin", () => {
     for(const name of SKILL_NAMES) {
-      const isolated=path.join(base,"isolated "+name,name);fs.cpSync(path.join(root,"skills",name),isolated,{recursive:true});assert.deepEqual(validateSkill(isolated),[]);
-      const project=path.join(base,"project "+name);fs.mkdirSync(project);
-      const result=spawnSync(process.execPath,[path.join(isolated,"scripts/harness.mjs"),"init","--project",project],{cwd:isolated,encoding:"utf8"});
-      assert.notEqual(result.status,0);assert.match(result.stderr,/完整 Design Harness 插件/);assert.equal(fs.existsSync(path.join(project,"design-harness")),false);
+      assert.deepEqual(validateSkill(path.join(root,"skills",name)),[]);
+      const isolated=path.join(base,"isolated "+name,name);
+      fs.cpSync(path.join(root,"skills",name),isolated,{recursive:true});
+      assert.ok(validateSkill(isolated).some(error => error.includes("complete Design Harness plugin")));
+      assert.equal(fs.existsSync(path.join(isolated,"scripts/harness.mjs")),false);
     }
   });
-
 
   test("A skill cannot reference an existing plugin root document", () => {
     const skill = path.join(root, "skills/design-harness-init");
@@ -287,25 +298,30 @@ describe("Plugin distribution", () => {
     assert.ok(validateSkill(skill).some(error => error.includes("Unreachable skill reference")));
   });
 
-  test("Diverging shared resources are detected", () => {
-    for (const {skills, files} of SHARED_SKILL_GROUPS) {
-      for (const relative of files) {
-        // Exercise every consumer, including later copies in a group of more than two.
-        for (const name of skills) {
-          const filename = path.join(root, "skills", name, relative);
-          const original = fs.readFileSync(filename);
-          fs.appendFileSync(filename, "\n");
-          assert.ok(validate(root).some(error => error.includes("Shared skill resource differs")), `${name}/${relative}`);
-          fs.writeFileSync(filename, original);
-        }
-      }
-    }
+  test("Shared resources cannot escape through symlinks or cross-skill links", () => {
+    const file=path.join(root,"shared/references/protocol.md"), original=fs.readFileSync(file);
+    const outside=path.join(base,"protocol.md");fs.writeFileSync(outside,original);fs.unlinkSync(file);fs.symlinkSync(outside,file);
+    assert.ok(validate(root).some(error=>error.includes("symlinked shared")));
+    assert.throws(()=>packagePlugin(path.join(base,"out"),root),/symlinked shared/);
+    fs.unlinkSync(file);fs.writeFileSync(file,original);
+    fs.appendFileSync(file,"\n[phase](../../skills/design-harness-visual/references/workflow.md)\n");
+    assert.ok(validate(root).some(error=>error.includes("escapes skill/shared")));
   });
 
-  test("Invalid resource protocol or embedded tool code prevents distribution", () => {
-    const skill=path.join(root,"skills/design-harness-init");
-    fs.writeFileSync(path.join(skill,"assets/workspace/project.json"),JSON.stringify({schemaVersion:99,renderer:"json-render/react"}));
-    assert.ok(validateSkill(skill).some(error=>error.includes("business resource template")));
+  test("Duplicate per-skill copies and unreachable shared guidance are rejected", () => {
+    const skill=path.join(root,"skills",SKILL_NAMES[0]),copy=path.join(skill,"assets/workspace");
+    fs.cpSync(path.join(root,"shared/workspace"),copy,{recursive:true});
+    assert.ok(validate(root).some(error=>error.includes("keeping a copy")));
+    fs.rmSync(copy,{recursive:true});
+    fs.writeFileSync(path.join(root,"shared/references/unused.md"),"Unreachable shared guidance.\n");
+    assert.ok(validate(root).some(error=>error.includes("Unreachable shared reference")));
+  });
+
+  test("Invalid shared resource protocol or embedded tool code prevents distribution", () => {
+    const source=path.join(root,"shared/workspace"),file=path.join(source,"project.json"),original=fs.readFileSync(file);
+    fs.writeFileSync(file,JSON.stringify({schemaVersion:99,renderer:"json-render/react"}));
     assert.throws(()=>packagePlugin(path.join(base,"out"),root),/business resource template/);
+    fs.writeFileSync(file,original);fs.mkdirSync(path.join(source,"studio"));
+    assert.throws(()=>packagePlugin(path.join(base,"out"),root),/must not contain workbench code/);
   });
 });

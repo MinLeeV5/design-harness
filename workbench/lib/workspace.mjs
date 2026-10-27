@@ -12,7 +12,7 @@ export function workspacePath(project) {
 export function initialize(project,{example=false}={}) {
   const parent=fs.realpathSync(project),target=path.join(parent,"design-harness");assert(!fs.existsSync(target),"design-harness 已存在，拒绝覆盖");fs.mkdirSync(target);
   try {
-    const source=path.join(PLUGIN,"skills/design-harness-init/assets/workspace");filesIn(source);fs.cpSync(source,target,{recursive:true});
+    const source=path.join(PLUGIN,"shared/workspace");assert(fs.existsSync(source),"缺少插件公共业务模板；请安装完整 Design Harness 插件");filesIn(source);fs.cpSync(source,target,{recursive:true});
     for(const name of ["requirements","reviews"])fs.mkdirSync(path.join(target,name),{recursive:true});
     if(example)createRequirement(target,"example","资料整理 · 设计示例");
     return {workspace:target,next:"从插件运行 node workbench/cli.mjs serve --project <项目目录>；Init 仍需核对事实并修订基础"};

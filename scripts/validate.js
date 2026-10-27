@@ -6,24 +6,30 @@ import {fileURLToPath} from "node:url";
 import {isWithin, isFile, walk} from "./files.js";
 
 export const ROOT = path.resolve(import.meta.dirname, "..");
-export const SKILL_NAMES = ["design-harness-init", "design-harness-interaction", "design-harness-visual", "design-harness-writeback"];
-// Each entry carries instructions, a launcher and business-only templates; the plugin owns one runtime.
+export const SKILL_NAMES = ["design-harness-init", "design-harness-interaction", "design-harness-visual"];
+// Entries carry phase instructions; the complete plugin owns the shared resources and runtime.
 export const WORKSPACE_FILES = [".gitignore","README.md","project.json","foundation/components.tsx","foundation/catalog.ts","foundation/registry.tsx","foundation/design.md","foundation/foundation.json","foundation/tokens.css"];
 export const WORKBENCH_FILES = ["app.tsx","interaction-reader.tsx","conditions.mjs","conditions.d.mts","live-agent.tsx","agent-controls.mjs","agent-controls.d.mts","inspector.ts","preview.tsx","sdk.tsx","types.ts","assets.d.ts","assets/harness-icon.png","studio.css","cli.mjs",...["paths","protocol","dependencies","typecheck","build","server","workspace","live-agent","agent-events","validate-preview","markdown","interaction-docs"].map(n=>"lib/"+n+".mjs"),"vendor/impeccable/live-browser-dom.js","vendor/impeccable/LICENSE","vendor/impeccable/NOTICE.md","starter/manifest.json","starter/scenarios.json","starter/interactions/task.md","starter/requirement.md","starter/handoff.md",...["comfortable","compact"].flatMap(c=>["catalog.ts","registry.tsx","params.json","pages/task.json","components/Task.tsx","components/task.css"].map(f=>"starter/candidates/"+c+"/"+f))];
-export const SHARED_SKILL_GROUPS = [{
-  skills:SKILL_NAMES,
-  files:["scripts/harness.mjs","references/fidelity.md","references/workspace.md","references/protocol.md","references/interactions.md","references/preview-export.md","references/handoff.md",
-    ...WORKSPACE_FILES.map(file=>"assets/workspace/"+file)]
-}];
-export function requiredSkillFiles(name) {
-  const licenses=["LICENSE"];
-  if(["design-harness-init","design-harness-visual"].includes(name))
-    licenses.push("references/assets.md","third-party/lucide/LICENSE","third-party/visual-assets/NOTICE.md","third-party/design-md/LICENSE","third-party/design-md/NOTICE.md");
-  if(["design-harness-interaction","design-harness-visual"].includes(name))
-    licenses.push("third-party/impeccable/LICENSE","third-party/impeccable/NOTICE.md","third-party/ui-ux-pro-max/LICENSE","third-party/ui-ux-pro-max/NOTICE.md");
-  if(name==="design-harness-init")licenses.push("third-party/harness-designing-plugin/LICENSE");
-  return ["SKILL.md","agents/openai.yaml","references/workflow.md","references/evaluation.md","references/sources.md",
-    ...licenses,...SHARED_SKILL_GROUPS[0].files];
+export const SHARED_REFERENCES = ["assets.md", "fidelity.md", "workspace.md", "protocol.md", "interactions.md", "preview-export.md", "handoff.md", "sources.md"];
+export const SHARED_NOTICES = ["lucide/LICENSE", "visual-assets/NOTICE.md", "design-md/LICENSE", "design-md/NOTICE.md", "impeccable/NOTICE.md", "ui-ux-pro-max/LICENSE", "ui-ux-pro-max/NOTICE.md", "harness-designing-plugin/LICENSE"];
+export const SHARED_FILES = [
+  ...WORKSPACE_FILES.map(file => "workspace/" + file),
+  ...SHARED_REFERENCES.map(file => "references/" + file),
+  ...SHARED_NOTICES.map(file => "third-party/" + file)
+];
+export function requiredSkillFiles() {
+  return ["SKILL.md", "agents/openai.yaml", "references/workflow.md", "references/evaluation.md", "references/sources.md"];
+}
+function validateShared(root) {
+  const errors = [];
+  for (const relative of SHARED_FILES) {
+    const filename = path.join(root, "shared", relative);
+    if (!isFile(filename)) errors.push("Missing shared resource: " + relative);
+    else if (fs.realpathSync(filename) !== filename) errors.push("Do not distribute symlinked shared resources: " + relative);
+    else if (!fs.statSync(filename).size) errors.push("Empty shared resource: " + relative);
+  }
+  if (!errors.length) errors.push(...validateWorkspaceTemplate(path.join(root, "shared/workspace")));
+  return errors;
 }
 const PNG_SIGNATURE=Buffer.from("89504e470d0a1a0a","hex");
 function validateWorkspaceTemplate(directory) {
@@ -75,29 +81,35 @@ function* localLinks(filename) {
   }
 }
 
-export function validateSkill(directory) {
+export function validateSkill(directory, loadedShared = new Set()) {
   const skill = fs.realpathSync(directory);
   const name = path.basename(skill);
   const errors = [];
   if (!SKILL_NAMES.includes(name)) return [`Unexpected skill name: ${name}`];
+  const root = path.dirname(path.dirname(skill));
+  const shared = path.join(root, "shared");
+  if (!isFile(path.join(root, "workbench/cli.mjs")))
+    return ["Skill requires the complete Design Harness plugin and its shared resources: " + name];
+  const sharedErrors = validateShared(root);
+  if (sharedErrors.length) return sharedErrors;
 
-  const required = requiredSkillFiles(name);
-  for (const relative of required) {
+  for (const relative of requiredSkillFiles(name)) {
     const filename = path.join(skill, relative);
     if (!isFile(filename)) errors.push(`Missing skill resource: ${name}/${relative}`);
     else if (!fs.statSync(filename).size) errors.push(`Empty skill resource: ${name}/${relative}`);
   }
-  if (errors.length) return errors;
-
-  errors.push(...validateWorkspaceTemplate(path.join(skill, "assets/workspace")));
-  const files = [...walk(skill)];
-  for (const filename of files) {
-    if (fs.lstatSync(filename).isSymbolicLink()) {
-      errors.push(`Do not distribute symlinked skill resources: ${path.relative(skill, filename)}`);
-    }
+  const legacy = ["assets/workspace", "scripts/harness.mjs", "third-party", "LICENSE",
+    ...SHARED_REFERENCES.filter(file => file !== "sources.md").map(file => "references/" + file)];
+  for (const relative of legacy) {
+    if (fs.existsSync(path.join(skill, relative))) errors.push("Skill must reference shared resources instead of keeping a copy: " + name + "/" + relative);
   }
   if (errors.length) return errors;
 
+  const files = [...walk(skill), ...walk(shared)];
+  for (const filename of files) {
+    if (fs.lstatSync(filename).isSymbolicLink()) errors.push("Do not distribute symlinked skill/shared resources: " + path.relative(root, filename));
+  }
+  if (errors.length) return errors;
   const entry = path.join(skill, "SKILL.md");
   const content = fs.readFileSync(entry, "utf8").replace(/\r\n/g, "\n");
   const front = /^---\n([\s\S]*?)\n---\n/.exec(content);
@@ -110,36 +122,31 @@ export function validateSkill(directory) {
   const metadata = path.join(skill, "agents/openai.yaml");
   const metadataText = fs.readFileSync(metadata, "utf8");
   if (!metadataText.includes("$" + name)) errors.push(`Prompt must invoke skill: ${metadata}`);
-  if (!/^policy:\s*\n  allow_implicit_invocation: false\s*$/m.test(metadataText)) {
-    errors.push(`Stage must require explicit invocation: ${metadata}`);
-  }
+  if (!/^policy:\s*\n  allow_implicit_invocation: false\s*$/m.test(metadataText)) errors.push(`Stage must require explicit invocation: ${metadata}`);
 
+  const publicFiles = new Set(["LICENSE", "workbench/cli.mjs", "workbench/vendor/impeccable/LICENSE", "workbench/vendor/impeccable/NOTICE.md"].map(file => path.join(root, file)));
+  const allowed = (target, source) => isWithin(shared, target) || publicFiles.has(target) || (!isWithin(shared, source) && isWithin(skill, target));
   const adjacency = new Map();
   for (const filename of files) {
     if (!isFile(filename) || path.extname(filename) !== ".md") continue;
     const targets = [];
     adjacency.set(filename, targets);
     for (const [link, target] of localLinks(filename)) {
-      if (!isWithin(skill, target)) {
-        errors.push(`Reference escapes skill ${name}: ${path.relative(skill, filename)} -> ${link}`);
-      } else if (!fs.existsSync(target)) {
-        errors.push(`Broken/nonportable link in ${name}/${path.relative(skill, filename)}: ${link}`);
-      } else if (isFile(target) && path.extname(target) === ".md") targets.push(target);
+      if (!allowed(target, filename)) errors.push(`Reference escapes skill/shared resources ${name}: ${path.relative(root, filename)} -> ${link}`);
+      else if (!fs.existsSync(target)) errors.push(`Broken/nonportable link in ${path.relative(root, filename)}: ${link}`);
+      else if (isFile(target) && path.extname(target) === ".md") targets.push(target);
     }
   }
-
-  const pending = [entry];
-  const visited = new Set();
+  const pending = [entry], visited = new Set();
   while (pending.length) {
     const filename = pending.pop();
     if (visited.has(filename)) continue;
     visited.add(filename);
+    if (isWithin(shared, filename)) loadedShared.add(filename);
     pending.push(...(adjacency.get(filename) || []));
   }
   for (const filename of walk(path.join(skill, "references"))) {
-    if (isFile(filename) && path.extname(filename) === ".md" && !visited.has(filename)) {
-      errors.push(`Unreachable skill reference: ${name}/${path.relative(skill, filename)}`);
-    }
+    if (isFile(filename) && path.extname(filename) === ".md" && !visited.has(filename)) errors.push(`Unreachable skill reference: ${name}/${path.relative(skill, filename)}`);
   }
   return errors;
 }
@@ -173,26 +180,23 @@ export function validate(directory = ROOT) {
   check(packageManifest.version === manifest.version?.split("+")[0] && packageLock.version === packageManifest.version &&
     packageLock.packages?.[""]?.version === packageManifest.version, "Plugin and npm package versions must agree");
 
-  for(const relative of WORKBENCH_FILES)check(isFile(path.join(root,"workbench",relative)),"Missing fixed workbench resource: "+relative);
+  check(isFile(path.join(root,"LICENSE")) && fs.statSync(path.join(root,"LICENSE")).size > 0,"Missing or empty plugin license");
+  for(const relative of WORKBENCH_FILES) {
+    const file=path.join(root,"workbench",relative);
+    check(isFile(file),"Missing fixed workbench resource: "+relative);
+    if(isFile(file))check(fs.statSync(file).size>0,"Empty fixed workbench resource: "+relative);
+  }
   check(packageManifest.dependencies?.["@json-render/core"]&&packageManifest.dependencies?.["@json-render/react"],"Fixed workbench requires json-render runtime dependencies");
   const skillRoot = path.join(root, "skills");
   const skills = fs.existsSync(skillRoot) ? fs.readdirSync(skillRoot)
     .map(name => path.join(skillRoot, name)).filter(skill => isFile(path.join(skill, "SKILL.md"))) : [];
   check(skills.length === SKILL_NAMES.length && skills.every(skill => SKILL_NAMES.includes(path.basename(skill))),
-    "Expected exactly Init, Interaction, Visual and Writeback public skills");
-  for (const skill of skills) errors.push(...validateSkill(skill));
-
-  for (const {skills: consumers, files} of SHARED_SKILL_GROUPS) {
-    for (const relative of files) {
-      const copies = consumers.map(name => path.join(skillRoot, name, relative));
-      check(copies.every(isFile) && copies.slice(1).every(copy => fs.readFileSync(copies[0]).equals(fs.readFileSync(copy))),
-        `Shared skill resource differs: ${relative} (${consumers.join(", ")})`);
-    }
-  }
-  for (const skill of skills) {
-    const license = path.join(skill, "LICENSE");
-    check(isFile(license) && fs.readFileSync(license).equals(fs.readFileSync(path.join(root, "LICENSE"))),
-      `Skill license must match the original license: ${path.basename(skill)}`);
+    "Expected exactly Init, Interaction and Visual public skills");
+  errors.push(...validateShared(root));
+  const loadedShared = new Set();
+  for (const skill of skills) errors.push(...validateSkill(skill, loadedShared));
+  if (fs.existsSync(path.join(root, "shared/references"))) for (const filename of walk(path.join(root, "shared/references"))) {
+    if (isFile(filename) && path.extname(filename) === ".md" && !loadedShared.has(filename)) errors.push("Unreachable shared reference: " + path.relative(root, filename));
   }
 
   // DevKeel 与 OpenSpec 是仓库开发资产；模板中的待生成引用不属于插件文档链接。
@@ -206,8 +210,10 @@ export function validate(directory = ROOT) {
         `Broken/nonportable link in ${path.relative(root, filename)}: ${link}`);
     }
   }
+  check(!fs.existsSync(path.join(root, "skills/design-harness-writeback")),
+    "Retired Writeback skill resources must not be distributed");
   for (const obsolete of ["workflows", "references", "evaluation", "templates", "third-party", "scripts/figma-reader.js"]) {
-    check(!fs.existsSync(path.join(root, obsolete)), `Runtime resources must be inside skills: ${obsolete}`);
+    check(!fs.existsSync(path.join(root, obsolete)), `Shared resources belong in shared/; obsolete root resource: ${obsolete}`);
   }
   return errors;
 }
@@ -219,5 +225,5 @@ if (process.argv[1] && fs.existsSync(process.argv[1]) && fs.realpathSync(process
   if (errors.length) {
     console.error("Validation failed:\n" + errors.map(error => "- " + error).join("\n"));
     process.exitCode = 1;
-  } else console.log("Self-contained skills, reachable references, synchronized resources and upstream notices validated.");
+  } else console.log("Skill entrypoints, shared resources, reachable references and upstream notices validated.");
 }
