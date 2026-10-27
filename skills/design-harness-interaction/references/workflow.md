@@ -1,6 +1,6 @@
 # 交互工作流
 
-1. 读需求、交接、项目共享基础及必要实现事实，按[交付保真](../../../shared/references/fidelity.md)明确用户任务、交付范围、来源基线及可观察验收条件。
+1. 读需求、交接、项目共享基础及必要实现事实；指定正式业务 PRD 时按[来源与承接](../../../shared/references/product-source.md)核对并记录设计依据。按[交付保真](../../../shared/references/fidelity.md)明确用户任务、交付范围、来源基线及可观察验收条件。
 2. 关键分歧逐题共创；已有决定直接承接。按完整任务范围建立需求，采用[文档协议](../../../shared/references/protocol.md)，登记页面、适用的产品壳层、状态及明确排除项。
 3. requirement.md 记录目标、范围和验收；interactions/*.md 按[交互协议](../../../shared/references/interactions.md)独立记录正文、页面归属、状态条件及标注模式；完整 Spec 组合页面，Catalog／Registry 注册 React 组件并实现可操作流程；scenarios.json 仅登记体验初始状态。路由与可观察状态接入工作台 SDK，实际跳页后同步顶部和说明。复杂流程可补 Mermaid，不强制另做静态线框。
 4. 复用项目共享基础；沿用区域保留实际入口、控件和菜单层级，交互与视觉共用 Spec 与组件。获准的公共基础增量按[共同维护与交接](../../../shared/references/handoff.md)在当前任务中完成，并验证受影响需求。未实现的服务行为在评审说明中明确本地模拟，不连接业务服务，也不因此省略已声明的 UI。

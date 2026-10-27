@@ -76,10 +76,11 @@ describe("Plugin distribution", () => {
     assert.deepEqual(validate(plugin), []);
     const install=spawnSync("npm",["ci","--ignore-scripts","--include=dev","--offline","--no-audit","--no-fund"],{cwd:plugin,encoding:"utf8"});assert.equal(install.status,0,install.stderr);
     for(const name of SKILL_NAMES) {
-      const project=path.join(base,"业务 项目 "+name);fs.mkdirSync(project);
       const entry=path.join(plugin,"skills",name,"SKILL.md"),links=[...fs.readFileSync(entry,"utf8").matchAll(/\[[^\]]*\]\(([^)]+\/cli\.mjs)\)/g)];
       assert.equal(links.length,1,name+" must link the shared CLI");
       const cli=path.resolve(path.dirname(entry),links[0][1]);assert.equal(cli,path.join(plugin,"workbench/cli.mjs"));
+      if(name==="design-harness-product") continue;
+      const project=path.join(base,"业务 项目 "+name);fs.mkdirSync(project);
       const run=(...args)=>spawnSync(process.execPath,[cli,...args,"--project",project],{cwd:base,encoding:"utf8"});
       const initialized=run("init","--example");assert.equal(initialized.status,0,initialized.stderr);
       const built=run("check");assert.equal(built.status,0,built.stderr);assert.equal(fs.existsSync(path.join(project,"design-harness/studio")),false);

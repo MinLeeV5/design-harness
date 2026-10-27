@@ -4,6 +4,8 @@
 外部指导只在当前问题需要时读取官方现行页面或默认分支最小相关部分；失败时说明限制，不称本地摘要为最新上游。
 项目规范优先；不引入外部审计、安装、hooks、遥测或多 Agent 编排。
 
+产品讨论按问题参考 [Atlassian 的 PRD 方法](https://www.atlassian.com/software/confluence/templates/product-requirements)、[GitLab 的产品开发流程](https://handbook.gitlab.com/handbook/product-development/how-we-work/product-development-flow/)、[Shape Up 的方案提案](https://basecamp.com/shapeup/1.5-chapter-06) 和 [Anthropic 的产品规格 Skill](https://github.com/anthropics/knowledge-work-plugins/blob/main/product-management/skills/write-spec/SKILL.md)。这些是外部方法来源，不作为本地模板或项目事实。
+
 图形与生图按[资产方法](assets.md)；保留 [Lucide 许可](../third-party/lucide/LICENSE)、[视觉来源声明](../third-party/visual-assets/NOTICE.md)、
 [DESIGN.md 许可](../third-party/design-md/LICENSE) 与[声明](../third-party/design-md/NOTICE.md)。方法许可不代替实际素材授权。
 

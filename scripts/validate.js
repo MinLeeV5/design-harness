@@ -6,11 +6,11 @@ import {fileURLToPath} from "node:url";
 import {isWithin, isFile, walk} from "./files.js";
 
 export const ROOT = path.resolve(import.meta.dirname, "..");
-export const SKILL_NAMES = ["design-harness-init", "design-harness-interaction", "design-harness-visual"];
+export const SKILL_NAMES = ["design-harness-init", "design-harness-interaction", "design-harness-visual", "design-harness-product"];
 // Entries carry phase instructions; the complete plugin owns the shared resources and runtime.
 export const WORKSPACE_FILES = [".gitignore","README.md","project.json","foundation/components.tsx","foundation/catalog.ts","foundation/registry.tsx","foundation/design.md","foundation/foundation.json","foundation/tokens.css"];
 export const WORKBENCH_FILES = ["app.tsx","interaction-reader.tsx","conditions.mjs","conditions.d.mts","live-agent.tsx","agent-controls.mjs","agent-controls.d.mts","inspector.ts","preview.tsx","sdk.tsx","types.ts","assets.d.ts","assets/harness-icon.png","studio.css","cli.mjs",...["paths","protocol","dependencies","typecheck","build","server","workspace","live-agent","agent-events","validate-preview","markdown","interaction-docs"].map(n=>"lib/"+n+".mjs"),"vendor/impeccable/live-browser-dom.js","vendor/impeccable/LICENSE","vendor/impeccable/NOTICE.md","starter/manifest.json","starter/scenarios.json","starter/interactions/task.md","starter/requirement.md","starter/handoff.md",...["comfortable","compact"].flatMap(c=>["catalog.ts","registry.tsx","params.json","pages/task.json","components/Task.tsx","components/task.css"].map(f=>"starter/candidates/"+c+"/"+f))];
-export const SHARED_REFERENCES = ["assets.md", "fidelity.md", "workspace.md", "protocol.md", "interactions.md", "preview-export.md", "handoff.md", "sources.md"];
+export const SHARED_REFERENCES = ["assets.md", "fidelity.md", "workspace.md", "protocol.md", "interactions.md", "preview-export.md", "handoff.md", "product-source.md", "sources.md"];
 export const SHARED_NOTICES = ["lucide/LICENSE", "visual-assets/NOTICE.md", "design-md/LICENSE", "design-md/NOTICE.md", "impeccable/NOTICE.md", "ui-ux-pro-max/LICENSE", "ui-ux-pro-max/NOTICE.md", "harness-designing-plugin/LICENSE"];
 export const SHARED_FILES = [
   ...WORKSPACE_FILES.map(file => "workspace/" + file),
@@ -191,7 +191,7 @@ export function validate(directory = ROOT) {
   const skills = fs.existsSync(skillRoot) ? fs.readdirSync(skillRoot)
     .map(name => path.join(skillRoot, name)).filter(skill => isFile(path.join(skill, "SKILL.md"))) : [];
   check(skills.length === SKILL_NAMES.length && skills.every(skill => SKILL_NAMES.includes(path.basename(skill))),
-    "Expected exactly Init, Interaction and Visual public skills");
+    "Expected exactly Init, Interaction, Visual and Product public skills");
   errors.push(...validateShared(root));
   const loadedShared = new Set();
   for (const skill of skills) errors.push(...validateSkill(skill, loadedShared));

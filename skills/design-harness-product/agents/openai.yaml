@@ -1,0 +1,6 @@
+interface:
+  display_name: "Design Harness · 产品共创"
+  short_description: "共创产品需求、形成可评审 PRD，并根据评审意见维护业务结论。"
+  default_prompt: "使用 $design-harness-product 与我共创这项需求，整理适合评审的 PRD。"
+policy:
+  allow_implicit_invocation: false
