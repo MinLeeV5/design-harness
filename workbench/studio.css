@@ -145,3 +145,16 @@ button[aria-pressed=true],button[aria-expanded=true],button.active {color:#6640b
 @media(max-width:700px) {.studio-header {padding:5px 8px;gap:8px;min-height:48px;}.studio-brand span,.workspace-kind {display:none;}.studio-brand {gap:0;}.requirement-title {padding-left:8px;}.drawer-trigger {min-width:48px;padding:5px 7px;gap:4px;}.drawer-trigger svg {width:16px;height:16px;}.settings-drawer,.inspector-drawer {top:58px;left:8px;right:8px;bottom:8px;width:auto;height:auto;max-height:none;}.studio-main {padding:4px;}.preview-stage {padding:6px 8px 10px;}.pick-notice {font-size:11px;gap:6px;padding:6px 8px;}.agent-messages {min-height:150px;}.agent-panel:has(.agent-result) .agent-messages {height:180px;}.inspector-header {padding:12px 14px 9px;}.inspector-body {padding:14px;}.inspector-tabs {margin:0 14px;}}
 .settings-drawer[hidden] {display:none;}
 .studio-announcement {position:absolute;left:12px;bottom:8px;max-width:calc(100% - 24px);margin:0;padding:6px 10px;border:1px solid #ded8e8;border-radius:6px;background:#fffffff0;color:#796c88;font-size:11px;pointer-events:none;z-index:5;}
+
+.agent-identity {display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;color:#666d7b;}
+.agent-identity select {max-width:190px;flex:1;min-width:0;}
+.design-references {display:flex;flex-wrap:wrap;gap:8px;min-width:0;}
+.design-reference {display:flex;align-items:center;gap:6px;max-width:100%;padding:4px;border:1px solid #e0e2e9;border-radius:7px;}
+.design-reference img {width:38px;height:38px;object-fit:cover;border-radius:4px;}
+.design-reference>span {font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;}
+.design-reference button {padding:0 6px;min-height:28px;}
+.reference-upload {display:flex;align-items:center;position:relative;border:1px dashed #c6c9d4;border-radius:7px;padding:6px 10px;font-size:12px;cursor:pointer;}
+.reference-upload input {position:absolute;inset:0;width:100%;opacity:0;cursor:pointer;}
+.reference-upload:focus-within {outline:2px solid #7050c2;outline-offset:2px;}
+.proposal-impact {padding:8px 10px;background:#f4f1fb;border-radius:6px;overflow-wrap:anywhere;}
+.agent-result>button {align-self:flex-start;}

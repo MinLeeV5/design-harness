@@ -3,6 +3,7 @@ import {createRoot} from "react-dom/client";
 import {JSONUIProvider,Renderer,createStateStore,useRepeatScope,type ComponentRegistry,type DefineRegistryResult,type ComponentRenderProps} from "@json-render/react";
 import {markDevtoolsActive,type Catalog,type StateModel} from "@json-render/core";
 import {createInspector} from "./inspector";
+import {captureDocument} from "./capture";
 import {ScenarioContext,PreviewBridgeContext,type PreviewBridge,type NavigationAdapter} from "./sdk";
 import {pointerValue} from "./conditions.mjs";
 import type {ZodType} from "zod";
@@ -110,6 +111,7 @@ export function mount(project:Project) {
   function Preview() {
     const [config,setConfig]=useState<Config|null>(null),[error,setError]=useState("");
     useEffect(()=>markDevtoolsActive(),[]);
+    useEffect(()=>{const receive=(event:MessageEvent)=>{if(event.source!==window.parent||event.data?.type!=="dh:capture"||typeof event.data.serial!=="string")return;try{send({type:"dh:capture-result",serial:event.data.serial,html:captureDocument()});}catch(error){send({type:"dh:capture-result",serial:event.data.serial,error:(error as Error).message});}};window.addEventListener("message",receive);return()=>window.removeEventListener("message",receive);},[]);
     useEffect(()=>{
       const receive=(event:MessageEvent)=>{
         if(event.source!==window.parent||event.data?.type!=="dh:config")return;

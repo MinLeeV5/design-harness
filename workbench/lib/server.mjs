@@ -22,7 +22,7 @@ export async function startServer(workspace,{port=4173,agentRun}={}) {
       if(req.method==="GET"&&/^\/__dh\/live\/jobs\/[a-f0-9]{32}$/.test(url.pathname)){if(req.headers["x-dh-token"]!==token){reply(403,{error:"生成记录需要当前工作台"});return;}reply(200,agent.get(url.pathname.split("/").at(-1)));return;}
       if(req.method!=="POST"||!["/__dh/spec","/__dh/export","/__dh/live/events"].includes(url.pathname)){reply(404,{error:"入口不存在"});return;}
       if(req.headers.origin!==origin||req.headers["x-dh-token"]!==token){reply(403,{error:"写入需要当前本地工作台"});return;}
-      let length=0;const chunks=[];for await(const chunk of req){length+=chunk.length;assert(length<=65536,"请求过大");chunks.push(chunk);}const body=JSON.parse(Buffer.concat(chunks).toString("utf8"));
+      let length=0;const chunks=[],limit=url.pathname==="/__dh/live/events"?15000000:65536;for await(const chunk of req){length+=chunk.length;assert(length<=limit,"请求过大");chunks.push(chunk);}const body=JSON.parse(Buffer.concat(chunks).toString("utf8"));
       if(url.pathname==="/__dh/live/events"){reply(200,await agent.event(body));return;}
       if(url.pathname==="/__dh/export"){const {html,filename}=await exportHtml(workspace,body.id);res.writeHead(200,{"Content-Type":"text/html; charset=utf-8","Content-Disposition":'attachment; filename="'+filename+'"',"Cache-Control":"no-store","X-Content-Type-Options":"nosniff"});res.end(html);return;}
       const data=loadRequirement(workspace,body.id),key=body.candidate+":"+body.page;assert(data.specFiles[key],"页面或候选不存在");const file=data.specFiles[key],before=fs.readFileSync(file);

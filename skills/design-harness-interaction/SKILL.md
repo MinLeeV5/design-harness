@@ -13,6 +13,8 @@ metadata:
 
 用于新增需求或调整页面、流程、状态和交互说明；同轮完成获准的公共增量、验证与交接，按请求导出，无需另启回写阶段。
 
+在工作台显式选择“交互设计”身份时，同样采用本阶段的方法和评价；运行方式与能力边界见[专业 Agent](../../shared/references/agent.md)。
+
 工作台由完整插件固定提供；项目只维护业务资源。页面采用 json-render Spec，Catalog／Registry 注册项目自定义 React 组件；实例属性写回 Spec，组件内部实现由 Agent 修改。公共命令使用[插件 CLI](../../workbench/cli.mjs)，插件目录为本文件所在目录的 ../..。
 
 完整 UI 交付须覆盖声明范围内的产品壳层、组件与状态，按最高保真要求核对；独立于工程复用不降低设计质量。先读[交付保真](../../shared/references/fidelity.md)，再读[工作流](references/workflow.md)。建立工作区读[模板职责](../../shared/references/workspace.md)，编写文件读[协议](../../shared/references/protocol.md)，

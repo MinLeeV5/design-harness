@@ -4,6 +4,7 @@ import type {BundleData,Manifest,Scenario,Value,PreviewContext,Annotation,DomSel
 import "./studio.css";
 import {InteractionReader,annotationsFor} from "./interaction-reader";
 import {useAgent,AgentPanel} from "./live-agent";
+import {captureFrame} from "./capture";
 import harnessIcon from "./assets/harness-icon.png";
 const data=(window as unknown as {__DH_DATA__:BundleData}).__DH_DATA__;
 const initial=new URLSearchParams(location.hash.slice(1));
@@ -69,6 +70,7 @@ function App() {
   const [compare,setCompare]=useState(false),[comparisonIds,setComparisonIds]=useState<string[]>(manifest.candidates.slice(0,2).map(c=>c.id)),[pick,setPick]=useState(false),[selected,setSelected]=useState("");
   const [showAnnotations,setShowAnnotations]=useState(false),[selection,setSelection]=useState<DomSelection|null>(null),[inspectDomId,setInspectDomId]=useState(""),[locateNonce,setLocateNonce]=useState(0);
   const [proposal,setProposal]=useState<AgentProposal|undefined>(),[annotationFocus,setAnnotationFocus]=useState(0);
+  const interactions=proposal?.interactions??data.interactions;
   const pickedCandidate=useRef("");
   const [selectionStale,setSelectionStale]=useState(false);const proposalDocument=useRef<string|undefined>(undefined);
   const [panel,setPanel]=useState<Panel|null>(null),[settingsOpen,setSettingsOpen]=useState(false),[status,setStatus]=useState("");
@@ -117,7 +119,7 @@ function App() {
   const scenario=data.scenarios.find(s=>s.id===scenarioId)!;
   const viewport=manifest.viewports.find(v=>v.id===viewportId)!;
   const alternate=manifest.candidates.find(c=>c.id!==candidate);
-  const agent=useAgent({id:manifest.id,candidate,page,scenario:scenario.id,reset,selection,revision:()=>revisionRef.current,token:data.token,enabled:data.development,blocked:exporting||navigationPending,onProposal:value=>{if(proposalDocument.current!==value?.html){if(selection)setSelectionStale(true);setInspectDomId("");}proposalDocument.current=value?.html;setProposal(value);setPick(false);},onAccepted:()=>{acceptedNavigationRef.current=true;location.reload();}});
+  const agent=useAgent({id:manifest.id,candidate,page,scenario:scenario.id,reset,selection,revision:()=>revisionRef.current,token:data.token,enabled:data.development,blocked:exporting||navigationPending,capture:()=>{const frame=document.querySelector<HTMLIFrameElement>('.frame-column[data-candidate="'+candidate+'"] iframe');if(!frame)return Promise.reject(new Error("当前画面尚未加载"));return captureFrame(frame,page,contexts[candidate]?.state??{...data.specs[candidate+":"+page].state,...scenario.state});},onProposal:value=>{if(proposalDocument.current!==value?.html){if(selection)setSelectionStale(true);setInspectDomId("");}proposalDocument.current=value?.html;setProposal(value);setPick(false);},onAccepted:()=>{acceptedNavigationRef.current=true;location.reload();}});
   const agentBusyRef=useRef(false);agentBusyRef.current=agent.busy;
   const previewError=(compare?comparisonIds:[candidate]).map(id=>id+":"+(contexts[id]?.page??page)).map(key=>previewErrors[key]).filter(Boolean).join("；");
   function reportError(key:string,error:string){setPreviewErrors(old=>old[key]===error?old:{...old,[key]:error});}
@@ -144,7 +146,7 @@ function App() {
   },[manifest.id]);
   useEffect(()=>{
     if(!selected)return;
-    const section=selectedAnnotation||data.interactions.find(a=>(a.page===page||a.page==="*")&&a.target===selected)?.id;
+    const section=selectedAnnotation||interactions.find(a=>(a.page===page||a.page==="*")&&a.target===selected)?.id;
     const target=section ? docRef.current?.querySelector("#"+CSS.escape(section)) : null;
     docRef.current?.querySelectorAll(".active-section").forEach(el=>el.classList.remove("active-section"));
     target?.classList.add("active-section");target?.scrollIntoView({block:"nearest"});
@@ -153,7 +155,7 @@ function App() {
     const leave=(event:BeforeUnloadEvent)=>{if(!acceptedNavigationRef.current&&(exportingRef.current||agentBusyRef.current)){event.preventDefault();event.returnValue="";}};
     window.addEventListener("beforeunload",leave);return()=>window.removeEventListener("beforeunload",leave);
   },[]);
-  const select=(id:string,address:string,detail?:DomSelection,annotationId?:string)=>{setPick(false);setSelected(id);setInstance(address);setSelection(detail??null);setSelectionStale(false);setInspectDomId(detail?.domId??"");setSelectedAnnotation(annotationId??data.interactions.find(a=>(a.page===page||a.page==="*")&&a.target===id)?.id??"");if(annotationId)setLocateNonce(v=>v+1);showPanel(annotationId?"docs":"agent");if(annotationId)setAnnotationFocus(value=>value+1);};
+  const select=(id:string,address:string,detail?:DomSelection,annotationId?:string)=>{setPick(false);setSelected(id);setInstance(address);setSelection(detail??null);setSelectionStale(false);setInspectDomId(detail?.domId??"");setSelectedAnnotation(annotationId??interactions.find(a=>(a.page===page||a.page==="*")&&a.target===id)?.id??"");if(annotationId)setLocateNonce(v=>v+1);showPanel(annotationId?"docs":"agent");if(annotationId)setAnnotationFocus(value=>value+1);};
   function locateAnnotation(a:Annotation){setSelectedAnnotation(a.id);setSelected(a.target);setInstance("");setSelection(null);setInspectDomId("");setLocateNonce(v=>v+1);}
   useEffect(()=>{setProposal(undefined);if(pickedCandidate.current===candidate){pickedCandidate.current="";return;}setSelection(null);setSelectionStale(false);setInspectDomId("");},[page,scenarioId,candidate,reset]);
   const observe=(ids:string[],dupes:string[])=>{setElements(ids);setDuplicates(dupes);};
@@ -173,7 +175,7 @@ function App() {
   }
 
   const runtimeState=contexts[candidate]?.state??{...data.specs[candidate+":"+page].state,...scenario.state};
-  const annotations=annotationsFor(data.interactions,page,runtimeState);
+  const annotations=annotationsFor(interactions,page,runtimeState);
   const missing=annotations.filter(a=>!elements.includes(a.target));
   function observeContext(id:string,context:PreviewContext){
     const signature=JSON.stringify(context);if(!contextInitial.current[id])contextInitial.current[id]=signature;
@@ -207,14 +209,14 @@ function App() {
       <button ref={settingsTrigger} className="drawer-trigger" aria-label="预览设置" title="预览设置" aria-expanded={settingsOpen} aria-controls="studio-settings" onClick={()=>{if(settingsOpen)closeSettings();else{if(matchMedia("(max-width:700px)").matches)setPanel(null);setSettingsOpen(true);setPick(false);}}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M5.5 8h1M5.5 12h1"/></svg><span>预览</span></button>
       <a className="studio-brand" href="#" onClick={event=>event.preventDefault()}><img className="brand-mark" src={harnessIcon} alt=""/><span>Design Harness</span></a>
       <div className="requirement-title"><h1 title={manifest.title}>{manifest.title}</h1><span>{manifest.pages.find(p=>p.id===page)?.title} · {manifest.viewports.find(v=>v.id===viewportId)?.title}</span></div>
-      <span className="workspace-kind">{data.development?"本地草稿":"离线预览"}</span>
+      <span className="workspace-kind">{data.proposal?"提案预览 · 尚未写入":data.development?"本地草稿":"离线预览"}</span>
       <button ref={toolsTrigger} className="drawer-trigger" aria-label="工作台工具" title="说明、Agent 与工具" aria-expanded={panel!==null} aria-controls="studio-inspector" onClick={event=>panel?closePanel():showPanel("agent",event.currentTarget)}><ToolIcon view="agent"/><span>工具</span>{agent.waiting?<span className="loading-spinner" aria-label="Agent 正在处理"/>:agent.job?.state==="ready"&&<span className="unsaved-dot" aria-hidden="true"/>}</button>
     </header>
     <main className="studio-main">
       <section className={"preview-stage "+(compare?"comparing":"")} aria-label="设计预览">
         {manifest.candidates.map(item=>{
           const id=item.id,active=id===candidate,currentPage=contexts[id]?.page??scenario.page,state=contexts[id]?.state??{...data.specs[id+":"+currentPage].state,...scenario.state};
-          return <Frame key={id+":"+scenario.id+":"+reset} candidate={id} page={currentPage} scenario={scenario} viewport={viewport} values={values[id+":"+currentPage]} hidden={compare?!comparisonIds.includes(id):!active} active={active} order={compare?comparisonIds.indexOf(id):0} waiting={waitingCandidates.includes(id)} onActivate={()=>focusCandidate(id)} pick={pick} locate={locate} instance={instance} annotations={annotationsFor(data.interactions,currentPage,state)} showAnnotations={showAnnotations} inspectDomId={active?inspectDomId:""} locateNonce={locateNonce} proposal={active?proposal:undefined} runtimeState={state} navigationRequest={navigationCommands[id]} onIntent={next=>navigate(next,id)} onPrepared={(serial,allowed)=>prepared(id,serial,allowed)} onContext={context=>observeContext(id,context)} onSelect={(target,address,detail,annotationId)=>{if(!active){if(detail)pickedCandidate.current=id;focusCandidate(id);}select(target,address,detail,annotationId);}} onElements={active?observe:()=>{}} onEscape={exitTools} onError={error=>reportError(id+":"+currentPage,error)}/>;
+          return <Frame key={id+":"+scenario.id+":"+reset} candidate={id} page={currentPage} scenario={scenario} viewport={viewport} values={values[id+":"+currentPage]} hidden={compare?!comparisonIds.includes(id):!active} active={active} order={compare?comparisonIds.indexOf(id):0} waiting={waitingCandidates.includes(id)} onActivate={()=>focusCandidate(id)} pick={pick} locate={locate} instance={instance} annotations={annotationsFor(interactions,currentPage,state)} showAnnotations={showAnnotations} inspectDomId={active?inspectDomId:""} locateNonce={locateNonce} proposal={active?proposal:undefined} runtimeState={state} navigationRequest={navigationCommands[id]} onIntent={next=>navigate(next,id)} onPrepared={(serial,allowed)=>prepared(id,serial,allowed)} onContext={context=>observeContext(id,context)} onSelect={(target,address,detail,annotationId)=>{if(!active){if(detail)pickedCandidate.current=id;focusCandidate(id);}select(target,address,detail,annotationId);}} onElements={active?observe:()=>{}} onEscape={exitTools} onError={error=>reportError(id+":"+currentPage,error)}/>;
         })}
         {pick&&<div className="pick-notice" role="status"><span>点击一个元素以附加到 Agent，选中后自动结束</span><button onClick={()=>setPick(false)}>取消点选</button></div>}
         {status&&!previewError&&<p className="studio-announcement" role="status">{status}</p>}
@@ -237,7 +239,7 @@ function App() {
       <nav className="inspector-tabs" aria-label="切换辅助面板">{(["docs","agent","tools"] as Panel[]).map(view=><button key={view} aria-label={panelNames[view]} aria-pressed={panel===view} onClick={()=>showPanel(view)}><ToolIcon view={view}/>{({docs:"说明",agent:"Agent",tools:"工具"} as Record<Panel,string>)[view]}</button>)}</nav>
       <div className={"inspector-body "+(panel==="agent"?"agent-body":"")}>
         {panel==="docs"&&<div className="documentation" ref={docRef}>
-          <InteractionReader interactions={data.interactions} page={page} pageTitle={manifest.pages.find(p=>p.id===page)!.title} state={runtimeState} elements={elements} selected={selectedAnnotation} overview={data.documentation} foundation={manifest.foundationVersion} onLocate={locateAnnotation}/>
+          <InteractionReader interactions={interactions} page={page} pageTitle={manifest.pages.find(p=>p.id===page)!.title} state={runtimeState} elements={elements} selected={selectedAnnotation} overview={proposal?.documentation??data.documentation} foundation={manifest.foundationVersion} onLocate={locateAnnotation}/>
           {duplicates.length>0&&<p className="validation-warning" role="alert">重复的定位标识：{duplicates.join("、")}</p>}
           {missing.length>0&&elements.length>0&&<p className="validation-warning">当前画面尚未出现说明目标：{missing.map(a=>a.target).join("、")}。请在对应状态核对。</p>}
         </div>}

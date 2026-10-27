@@ -7,8 +7,8 @@ import {initialize} from "../workbench/lib/workspace.mjs";
 import {loadRequirement,readJson} from "../workbench/lib/protocol.mjs";
 import {createLiveAgentRuntime} from "../workbench/lib/live-agent.mjs";
 
-async function fixture(run,check){const base=fs.mkdtempSync(path.join(os.tmpdir(),"dh-agent-test-")),workspace=initialize(base,{example:true}).workspace,runtime=createLiveAgentRuntime(workspace,{run});try{await check({workspace,runtime});}finally{await runtime.close();fs.rmSync(base,{recursive:true,force:true});}}
-const request=workspace=>({type:"generate",id:"example",candidate:"comfortable",page:"task",expectedRevision:loadRequirement(workspace,"example").revision,prompt:"更新标题"});
+async function fixture(run,check){const base=fs.mkdtempSync(path.join(os.tmpdir(),"dh-agent-test-")),workspace=initialize(base,{example:true}).workspace,runtime=createLiveAgentRuntime(workspace,{run,capture:async()=>null});try{await check({workspace,runtime});}finally{await runtime.close();fs.rmSync(base,{recursive:true,force:true});}}
+const request=workspace=>({type:"generate",role:"visual",capture:{html:"<html><body>fixture</body></html>",width:1440,height:960,page:"task",state:{phase:"new"}},id:"example",candidate:"comfortable",page:"task",expectedRevision:loadRequirement(workspace,"example").revision,prompt:"更新标题"});
 const update=directory=>{const spec=readJson(path.join(directory,"requirements/example/candidates/comfortable/pages/task.json"));spec.elements["task-page"].props.title="隔离生成标题";return {summary:"更新当前方案标题",files:[{path:"candidates/comfortable/pages/task.json",content:JSON.stringify(spec,null,2)+"\n"}]};};
 async function settled(runtime,id){
   // Typechecking and Chrome startup share CPU with the parallel distribution checks.
