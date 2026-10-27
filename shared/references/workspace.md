@@ -1,6 +1,6 @@
 # 插件工具与项目资源
 
-工作台、渲染器、构建器、预览桥接及导出由完整插件的固定工具维护。三个入口直接调用插件根目录的 workbench/cli.mjs；模板与公共指导统一保存在 shared/，项目不复制工作台源码。运行与读取共享指导都需要完整插件，单独复制 Skill 不作为安装方式。
+工作台、渲染器、构建器、预览桥接及导出由完整插件的固定工具维护。设计阶段直接调用插件根目录的 workbench/cli.mjs；产品讨论无需运行工具。模板与公共指导统一保存在 shared/，项目不复制工作台源码。运行与读取共享指导都需要完整插件，单独复制 Skill 不作为安装方式。
 
 项目 design-harness/ 只承载业务设计资源：
 
@@ -25,7 +25,7 @@ reviews/
 
 运行、构建和 Agent 属于插件；项目不保留 releases、源码副本、runtime 或 evidence。临时截图、模型结果和检查输出用后清理，只把必要结论记入交接。
 
-requirements 是唯一需求维护来源。工作台按需导出单文件 HTML；CLI 通过 --out 选择资源目录外的文件，历史用 Git 记录。
+requirements 是本地设计产物的唯一维护来源；用户指定正式业务 PRD 时按[来源与承接](product-source.md)记录设计摘要与来源。工作台按需导出单文件 HTML；CLI 通过 --out 选择资源目录外的文件，历史用 Git 记录。
 
 页面同步和说明写法见[交互协议](interactions.md)。说明、字段和命令分别见[协议](protocol.md)、[操作](preview-export.md)、[交接](handoff.md)。可选 package.json 只声明精确版本的业务扩展依赖，锁文件为 dependencies.lock.json；安装与构建缓存放在项目之外。
 

@@ -30,4 +30,4 @@ handoff.md 至少记录当前范围、事实基线、已确认决定、当前候
 
 公共增量及受影响需求的检查结果记入交接；候选选择、实际验收状态与未核实项分别保留。
 
-本轮只支持当前统一协议；旧 studio 试跑不作多版本引擎兼容。requirements 是唯一需求维护来源，历史用 Git 记录；不保留 releases、源码副本或 runtime。检查截图和模型输出临时清理，不保留 evidence 目录。
+本轮只支持当前统一协议；旧 studio 试跑不作多版本引擎兼容。requirements 是本地设计产物的唯一维护来源，正式业务 PRD 与设计的衔接见[来源与承接](product-source.md)；历史用 Git 记录，不保留 releases、源码副本或 runtime。检查截图和模型输出临时清理，不保留 evidence 目录。
