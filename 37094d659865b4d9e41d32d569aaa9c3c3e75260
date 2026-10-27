@@ -1,0 +1,325 @@
+skills/design-harness-init/references/workflow.md
+  e7fa9cc4519aa980 3-7
+skills/design-harness-visual/assets/workspace/foundation/tokens.css
+  e7fa9cc4519aa980 16
+docs/validation.md
+  e7fa9cc4519aa980 9-11,18-21,23-30,37,41,44,48-53
+workbench/lib/typecheck.mjs
+  d70f97f1d23af727 2,4-18
+skills/design-harness-visual/references/workflow.md
+  e7fa9cc4519aa980 3-8
+scripts/navigation-smoke.js
+  e7fa9cc4519aa980 1-159
+README.md
+  e7fa9cc4519aa980 5,11-54,58,60-64,66,68,70-78,80,82,84,86,88,90,92,94,96,98,100,102,104,106,108,110,112-114,116,118,122,126-128
+skills/design-harness-interaction/references/preview-export.md
+  e7fa9cc4519aa980 1,3,5-11,13,15,17,19,21,23,25,27,29,31-57
+skills/design-harness-interaction/assets/workspace/foundation/catalog.ts
+  e7fa9cc4519aa980 1-8
+skills/design-harness-visual/references/workspace.md
+  e7fa9cc4519aa980 1,3,5,7-24,26,28,30,32,34,36,38,40-42
+skills/design-harness-init/references/interactions.md
+  e7fa9cc4519aa980 1-98
+workbench/starter/candidates/compact/registry.tsx
+  d70f97f1d23af727 1-8
+skills/design-harness-visual/references/evaluation.md
+  e7fa9cc4519aa980 3,5-10,12
+skills/design-harness-writeback/SKILL.md
+  e7fa9cc4519aa980 3,14-17
+AGENTS.md
+  e7fa9cc4519aa980 116,118-119
+skills/design-harness-interaction/references/protocol.md
+  e7fa9cc4519aa980 1-63
+workbench/starter/candidates/compact/pages/task.json
+  d70f97f1d23af727 1-66
+workbench/lib/dependencies.mjs
+  d70f97f1d23af727 2,4-5,7-43
+  e7fa9cc4519aa980 6
+workbench/starter/candidates/compact/params.json
+  d70f97f1d23af727 2-3
+skills/design-harness-visual/scripts/harness.mjs
+  e7fa9cc4519aa980 2,6-10
+workbench/preview.tsx
+  d70f97f1d23af727 1,3-5,7-9,11-12,14-15,19-33,42-43,50,52-54,56-58,60-64,67-68,70,72-79,83,86,98,100-104,106,109,111-112,115-134,138,141-143,145-146
+  e7fa9cc4519aa980 6,10,13,16-18,34-41,44-49,51,55,59,65-66,69,71,80-82,84-85,87-97,99,105,107-108,135-136,147,149-150
+scripts/package-plugin.js
+  e7fa9cc4519aa980 15-16
+scripts/browser-ui.js
+  e7fa9cc4519aa980 1-9
+skills/design-harness-init/assets/workspace/foundation/registry.tsx
+  e7fa9cc4519aa980 1-8
+skills/design-harness-writeback/references/handoff.md
+  e7fa9cc4519aa980 1,3,5,7-11
+docs/agent-workflow.md
+  e7fa9cc4519aa980 12,32
+workbench/starter/handoff.md
+  d70f97f1d23af727 8-17
+workbench/lib/protocol.mjs
+  d70f97f1d23af727 4-7,9-17,21,23-26,29,31-40,43-45,48-62,64-79,81-84,86-87,89-98,102-107,109-110,112-116,119-123
+docs/skill-maintenance.md
+  e7fa9cc4519aa980 5,7,9,13-15,18-21,24-27,35,44
+skills/design-harness-visual/references/interactions.md
+  e7fa9cc4519aa980 1-98
+skills/design-harness-writeback/references/evaluation.md
+  e7fa9cc4519aa980 3,5-10,12
+skills/design-harness-writeback/references/fidelity.md
+  e7fa9cc4519aa980 1-52
+workbench/starter/scenarios.json
+  d70f97f1d23af727 1-8,10-17,19-26,28-35,37
+.codex-plugin/plugin.json
+  e7fa9cc4519aa980 6,15,25-26,32,34-35,40
+skills/design-harness-init/references/protocol.md
+  e7fa9cc4519aa980 1-63
+workbench/studio.css
+  6da5905d096a6a76 120,142
+  d70f97f1d23af727 16,56-75,114-119,147
+  e7fa9cc4519aa980 30,32-36,121-141,143-146
+skills/design-harness-interaction/assets/workspace/foundation/registry.tsx
+  e7fa9cc4519aa980 1-8
+skills/design-harness-visual/references/fidelity.md
+  e7fa9cc4519aa980 1-52
+skills/design-harness-visual/references/protocol.md
+  e7fa9cc4519aa980 1-63
+skills/design-harness-interaction/assets/workspace/project.json
+  e7fa9cc4519aa980 1-5
+skills/design-harness-interaction/assets/workspace/README.md
+  e7fa9cc4519aa980 1,3,5,7,9
+tests/workspace.test.js
+  e7fa9cc4519aa980 5-17,19-114
+skills/design-harness-visual/SKILL.md
+  e7fa9cc4519aa980 3,14-17
+workbench/types.ts
+  e7fa9cc4519aa980 13
+  d70f97f1d23af727 1-12,14-18
+workbench/starter/candidates/comfortable/params.json
+  d70f97f1d23af727 2-3
+skills/design-harness-init/references/handoff.md
+  e7fa9cc4519aa980 1,3,5,7-11
+skills/design-harness-interaction/references/handoff.md
+  e7fa9cc4519aa980 1,3,5,7-11
+skills/design-harness-writeback/agents/openai.yaml
+  e7fa9cc4519aa980 3-4
+scripts/validate.js
+  e7fa9cc4519aa980 10-12,15,31-33,35,176-177
+skills/design-harness-init/assets/workspace/foundation/design.md
+  e7fa9cc4519aa980 6-9
+workbench/lib/server.mjs
+  d70f97f1d23af727 6-10,14-18,20,22-33,36
+  e7fa9cc4519aa980 21,35
+package.json
+  e7fa9cc4519aa980 17-19,26-32,35-36
+docs/html-design.md
+  e7fa9cc4519aa980 1,3,5,7,9,11,13,15,17,19,21,23,25-63
+skills/design-harness-interaction/references/workspace.md
+  e7fa9cc4519aa980 1,3,5,7-24,26,28,30,32,34,36,38,40-42
+skills/design-harness-writeback/assets/workspace/foundation/tokens.css
+  e7fa9cc4519aa980 16
+skills/design-harness-init/assets/workspace/foundation/tokens.css
+  e7fa9cc4519aa980 16
+workbench/starter/interactions/task.md
+  d70f97f1d23af727 1-33,35,37,39-40,42-43,47-56,60-69,73-82,86,88-89,91-92
+workbench/lib/agent-events.mjs
+  d70f97f1d23af727 1-29
+skills/design-harness-interaction/assets/workspace/foundation/design.md
+  e7fa9cc4519aa980 6-9
+workbench/cli.mjs
+  d70f97f1d23af727 6-7,9-19,21,23
+workbench/lib/workspace.mjs
+  d70f97f1d23af727 3-13,15-19,21-23,25-28,30-33,35-44,46-55,57
+workbench/lib/interaction-docs.mjs
+  e7fa9cc4519aa980 1-44
+skills/design-harness-writeback/assets/workspace/project.json
+  e7fa9cc4519aa980 1-5
+skills/design-harness-writeback/references/workflow.md
+  e7fa9cc4519aa980 3-8
+workbench/starter/requirement.md
+  e7fa9cc4519aa980 5-14,21,25,29,33,37,45-46
+skills/design-harness-visual/assets/workspace/foundation/design.md
+  e7fa9cc4519aa980 6-9
+workbench/lib/live-agent.mjs
+  d70f97f1d23af727 1-149
+skills/design-harness-init/references/fidelity.md
+  e7fa9cc4519aa980 1-52
+skills/design-harness-interaction/agents/openai.yaml
+  e7fa9cc4519aa980 3-4
+workbench/starter/candidates/comfortable/registry.tsx
+  d70f97f1d23af727 1-8
+skills/design-harness-writeback/assets/workspace/foundation/design.md
+  e7fa9cc4519aa980 6-9
+skills/design-harness-init/assets/workspace/project.json
+  e7fa9cc4519aa980 1-5
+skills/design-harness-interaction/SKILL.md
+  e7fa9cc4519aa980 3,14-17
+scripts/agent-smoke.js
+  e7fa9cc4519aa980 1-50
+tests/agent-events.test.js
+  e7fa9cc4519aa980 1-24
+workbench/starter/candidates/comfortable/pages/task.json
+  d70f97f1d23af727 2-60,62-64
+skills/design-harness-init/scripts/harness.mjs
+  e7fa9cc4519aa980 2,6-10
+skills/design-harness-writeback/assets/workspace/README.md
+  e7fa9cc4519aa980 1,3,5,7,9
+skills/design-harness-visual/agents/openai.yaml
+  e7fa9cc4519aa980 3-4
+skills/design-harness-visual/references/preview-export.md
+  e7fa9cc4519aa980 1,3,5-11,13,15,17,19,21,23,25,27,29,31-57
+skills/design-harness-writeback/assets/workspace/foundation/catalog.ts
+  e7fa9cc4519aa980 1-8
+skills/design-harness-writeback/assets/workspace/foundation/registry.tsx
+  e7fa9cc4519aa980 1-8
+skills/design-harness-writeback/references/preview-export.md
+  e7fa9cc4519aa980 1,3,5-11,13,15,17,19,21,23,25,27,29,31-57
+skills/design-harness-interaction/assets/workspace/foundation/tokens.css
+  e7fa9cc4519aa980 16
+skills/design-harness-init/SKILL.md
+  e7fa9cc4519aa980 14-17
+workbench/starter/manifest.json
+  d70f97f1d23af727 1-5,7-20,22-29,31-87
+  e7fa9cc4519aa980 6
+skills/design-harness-init/references/preview-export.md
+  e7fa9cc4519aa980 1,3,5-11,13,15,17,19,21,23,25,27,29,31-57
+tests/live-agent.test.js
+  e7fa9cc4519aa980 1-104
+skills/design-harness-init/references/workspace.md
+  e7fa9cc4519aa980 1,3,5,7-24,26,28,30,32,34,36,38,40-42
+scripts/browser-smoke.js
+  e7fa9cc4519aa980 1,5,10-11,13-14,18-36,62,67-69,76-77,81-85,87,89-90,105,109,111-127,130-135,138,140,144,146,154,156,160,163-167,172,179,183,185-216,220,223-225
+skills/design-harness-writeback/references/interactions.md
+  e7fa9cc4519aa980 1-98
+skills/design-harness-interaction/references/interactions.md
+  e7fa9cc4519aa980 1-98
+skills/design-harness-interaction/references/fidelity.md
+  e7fa9cc4519aa980 1-52
+tests/distribution.test.js
+  e7fa9cc4519aa980 69-76,249,262,264-267,305,307-309
+skills/design-harness-visual/assets/workspace/foundation/catalog.ts
+  e7fa9cc4519aa980 1-8
+skills/design-harness-writeback/scripts/harness.mjs
+  e7fa9cc4519aa980 2,6-10
+skills/design-harness-visual/assets/workspace/project.json
+  e7fa9cc4519aa980 1-5
+tests/interaction-docs.test.js
+  e7fa9cc4519aa980 1-2,4-30,32-55
+skills/design-harness-writeback/references/protocol.md
+  e7fa9cc4519aa980 1-63
+workbench/starter/candidates/comfortable/components/Task.tsx
+  d70f97f1d23af727 1-5,7-29
+workbench/lib/build.mjs
+  d70f97f1d23af727 3-14,16-17,19-25,27-52,54-57,60-64,66-67,69-70,73
+skills/design-harness-visual/assets/workspace/README.md
+  e7fa9cc4519aa980 1,3,5,7,9
+workbench/live-agent.tsx
+  d70f97f1d23af727 1-3,5,7-9,12-17,23-30,32-35,40,48,58-61
+  e7fa9cc4519aa980 4,6,10-11,18-22,31,36-39,41-47,49-57
+skills/design-harness-interaction/references/workflow.md
+  e7fa9cc4519aa980 3-8
+workbench/starter/candidates/compact/components/Task.tsx
+  d70f97f1d23af727 1-5,7-29
+skills/design-harness-interaction/references/evaluation.md
+  e7fa9cc4519aa980 3,5-10,12
+scripts/sync-runtime.js
+  e7fa9cc4519aa980 1,6,15
+skills/design-harness-init/assets/workspace/foundation/catalog.ts
+  e7fa9cc4519aa980 1-8
+skills/design-harness-visual/assets/workspace/foundation/registry.tsx
+  e7fa9cc4519aa980 1-8
+workbench/app.tsx
+  e7fa9cc4519aa980 5,19-20,23-26,33-36,40-43,47,51-52,54-55,57-58,60,69,85-89,117,122,147,151,157,175-188,190-201,215-216,218,224,234,240
+  d70f97f1d23af727 1,3,6,10-11,14,17-18,45-46,48,56,70-82,84,94,97,104-109,112,116,120-121,123,132-133,138,144,152-156,158,160-161,164-166,168-170,172-174,202,204-205,207-211,217,219-221,225,227-233,235-238,244-249
+workbench/sdk.tsx
+  d70f97f1d23af727 2-5,8-9,13-14,17-23
+  e7fa9cc4519aa980 1,6-7,10-12,15
+skills/design-harness-init/references/evaluation.md
+  e7fa9cc4519aa980 3,5-10,12
+workbench/starter/candidates/comfortable/catalog.ts
+  d70f97f1d23af727 1-9
+workbench/interaction-reader.tsx
+  d70f97f1d23af727 1-24,26-33
+  e7fa9cc4519aa980 25
+skills/design-harness-init/assets/workspace/README.md
+  e7fa9cc4519aa980 1,3,5,7,9
+skills/design-harness-interaction/scripts/harness.mjs
+  e7fa9cc4519aa980 2,6-10
+workbench/inspector.ts
+  d70f97f1d23af727 1-38,40-50
+  e7fa9cc4519aa980 39
+workbench/starter/candidates/compact/catalog.ts
+  d70f97f1d23af727 1-9
+skills/design-harness-visual/references/handoff.md
+  e7fa9cc4519aa980 1,3,5,7-11
+skills/design-harness-writeback/references/workspace.md
+  e7fa9cc4519aa980 1,3,5,7-24,26,28,30,32,34,36,38,40-42
+scripts/demo.js
+  e7fa9cc4519aa980 3-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.8.2",
+  "base_commit_sha": "37094d659865b4d9e41d32d569aaa9c3c3e75260",
+  "prompts": {
+    "6da5905d096a6a76": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17c6b-80b5-7372-84fe-e73c63696176",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 2,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/9b7a1ecbb56e99f8708a07256caa14ad13e863280b31074c7dfdac5a64ab78be",
+      "token_usage": {
+        "input_tokens": 71254,
+        "output_tokens": 5478,
+        "cache_read_tokens": 675840,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "d70f97f1d23af727": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1792e-5c65-7430-a8af-2050f641a084",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 1995,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/442ecfdc2f8427d40833f9b317fdfd6f20924288d5f1e8b4e4cc68dc2b1ffb67",
+      "token_usage": {
+        "input_tokens": 2125790,
+        "output_tokens": 507200,
+        "cache_read_tokens": 95147264,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "e7fa9cc4519aa980": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17b40-9f0e-7cc0-9755-5385e877ee0f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 2298,
+      "total_deletions": 5067,
+      "accepted_lines": 2585,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/628bb0b0ab2e12ad1466b2e44573983a940866d5c86b235aa341be53b8f047e2",
+      "token_usage": {
+        "input_tokens": 939931,
+        "output_tokens": 256499,
+        "cache_read_tokens": 56855936,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    }
+  }
+}
