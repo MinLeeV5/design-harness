@@ -2,157 +2,115 @@ import {describe,test,beforeEach,afterEach} from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import {initialize} from "../skills/design-harness-init/scripts/harness.mjs";
-import {loadRequirement,readJson,hash} from "../skills/design-harness-init/assets/workspace/studio/lib/protocol.mjs";
-import {buildRequirement} from "../skills/design-harness-init/assets/workspace/studio/lib/build.mjs";
-import {createRequirement,upgradeRequirement,exportRelease,verifyRelease} from "../skills/design-harness-init/assets/workspace/studio/lib/workspace.mjs";
-import {startServer} from "../skills/design-harness-init/assets/workspace/studio/lib/server.mjs";
-const root=path.resolve(import.meta.dirname,"..");
-describe("Independent HTML design workspace",()=>{
-  let base,workspace;
-  beforeEach(()=>{
-    fs.mkdirSync(path.join(root,"dist"),{recursive:true});
-    base=fs.mkdtempSync(path.join(root,"dist","workspace test "));
-    fs.writeFileSync(path.join(base,"business.ts"),"export const business = 'untouched';");
-    workspace=initialize(base).workspace;
-    createRequirement(workspace,"sample","示例需求");
-  });
+import os from "node:os";
+import {spawnSync} from "node:child_process";
+import {dependencyDirectory,installDependencies} from "../workbench/lib/dependencies.mjs";
+import {initialize,workspacePath,createRequirement,cloneCandidate,exportHtml,exportToFile} from "../workbench/lib/workspace.mjs";
+import {loadRequirement,readJson,hash,checkSpec,filesIn} from "../workbench/lib/protocol.mjs";
+import {buildRequirement,checkWorkspace} from "../workbench/lib/build.mjs";
+import {startServer} from "../workbench/lib/server.mjs";
+import {typecheck} from "../workbench/lib/typecheck.mjs";
+const tool=path.resolve(import.meta.dirname,"../workbench");
+const write=(file,data)=>fs.writeFileSync(file,JSON.stringify(data,null,2)+"\n");
+describe("Fixed workbench and independent business resources",()=>{
+  let base,workspace,req;
+  beforeEach(()=>{base=fs.mkdtempSync(path.join(os.tmpdir(),"design resources "));fs.writeFileSync(path.join(base,"business.ts"),"export const business='untouched';");workspace=initialize(base,{example:true}).workspace;req=path.join(workspace,"requirements/example");});
   afterEach(()=>fs.rmSync(base,{recursive:true,force:true}));
-  const jsonWrite=(file,data)=>fs.writeFileSync(file,JSON.stringify(data,null,2)+"\n");
-  test("Initialization refuses overwrite and leaves business files untouched",()=>{
-    assert.throws(()=>initialize(base),/拒绝覆盖/);
-    assert.equal(fs.readFileSync(path.join(base,"business.ts"),"utf8"),"export const business = 'untouched';");
-    assert.equal(readJson(path.join(workspace,"requirements/sample/manifest.json")).id,"sample");
-    assert.throws(()=>createRequirement(workspace,"sample"),/拒绝覆盖/);
+  const specFile=()=>path.join(req,"candidates/comfortable/pages/task.json");
+  test("Initialization generates business resources only and refuses overwrite",()=>{
+    assert.throws(()=>initialize(base),/拒绝覆盖/);assert.throws(()=>createRequirement(workspace,"example"),/拒绝覆盖/);
+    for(const name of ["studio","workbench","node_modules","package-lock.json","tsconfig.json","releases"])assert.equal(fs.existsSync(path.join(workspace,name)),false,name);
+    assert.equal(readJson(path.join(workspace,"project.json")).renderer,"json-render/react");assert.equal(fs.readFileSync(path.join(base,"business.ts"),"utf8"),"export const business='untouched';");
   });
-  test("Protocol rejects duplicate IDs, broken annotations and invalid candidate values",()=>{
-    const manifestPath=path.join(workspace,"requirements/sample/manifest.json");
-    const original=readJson(manifestPath);
-    for(const mutate of [
-      m=>m.pages.push({...m.pages[0]}),
-      m=>m.controls[0].default=5,
-      m=>m.viewports[0].width=200,
-      m=>m.candidates[1].params=m.candidates[0].params,
-      m=>m.pages[0].entry="../business.ts"
-    ]) {
-      const value=structuredClone(original);mutate(value);jsonWrite(manifestPath,value);
-      assert.throws(()=>loadRequirement(workspace,"sample"));
-    }
-    jsonWrite(manifestPath,original);
-    const scenarios=readJson(path.join(workspace,"requirements/sample/scenarios.json"));
-    scenarios[0].annotations[0].section="missing-section";
-    jsonWrite(path.join(workspace,"requirements/sample/scenarios.json"),scenarios);
-    assert.throws(()=>loadRequirement(workspace,"sample"),/说明关联失效/);
+  test("Protocol rejects invalid references, cycles, controls and shared candidate paths",()=>{
+    const file=path.join(req,"manifest.json"),original=readJson(file);
+    for(const mutate of [m=>m.pages.push({...m.pages[0]}),m=>m.controls[0].property="__proto__",m=>m.viewports[0].width=200,m=>m.candidates[1].pages.task=m.candidates[0].pages.task,m=>m.candidates[0].pages={}]){const m=structuredClone(original);mutate(m);write(file,m);assert.throws(()=>loadRequirement(workspace,"example"));}
+    write(file,original);const spec=readJson(specFile());spec.elements['task-page'].children.push('task-page');assert.throws(()=>checkSpec(spec),/循环/);
+    const doc=path.join(req,"interactions/task.md");fs.writeFileSync(doc,fs.readFileSync(doc,"utf8").replace("## 输入与校验 {#input}","## 输入与校验 {#missing-section}"));assert.throws(()=>loadRequirement(workspace,"example"),/缺少正文/);
   });
-  test("Existing requirements keep foundation bytes; explicit upgrade produces a new draft",()=>{
-    const original=path.join(workspace,"requirements/sample/foundation/tokens.css");
-    const before=fs.readFileSync(original);
-    fs.appendFileSync(path.join(workspace,"foundation/tokens.css"),"\n:root{--card-radius:28px}");
-    jsonWrite(path.join(workspace,"foundation/foundation.json"),{schemaVersion:1,version:"0.2.0",status:"draft"});
-    assert.deepEqual(fs.readFileSync(original),before);
-    upgradeRequirement(workspace,"sample","sample-v2");
-    assert.equal(loadRequirement(workspace,"sample-v2").manifest.foundationVersion,"0.2.0");
-    assert.equal(loadRequirement(workspace,"sample").manifest.foundationVersion,"0.1.0");
-    assert.throws(()=>upgradeRequirement(workspace,"sample","sample-v2"),/拒绝覆盖/);
+  test("An engineering project.json is preserved and never mistaken for the resource entry",async()=>{
+    const file=path.join(base,"project.json"),source={name:"engineering-project",targets:{build:{executor:"project-builder"}}};write(file,source);assert.equal(workspacePath(base),workspace);assert.equal(workspacePath(workspace),workspace);assert.equal((await checkWorkspace(workspacePath(base))).requirements,1);assert.deepEqual(readJson(file),source);
   });
-  test("Build embeds styles, images and documentation while preventing script injection from Markdown",async()=>{
-    const page=path.join(workspace,"requirements/sample/src/pages/TaskPage.tsx");
-    const image=path.join(path.dirname(page),"sample.svg");
-    fs.writeFileSync(image,'<svg xmlns="http://www.w3.org/2000/svg"><rect width="12" height="12"/></svg>');
-    fs.writeFileSync(page,'import graphic from "./sample.svg";\n'+fs.readFileSync(page,"utf8").replace('<main className="task-page">','<main className="task-page"><img src={graphic} alt="示例图形"/>'));
-    fs.appendFileSync(path.join(workspace,"requirements/sample/requirement.md"),'\n<script>window.INJECTED=1</script>\n[bad](javascript:alert(1))\n');
-    const {html,payload}=await buildRequirement(workspace,"sample");
-    assert.match(html,/data:image\/svg\+xml/);
-    assert.match(payload.documentation,/id="input"/);
-    assert.doesNotMatch(payload.documentation,/<script>|href="javascript:/);
-    assert.match(html,/Third-party licenses/);
-    assert.equal(payload.development,false);
-    assert.equal(payload.token,undefined);
+  test("Existing data URL assets remain inline and offline",async()=>{
+    const file=path.join(req,"candidates/comfortable/components/task.css");fs.appendFileSync(file,'\n.task-page{background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\'/%3E");}');const {html}=await buildRequirement(workspace,"example");assert.match(html,/data:image\/svg\+xml/);
   });
-  test("Build rejects business imports, global foundations, symlinks and external CSS assets",async()=>{
-    const page=path.join(workspace,"requirements/sample/src/pages/TaskPage.tsx");
-    const source=fs.readFileSync(page,"utf8");
-    for(const entry of [path.join(base,"business.ts"),path.join(workspace,"foundation/components.tsx")]) {
-      fs.writeFileSync(page,'import '+JSON.stringify(entry)+';\n'+source);
-      await assert.rejects(buildRequirement(workspace,"sample"),/不得导入/);
-    }
-    fs.writeFileSync(page,source);
-    const asset=path.join(workspace,"requirements/sample/external.ts");
-    fs.symlinkSync(path.join(base,"business.ts"),asset);
-    assert.throws(()=>loadRequirement(workspace,"sample"),/软链接/);
-    fs.unlinkSync(asset);
-    const css=path.join(workspace,"requirements/sample/src/pages/task.css");
-    fs.writeFileSync(css,'@import "https://example.com/outside.css";\n'+fs.readFileSync(css,"utf8"));
-    await assert.rejects(buildRequirement(workspace,"sample"),/外部资源/);
+  test("One shared foundation updates existing requirements without copying source",async()=>{
+    assert.equal(fs.existsSync(path.join(req,"foundation")),false);const before=loadRequirement(workspace,"example");
+    fs.appendFileSync(path.join(workspace,"foundation/tokens.css"),"\n:root{--shared-update:1}");write(path.join(workspace,"foundation/foundation.json"),{schemaVersion:1,version:"0.2.0",status:"draft"});
+    const after=loadRequirement(workspace,"example");assert.equal(after.manifest.foundationVersion,"0.2.0");assert.notEqual(after.revision,before.revision);assert.match((await buildRequirement(workspace,"example")).html,/--shared-update/);assert.equal(fs.existsSync(path.join(req,"foundation")),false);
   });
-  test("Workbench compilation applies the same design source boundary",async()=>{
-    const file=path.join(workspace,"studio/app.tsx");
-    fs.writeFileSync(file,'import "../../business.ts";\n'+fs.readFileSync(file,"utf8"));
-    await assert.rejects(buildRequirement(workspace,"sample"),/不得导入/);
+  test("Candidate clone copies complete specs, parameters and implementations independently",async()=>{
+    cloneCandidate(workspace,"example","comfortable","alternative","另一候选");const next=path.join(req,"candidates/alternative"),other=fs.readFileSync(specFile()),params=fs.readFileSync(path.join(req,"candidates/comfortable/params.json"));
+    const spec=readJson(path.join(next,"pages/task.json"));spec.elements['task-page'].props.title="独立新方案";write(path.join(next,"pages/task.json"),spec);write(path.join(next,"params.json"),{css:{"--body-size":"16px"}});fs.appendFileSync(path.join(next,"components/Task.tsx"),"\n// private implementation\n");
+    const {payload}=await buildRequirement(workspace,"example");assert.equal(payload.specs['alternative:task'].elements['task-page'].props.title,"独立新方案");assert.deepEqual(fs.readFileSync(specFile()),other);assert.deepEqual(fs.readFileSync(path.join(req,"candidates/comfortable/params.json")),params);assert.throws(()=>cloneCandidate(workspace,"example","comfortable","alternative"),/已存在/);
   });
-  test("An unfinished sibling requirement does not block the selected design",async()=>{
-    createRequirement(workspace,"unfinished");
-    fs.unlinkSync(path.join(workspace,"requirements/unfinished/manifest.json"));
-    const {payload}=await buildRequirement(workspace,"sample",{development:true});
-    assert.equal(payload.manifest.id,"sample");
-    assert.ok(payload.requirements.some(item=>item.id==="unfinished"));
+  test("Build embeds project components, specs, styles and assets with safe Markdown",async()=>{
+    const before=fs.readFileSync(path.join(tool,"app.tsx")),page=path.join(req,"candidates/comfortable/components/Task.tsx"),image=path.join(path.dirname(page),"example.svg");fs.writeFileSync(image,'<svg xmlns="http://www.w3.org/2000/svg"><rect width="12" height="12"/></svg>');
+    fs.writeFileSync(page,'import graphic from "./example.svg";\n'+fs.readFileSync(page,"utf8").replace('<main className="task-page">','<main className="task-page"><img src={graphic} alt="样例"/>'));fs.appendFileSync(path.join(req,"requirement.md"),'\n<script>window.INJECTED=1</script>\n[bad](javascript:alert(1))\n');
+    const {html,payload}=await buildRequirement(workspace,"example");assert.match(html,/data:image\/svg\+xml/);assert.match(payload.documentation,/id="overview-input"/);assert.doesNotMatch(payload.documentation,/<script>|href="javascript:/);assert.match(html,/Third-party licenses/);assert.equal(payload.token,undefined);assert.deepEqual(fs.readFileSync(path.join(tool,"app.tsx")),before);
   });
-  test("Default local entry skips an unfinished earlier draft",async()=>{
-    createRequirement(workspace,"aaa-draft");
-    fs.unlinkSync(path.join(workspace,"requirements/aaa-draft/scenarios.json"));
-    const service=await startServer(workspace,{port:0});
-    try {
-      const response=await fetch(service.origin);
-      assert.equal(response.status,200);
-      assert.match(await response.text(),/window\.__DH_DATA__/);
-    } finally {await service.close();}
+  test("Candidate code shares public foundation but cannot import business source or another candidate",async()=>{
+    const page=path.join(req,"candidates/comfortable/components/Task.tsx"),source=fs.readFileSync(page,"utf8");
+    for(const entry of [path.join(base,"business.ts"),path.join(req,"candidates/compact/components/Task.tsx")]){fs.writeFileSync(page,'import '+JSON.stringify(entry)+';\n'+source);await assert.rejects(buildRequirement(workspace,"example"),/越界/);}
+    fs.writeFileSync(page,source);const css=path.join(req,"candidates/comfortable/components/task.css");fs.writeFileSync(css,'@import "https://example.com/outside.css";\n'+fs.readFileSync(css,'utf8'));await assert.rejects(buildRequirement(workspace,"example"),/外部资源/);
   });
-  test("Release freezes source and dependency lock, rejects overwrite, detects tampering",async()=>{
-    const result=await exportRelease(workspace,"sample","v1");
-    assert.ok(result.files>20);
-    const html=fs.readFileSync(result.html);
-    const release=readJson(path.join(result.directory,"release.json"));
-    assert.equal(release.acceptance,"not-recorded");
-    assert.ok(fs.existsSync(path.join(result.directory,"sources/package-lock.json")));
-    verifyRelease(result.directory);
-    fs.appendFileSync(path.join(workspace,"requirements/sample/requirement.md"),"\n新增草稿内容\n");
-    assert.deepEqual(fs.readFileSync(result.html),html);
-    await assert.rejects(exportRelease(workspace,"sample","v1"),/拒绝覆盖/);
-    const v2=await exportRelease(workspace,"sample","v2");
-    assert.notDeepEqual(fs.readFileSync(v2.html),html);
-    fs.appendFileSync(result.html,"changed");
-    assert.throws(()=>verifyRelease(result.directory),/字节已改变/);
-    await assert.rejects(exportRelease(workspace,"../../outside","v1"),/需求 ID/);
-    assert.ok(!fs.existsSync(path.join(base,"outside")));
+  test("Symlinked resources are refused",()=>{fs.symlinkSync(path.join(base,"business.ts"),path.join(req,"escape.ts"));assert.throws(()=>loadRequirement(workspace,"example"),/软链接/);});
+  test("A broken sibling draft does not block selected preview, but explicit all-project check fails",async()=>{createRequirement(workspace,"aaa-broken");fs.unlinkSync(path.join(workspace,"requirements/aaa-broken/manifest.json"));const {payload}=await buildRequirement(workspace,"example",{development:true});assert.ok(payload.requirements.some(r=>r.id==="aaa-broken"));await assert.rejects(checkWorkspace(workspace));const service=await startServer(workspace,{port:0});try{assert.equal((await fetch(service.origin)).status,200);}finally{await service.close();}});
+  test("Typechecking covers fixed tool, public foundation and project components from outside the plugin",()=>{assert.ok(typecheck(workspace).files>10);const file=path.join(req,"candidates/comfortable/components/Task.tsx");fs.appendFileSync(file,'\nconst wrong: number="text";\n');assert.throws(()=>typecheck(workspace),/类型检查失败/);});
+  test("Local API targets the right spec, validates edits and rejects stale or unauthorized writes",async()=>{
+    const service=await startServer(workspace,{port:0});try{
+      const html=await(await fetch(service.origin)).text(),payload=JSON.parse(/window\.__DH_DATA__=([\s\S]*?);<\/script>/.exec(html)[1]),other=fs.readFileSync(path.join(req,"candidates/compact/pages/task.json"));
+      const post=(body,origin=service.origin,token=payload.token)=>fetch(service.origin+"/__dh/spec",{method:"POST",headers:{"Content-Type":"application/json",Origin:origin,"X-DH-Token":token},body:JSON.stringify(body)});
+      const body={id:"example",candidate:"comfortable",page:"task",expectedHash:payload.hashes['comfortable:task'],values:{radius:20,gap:28,heading:"实例标题"}};
+      assert.equal((await fetch(service.origin+"/__dh/live/jobs/"+"1".repeat(32))).status,403);assert.equal((await fetch(service.origin+"/__dh/live/events",{method:"POST",headers:{Origin:service.origin,"Content-Type":"application/json"},body:JSON.stringify({type:"generate"})})).status,403);
+      assert.equal((await post(body,"https://example.com")).status,400);assert.equal((await post(body,service.origin,"bad")).status,403);
+      assert.equal((await post({...body,values:{radius:5}})).status,400);assert.equal((await post({...body,values:{unregistered:1}})).status,400);assert.equal((await post({...body,candidate:"../outside"})).status,400);
+      assert.equal((await post(body)).status,200);assert.equal(readJson(specFile()).elements['task-form'].props.radius,20);assert.equal(readJson(specFile()).elements['task-page'].props.title,"实例标题");assert.deepEqual(fs.readFileSync(path.join(req,"candidates/compact/pages/task.json")),other);
+      assert.equal((await post(body)).status,409);const next={...body,expectedHash:hash(fs.readFileSync(specFile()))};fs.appendFileSync(specFile(),"\n");assert.equal((await post(next)).status,409);
+    }finally{await service.close();}
   });
-  test("Concurrent exports cannot overwrite the same version",async()=>{
-    const results=await Promise.allSettled([exportRelease(workspace,"sample","v1"),exportRelease(workspace,"sample","v1")]);
-    assert.equal(results.filter(r=>r.status==="fulfilled").length,1);
-    assert.equal(results.filter(r=>r.status==="rejected").length,1);
-    verifyRelease(path.join(workspace,"releases/sample/v1"));
+  test("Concurrent edits share compare-and-swap instead of overwriting",async()=>{const service=await startServer(workspace,{port:0});try{const data=JSON.parse(/window\.__DH_DATA__=([\s\S]*?);<\/script>/.exec(await(await fetch(service.origin)).text())[1]),body={id:"example",candidate:"comfortable",page:"task",expectedHash:data.hashes['comfortable:task']};const responses=await Promise.all([20,22].map(radius=>fetch(service.origin+"/__dh/spec",{method:"POST",headers:{Origin:service.origin,"X-DH-Token":data.token,"Content-Type":"application/json"},body:JSON.stringify({...body,values:{radius}})})));assert.deepEqual(responses.map(r=>r.status).sort(),[200,409]);}finally{await service.close();}});
+  test("Export returns one offline HTML without creating files or changing source revision",async()=>{
+    const before=filesIn(workspace).map(file=>[path.relative(workspace,file),hash(fs.readFileSync(file))]),revision=loadRequirement(workspace,"example").revision;
+    const result=await exportHtml(workspace,"example"),payload=JSON.parse(/window\.__DH_DATA__=([\s\S]*?);<\/script>/.exec(result.html)[1]);assert.equal(result.filename,"example.html");assert.equal(payload.development,false);assert.equal(payload.token,undefined);assert.equal(Object.keys(payload.previews).length,2);assert.match(result.html,/Third-party licenses/);
+    assert.deepEqual(filesIn(workspace).map(file=>[path.relative(workspace,file),hash(fs.readFileSync(file))]),before);assert.equal(loadRequirement(workspace,"example").revision,revision);assert.equal(fs.existsSync(path.join(workspace,"releases")),false);
+    await assert.rejects(exportHtml(workspace,"../../outside"),/需求 ID/);
   });
-  test("Symlinked output directories cannot escape the design workspace",async()=>{
-    fs.rmSync(path.join(workspace,"releases"),{recursive:true});
-    const external=path.join(base,"outside");fs.mkdirSync(external);
-    fs.symlinkSync(external,path.join(workspace,"releases"));
-    await assert.rejects(exportRelease(workspace,"sample","v1"),/软链接/);
-    assert.deepEqual(fs.readdirSync(external),[]);
+  test("Re-export uses current requirement and shared foundation and replaces only the selected output file",async()=>{
+    const output=path.join(base,"preview.html"),first=await exportToFile(workspace,"example",output),before=fs.readFileSync(output);assert.equal(first.file,fs.realpathSync(output));
+    fs.appendFileSync(path.join(workspace,"foundation/tokens.css"),"\n:root{--compatible-new-token:2}");const spec=readJson(specFile());spec.elements['task-page'].props.title="current requirement title";write(specFile(),spec);
+    await exportToFile(workspace,"example",output);assert.notDeepEqual(fs.readFileSync(output),before);assert.match(fs.readFileSync(output,"utf8"),/--compatible-new-token/);assert.match(fs.readFileSync(output,"utf8"),/current requirement title/);assert.equal(fs.existsSync(path.join(workspace,"releases")),false);assert.equal(fs.readdirSync(base).filter(name=>name.endsWith(".tmp")).length,0);
+    const validOutput=fs.readFileSync(output);spec.elements['task-page'].children.push('task-page');write(specFile(),spec);await assert.rejects(exportToFile(workspace,"example",output),/循环/);assert.deepEqual(fs.readFileSync(output),validOutput);
   });
-  test("Local API writes only valid current candidate values and rejects stale or cross-origin edits",async()=>{
-    const service=await startServer(workspace,{port:0});
-    try {
-      const html=await (await fetch(service.origin)).text();
-      const payload=JSON.parse(/window\.__DH_DATA__=([\s\S]*?);<\/script>/.exec(html)[1]);
-      const post=(body,origin=service.origin,token=payload.token)=>fetch(service.origin+"/__dh/params",{method:"POST",
-        headers:{"Content-Type":"application/json","Origin":origin,"X-DH-Token":token},body:JSON.stringify(body)});
-      const body={id:"sample",candidate:"comfortable",expectedHash:payload.hashes.comfortable,values:{radius:20,gap:28}};
-      assert.equal((await post(body,"https://example.com")).status,400);
-      assert.equal((await post(body,service.origin,"invalid")).status,403);
-      const saved=await post(body);assert.equal(saved.status,200);
-      assert.equal((await post(body)).status,409);
-      assert.deepEqual(readJson(path.join(workspace,"requirements/sample/candidates/comfortable.json")),body.values);
-      assert.equal((await post({...body,expectedHash:(await saved.json()).hash,values:{radius:999}})).status,400);
-      assert.equal((await fetch(service.origin+"/__dh/revision?id=../../outside")).status,400);
-    } finally {await service.close();}
+  test("HTTP export is an authenticated HTML attachment and never writes a server path",async()=>{
+    const service=await startServer(workspace,{port:0});try{
+      const data=JSON.parse(/window\.__DH_DATA__=([\s\S]*?);<\/script>/.exec(await(await fetch(service.origin)).text())[1]),before=filesIn(workspace).map(file=>[file,hash(fs.readFileSync(file))]);
+      const post=(token=data.token,origin=service.origin)=>fetch(service.origin+"/__dh/export",{method:"POST",headers:{Origin:origin,"X-DH-Token":token,"Content-Type":"application/json"},body:JSON.stringify({id:"example",out:path.join(base,"unexpected.html")})});
+      assert.equal((await post("bad")).status,403);assert.equal((await post(data.token,"https://example.com")).status,400);const response=await post();assert.equal(response.status,200);assert.match(response.headers.get("content-type"),/text\/html/);assert.equal(response.headers.get("content-disposition"),'attachment; filename="example.html"');const html=await response.text();assert.match(html,/<!doctype html>/i);assert.doesNotMatch(html,RegExp(data.token));assert.equal(fs.existsSync(path.join(base,"unexpected.html")),false);assert.deepEqual(filesIn(workspace).map(file=>[file,hash(fs.readFileSync(file))]),before);assert.equal((await fetch(service.origin+"/releases/example/v2/index.html")).status,404);
+    }finally{await service.close();}
+  });
+  test("CLI requires an external HTML output and removes version archive commands",()=>{
+    const run=(...args)=>spawnSync(process.execPath,[path.join(tool,"cli.mjs"),...args,"--project",base],{encoding:"utf8"}),output=path.join(base,"cli-preview.html");
+    for(const args of [["export","example"],["export","example","v2","--out",output],["rebuild","example","v2"],["verify",workspace]])assert.notEqual(run(...args).status,0);
+    const result=run("export","example","--out",output);assert.equal(result.status,0,result.stderr);assert.equal(JSON.parse(result.stdout).file,fs.realpathSync(output));assert.match(fs.readFileSync(output,"utf8"),/<!doctype html>/i);assert.equal(fs.existsSync(path.join(workspace,"releases")),false);
+  });
+  test("Project extension declarations cannot replace fixed runtime or execute scripts",()=>{
+    const file=path.join(workspace,"package.json");
+    for(const pkg of [{dependencies:{react:"19.3.1"}},{dependencies:{clsx:"^2.1.1"}},{dependencies:{},scripts:{install:"unexpected"}}]){write(file,pkg);assert.throws(()=>dependencyDirectory(workspace));}
+    write(file,{dependencies:{clsx:"2.1.1"}});assert.throws(()=>dependencyDirectory(workspace),/资源不存在|未安装/);assert.equal(fs.existsSync(path.join(workspace,"node_modules")),false);
+  });
+  test("Extension dependencies keep browser resolution and require an explicit matching lock",async()=>{
+    const file=path.join(workspace,"package.json");write(file,{dependencies:{clsx:"2.1.1"}});installDependencies(workspace);
+    write(file,{dependencies:{clsx:"2.1.1",nanoid:"3.3.19"}});assert.throws(()=>dependencyDirectory(workspace),/锁与声明不一致/);assert.throws(()=>installDependencies(workspace,{frozen:true}),/固定锁文件/);
+    installDependencies(workspace);const lock=fs.readFileSync(path.join(workspace,"dependencies.lock.json"));installDependencies(workspace,{frozen:true});assert.deepEqual(fs.readFileSync(path.join(workspace,"dependencies.lock.json")),lock);
+    const fileComponent=path.join(req,"candidates/comfortable/components/Task.tsx");fs.writeFileSync(fileComponent,'import {nanoid} from "nanoid";\n'+fs.readFileSync(fileComponent,"utf8").replace('<main className="task-page">','<main className="task-page" data-extension={nanoid()}>'));
+    const {html}=await buildRequirement(workspace,"example");assert.ok(html.includes("nanoid 3.3.19"));assert.equal(fs.existsSync(path.join(workspace,"node_modules")),false);assert.ok(!dependencyDirectory(workspace).startsWith(workspace));
+  });
+  test("Concurrent download builds return complete HTML without creating archive directories",async()=>{const before=filesIn(workspace).length,results=await Promise.all([exportHtml(workspace,"example"),exportHtml(workspace,"example")]);assert.equal(results[0].html,results[1].html);assert.equal(filesIn(workspace).length,before);assert.equal(fs.existsSync(path.join(workspace,"releases")),false);});
+  test("Output paths cannot overwrite resource files, directories or symbolic links",async()=>{
+    const sourceOutput=path.join(req,"preview.html");await assert.rejects(exportToFile(workspace,"example",sourceOutput),/资源目录之外/);assert.equal(fs.existsSync(sourceOutput),false);
+    const realFile=path.join(base,"original.html"),link=path.join(base,"link.html");fs.writeFileSync(realFile,"unchanged");fs.symlinkSync(realFile,link);await assert.rejects(exportToFile(workspace,"example",link),/软链接/);assert.equal(fs.readFileSync(realFile,"utf8"),"unchanged");
+    const alias=path.join(base,"resources-alias");fs.symlinkSync(workspace,alias);await assert.rejects(exportToFile(workspace,"example",path.join(alias,"preview.html")),/资源目录之外/);
+    const folder=path.join(base,"folder.html");fs.mkdirSync(folder);await assert.rejects(exportToFile(workspace,"example",folder),/普通文件/);await assert.rejects(exportToFile(workspace,"example",path.join(base,"wrong.json")),/扩展名/);await assert.rejects(exportToFile(workspace,"example"),/--out/);
   });
 });

@@ -2,145 +2,127 @@
 
 <img src="assets/icon.png" width="80" height="80" alt="Design Harness 彩色组件图标">
 
-面向本人与 Agent 的本地设计插件。以项目设计基础和独立需求为核心，用 React 制作可运行的 PRD、UX、UI 交付；在同一份产物中评审、比较和调整，导出可离线分享的固定 HTML。
+面向本人和 Agent 的本地设计插件。插件固定提供评审工作台，项目维护业务设计资源；页面由 json-render Spec 组合，通过 Catalog／Registry 加载项目自定义 React 组件。在同一工作台体验、比较、定位和调整，按需导出可独立离线分享的单文件 HTML。
 
 ## 四个入口
 
 | 入口 | 职责与停止点 |
 | --- | --- |
-| $design-harness-init | 盘点项目上下文与设计依据，建立本地设计基础、Token、组件和资源；交付基础后停止 |
-| $design-harness-interaction | 为独立需求建立说明、场景和可运行流程，验证完整用户任务；完成交互评审后停止 |
-| $design-harness-visual | 在同一 React 产物中细化高保真和多尺寸，按需比较候选、点选与调参；完成视觉评审后停止 |
-| $design-harness-writeback | 按批准增量更新公共基础，按请求导出固定交付；核验结果后停止 |
+| $design-harness-init | 盘点真实依据，建立项目设计基础、Token、Catalog／Registry 和组件；交付基础后停止 |
+| $design-harness-interaction | 建立独立需求、完整页面 Spec、说明及场景，验证用户任务；完成交互评审后停止 |
+| $design-harness-visual | 在同一 Spec 与组件上细化高保真、多尺寸和候选；完成视觉评审后停止 |
+| $design-harness-writeback | 按批准增量更新公共基础，按请求导出、验证单文件 HTML；交付后停止 |
 
-四个入口保持显式调用，不自动串联。任务已有的范围、授权和决定直接承接；关键变化才重新对齐。
-交互和视觉共用页面源码。明确的小改直接执行；方向存在分歧时才比较有意义的局部或代表候选，不固定生成套数。
-评审围绕用户任务与实际画面进行，范围内的页面、状态、检查和修复连续完成，不固定逐页逐状态请求放行。
+四入口显式调用，承接已有范围、授权与决定，不自动串联。明确的小改直接完成，存在关键分歧时比较相应局部或代表候选；不固定生成套数，不逐页逐状态请求放行。
 
-## 统一 React 模板
+## 完整 UI 交付标准
 
-模板包含三层：
+完整 UI 按最高保真要求覆盖声明范围内的产品壳层、页面、控件、交互和状态。已有产品先取得指定版本、环境、路由及上下文下的实际基线；沿用区域逐区对照，新设计分别记录。
 
-- 插件维护统一评审工作台：需求说明、页面/场景/尺寸切换、候选比较、点选定位、即时调参与导出。
-- Init 沉淀项目设计基础：意图、规则、Token、可运行组件、布局模式及资源。
-- 每个需求维护自己的说明、React 页面、场景、候选、交接与基础快照。
+核对包括租户等上下文切换、用户菜单、分割线、准确图标、分页、固定输入区、滚动边界和响应式。产品行为可以本地模拟，界面与交互不能因此省略。模拟说明由评审工作台承载，避免改变产品构图。
 
-工作台以满幅预览画布为主体。交互说明、Live 和反馈默认收起，点击画布右侧的悬浮工具按钮打开覆盖式抽屉，再次点击可收起；小屏使用底部浮层。
-悬浮入口和抽屉均不参与画布布局，开关面板不会改变预览的实际分辨率、缩放或位置。
-关闭面板保留未保存调参、反馈草稿和预览操作状态，可用关闭按钮或 Esc 退出。
-工作台和产品预览隔离样式。真实 iframe 宽高决定响应式布局，缩放只用于工作台摆放。
-React 是 UI 的唯一实现来源；Markdown/JSON 管理说明、页面索引、场景和关联信息，不生成第二份 JSON UI 树。
-设计产物以交付参考为目的，独立于业务工程的组件、路由、构建和后端。
+视觉保真、实际操作路径、行为真实性和工程检查分别提供证据。构建、类型、检查数量与字节一致不代表完整 UI 或用户验收；未取得现网证据不声称生产一致。详见[交付保真](skills/design-harness-init/references/fidelity.md)。
 
-    使用方项目/
-      design-harness/
-        workspace.json
-        package.json
-        package-lock.json
-        foundation/                   公共设计基础
-        studio/                       固定工作台与运行工具
-        requirements/<需求ID>/
-          manifest.json
-          requirement.md
-          scenarios.json
-          handoff.md
-          foundation/                 当前需求固定基础
-          src/pages/
-          src/components/
-          candidates/
-          assets/
-        releases/<需求ID>/v1/
-          index.html                  单文件离线交付
-          sources/                    固定源码与依赖清单
-          release.json                SHA-256 清单
+## 固定工作台与项目资源
 
-需求创建时复制公共基础。公共更新只影响新需求，显式升级创建新需求版本；已有固定交付不覆盖。
-Figma、Pencil、截图和当前代码可以作为用户指定的输入，日常运行不依赖 Figma。
+- 插件 workbench/ 维护画布、抽屉、比较、构建、隔离预览、定位、保存及导出。
+- 项目 foundation/ 沉淀公共组件、Catalog／Registry、Token、规则和资产。
+- 所有需求共享项目唯一 foundation，每个候选保存独立完整 Spec、参数和专属实现。
+
+```text
+使用方项目/design-harness/
+  project.json
+  foundation/
+  requirements/<需求>/
+    manifest.json
+    requirement.md
+    interactions/*.md               独立交互说明与标注配置
+    scenarios.json
+    handoff.md
+    candidates/<候选>/
+      catalog.ts
+      registry.tsx
+      pages/<页面>.json               完整原生 Spec
+      params.json
+      components/
+      assets/
+  reviews/
+```
+
+项目不复制 studio/ 或工作台源码，不维护工具脚本、工具依赖和构建配置。React 负责组件内部外观与交互，Spec 负责页面组合和实例属性，Markdown 负责依据与说明。资源协议当前以本地文件为来源，为以后平台化保留边界；当前没有云端协作服务。
+
+公共基础应保持向下兼容，更新会影响已有需求；每次导出采用当前需求、公共基础与工作台，历史差异用 Git 记录。当前未发布，统一采用最新协议，不建设旧试跑的多版本兼容层。
 
 ## 本地体验
 
-开发本插件：
+在完整插件目录安装锁定依赖后开发或启动工具：
 
-    npm ci
-    npm run check
-    npm run demo
+```sh
+npm ci
+npm run check
+npm run demo
+```
 
-demo 在 dist/demo/design-harness 建立通用资料整理示例，默认服务地址为 http://127.0.0.1:4173。
-示例演示输入校验、运行反馈、结果与材料预览、失败恢复，数据完全合成。它不证明真实 Agent 或后端行为。
+demo 在 dist/centralized-demo/design-harness 生成合成数据局部示例，默认地址 http://127.0.0.1:4173。示例验证输入、进度、结果、下载和失败恢复，不证明任何真实产品的完整 UI 或服务行为。
 
-在已授权的使用方项目建立工作区：
+从插件目录创建和加载项目资源（--project 也可直接指向资源目录）：
 
-    node <任一Skill目录>/scripts/harness.mjs init --project <项目目录>
-    npm --prefix <项目目录>/design-harness ci
+```sh
+node workbench/cli.mjs init --project <项目> --example
+node workbench/cli.mjs new <需求> --project <项目> --title <名称>
+node workbench/cli.mjs serve --project <项目>
+node workbench/cli.mjs check --project <项目>
+node workbench/cli.mjs typecheck --project <项目>
+node workbench/cli.mjs clone <需求> <原候选> <新候选> --project <项目>
+node workbench/cli.mjs export <需求> --project <项目> --out <资源目录之外的文件.html>
+```
 
-增加 --example 可同时生成通用示例。初始化拒绝覆盖已有目录；现有工作区先读真实内容。
-随后在设计工作区运行：
+四入口也可从任意位置运行 node <本Skill>/scripts/harness.mjs 后跟相同命令。每个入口保留自包含指导、轻量启动器及业务模板，运行能力依赖完整插件；单独复制 Skill 不包含工作台。项目无需 npm ci；工具依赖安装在插件，扩展业务依赖用 deps 命令安装到项目之外的缓存。
 
-    npm run new -- <需求ID> --title <需求名称>
-    npm run dev
-    npm run check
-    npm run typecheck
-    npm run export -- <需求ID> v1
-    npm run verify -- releases/<需求ID>/v1
+初始化拒绝覆盖已有 design-harness/。模板默认基础仍是草稿，应以项目真实规则替换。Figma、Pencil、截图与代码可作为输入，日常运行不依赖这些设计工具，也不导入业务工程模块。
 
-新需求的示例内容需要按本次目标替换。Init 根据已有规范修订公共基础，不把模板默认值当作项目已确认设计。
-项目已有前端框架也不会被导入设计运行工程。每个 Skill 携带完整模板，可单独复制使用。
+## 预览、定位与 Agent
 
-## 说明、场景与 Live
+预览画布是主体，左右抽屉默认收起。左侧放页面、场景、方案和视口，右侧放交互说明、统一 Agent 和画面工具；顶部只保留简洁标题。桌面和手机均使用覆盖式抽屉，开关不改变实际预览分辨率、缩放、位置与输入，关闭保留预览和聊天草稿，支持 Esc 与入口焦点恢复。
 
-requirement.md 保存 PRD、行为规则和验收条件，标题通过稳定锚点与界面关联。
-scenarios.json 保存初始状态及说明目标；React 页面通过 data-dh-id 提供定位。
-点选界面可关联说明，复制包含需求、页面、场景、候选、视口和目标的反馈给 Agent。
+项目代码在无同源权限的 sandbox iframe 中执行，通过受控消息交换 Spec、场景、定位和错误。交互说明以①②编号覆盖在画面上，点编号关联说明，点说明定位画面；复杂组件可用稳定子目标关联内部区域。点选记录实际 DOM、父层级、样式与重复实例，选中一个元素自动结束点选并恢复业务操作；点选入口只保留在 Agent 输入区。对比模式联动页面、场景、视口和标注目标，方案切换只改变编辑焦点，保留两侧位置与会话；业务输入、任务和 Live 修改仍独立。真实 iframe 尺寸决定响应式，缩放只用于摆放。
 
-两候选比较采用相同初始场景和真实视口，交互各自运行。
-已登记的 CSS 变量可拖动即时调整；显式保存写回当前候选 JSON，内容哈希冲突时拒绝覆盖。
-任意布局、业务交互和文案由 Agent 修改 React 源码，保存后自动重载。未保存调参会暂缓自动重载。
-当前提供原创的最小 Live 能力，不包含 Impeccable 引擎，也不支持任意 DOM 到 TSX 的反向编辑。
+页面、标注和说明随实际导航与运行状态同步。工作台切页走真实导航和离开保护，取消离开保留原页；普通导航保留会话，选择预置场景或重置才初始化。每个需求用 interactions/*.md 独立编写说明，工作台内置卡片、步骤、规则表和状态对照；正文、页面和条件写在文档中，组件提供稳定目标与 SDK 接入。详见[交互说明协议](skills/design-harness-init/references/interactions.md)。
 
-图标和图片沿用项目规则。需要情境生图时调用环境提供的 imagegen Skill/工具，保存到需求资产并检查实际版面。
-图片和字体通过 ESM 导入，导出时内嵌；外部链接仍可作为阅读来源。
+Agent 统一支持多轮讨论、元素附件和视觉调整；明确提出修改要求后才生成预览及适用控件，初始不展示预设参数。使用本机 Codex 和当前候选会话，继续调整承接暂存方案及控件值，接受后才写入该候选 Spec／params／React／CSS。纯讨论不改文件；细化失败或取消本轮保留上一版预览，放弃或离开页面／候选清理整条待确认修改。
 
-[协议](skills/design-harness-init/references/protocol.md) · [预览与导出](skills/design-harness-init/references/preview-export.md) · [交接](skills/design-harness-init/references/handoff.md)
+当前会话展示完整消息、回复和每轮真实处理活动，等待有 loading、耗时与取消。可公开的进展及校验结果进入记录；内部推理、原始命令／工具输出和源码 JSON 不作为聊天展示。会话仅在服务内存，关闭抽屉或接受后重载可恢复，服务重启清空，不向项目写日志。
 
-## 固定交付
+候选级 CSS 参数独立保存在 params.json。图片和字体通过 ESM 导入并内嵌；图标与素材优先沿用真实项目规则并保留许可。使用 imagegen 时应保存实际结果并核对版面。
 
-index.html 包含脚本、样式、图片/字体及说明，可独立离线打开；不连接本地写入服务。
-导出同时保存需求、固定基础、模板源码、依赖清单与锁文件。HTML 已含运行依赖，源码重建需要按锁文件安装依赖。
-release.json 保存文件 SHA-256，verify 检查实际字节及未登记文件。已有版本拒绝覆盖，新修改导出新版本。
+[资源协议](skills/design-harness-init/references/protocol.md) · [操作与导出](skills/design-harness-init/references/preview-export.md) · [交接](skills/design-harness-init/references/handoff.md)
 
-导出成功不表示用户验收；真实确认、选择理由、验证和未决项保存在需求 handoff.md。
-公共基础只接受明确批准的增量，不自动跨项目学习或后台晋升知识。
-本版不提供在线评论、多人编辑、部署或发布服务。
+## 按需导出
 
-## 安装与团队分发
+导出的 HTML 内含工作台、产品脚本、样式、素材、说明及依赖许可，file:// 体验不需要插件或 HTTP/CDN。离线可阅读说明和点选元素，不运行 Agent 聊天、生成或本地写回。
 
-当前本地开发版本为 0.2.0。源码修改不会自动更新已安装插件；新能力需本地包安装或后续发布才会生效。
-GitHub 安装跟随明确 Git 引用；本轮本地变更未发布到远端：
+requirements/ 是唯一需求来源。工作台“导出离线 HTML”直接下载一个文件，不在项目创建 releases、源码副本、运行器或校验清单。CLI export 要求 --out 指定资源目录外的 .html 文件，可重新导出并替换该文件；资源出错时保留原输出。导出读取当前需求与公共基础，HTML 内嵌实际画面，不会随后续源文件编辑自动变化。
 
-    codex plugin marketplace add MinLeeV5/design-harness --ref main
-    codex plugin add design-harness@design-harness
+历史差异用 Git 显式记录；真实验收状态、选择理由、对照结论与未决项记录在需求 handoff.md，导出本身不代表验收。公共回写只接受明确批准增量，不自动跨项目学习、后台晋升或遥测。
 
-本地打包：
+## 安装与分发
 
-    npm run package -- --out dist/build-<唯一名称>
+当前版本保持 0.2.0。源码变更不自动更新安装缓存，本地修改没有发布或推送到远端。
 
-输出 ZIP 与 SHA-256，拒绝覆盖已有包。解压后使用 marketplace 根目录：
+```sh
+npm run package -- --out dist/build-<唯一名称>
+```
 
-    codex plugin marketplace add /path/to/design-harness
-    codex plugin add design-harness@design-harness
+生成完整插件 ZIP 和 SHA-256，拒绝覆盖。解压后通过 marketplace 根目录安装，运行前在完整插件目录 npm ci 安装固定依赖。四个 Skill 和 workbench/ 一起分发；不包含项目知识、node_modules、dist、.harness 或 openspec。
 
-分发只携带通用模板、方法和许可，不包含真实项目知识、路径或任务记录。
-Skill 运行模板与资源各自携带，不依赖插件根目录或兄弟 Skill。
-开发工具统一 Node.js 22+、ESM 和 npm；设计工作区自行安装锁定依赖，不需要全局安装运行助手。
+开发源：固定工具在 workbench/，公共业务模板与共享指导在 Init 的 assets/workspace 和 references。npm run sync:runtime 同步四入口，不复制工具到项目。Node.js 22+、ESM 与 npm 为工具运行环境。
 
 ## 维护与验证
 
-模板开发源位于 Init 的 assets/workspace。修改后运行 npm run sync:runtime，同步四个独立入口；npm run validate 检查完整性和字节一致。
-npm run check 覆盖结构、独立复制、协议、构建、来源隔离、候选写回、固定版本和打包。
-浏览器验证使用 npm run test:browser，需要本机 Chrome；覆盖实际输入、状态、调参写回、多尺寸与离线体验。
-脚本不能证明设计质量、用户批准或真实业务服务行为。
+npm run check 验证协议、隔离、候选、共享基础、按需导出、写回和分发；npm run typecheck 检查工具，typecheck --project 检查项目组件。npm run test:browser 使用真实 Chrome 验证输入、定位、Spec 写回、面板几何、候选与离线行为。
 
 [Skill 维护](docs/skill-maintenance.md) · [验证范围](docs/validation.md) · [技术结构](docs/html-design.md) · [Agent 协作](docs/agent-workflow.md)
 
-原创部分采用 [MIT](LICENSE)。保留已有 Impeccable、DESIGN.md、Lucide 和 UI/UX Pro Max 的许可与署名。
-新 Live 与模板为原创实现，方法与素材授权分别处理。实际运行依赖的许可随固定交付保留。
+验证产生的截图和运行输出只用于当次检查，临时清理；项目不保留 evidence/，handoff 仅记录必要结论与未决项。
+
+原创部分采用 [MIT](LICENSE)。保留已有 Impeccable、DESIGN.md、Lucide 和 UI/UX Pro Max 许可与署名。json-render 及实际运行依赖的许可随离线交付保留。Live 点选复用固定提交的 Impeccable DOM 辅助模块，插件实现面向 Spec／React 的生成、接受与放弃适配器，并未整体嵌入上游 Live 服务。

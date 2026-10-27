@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "renderer": "json-render/react",
+  "id": "example",
+  "title": "资料整理 · 设计示例",
+  "foundation": "shared",
+  "pages": [
+    {
+      "id": "task",
+      "title": "整理工作台"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "comfortable",
+      "title": "舒展阅读",
+      "registry": "candidates/comfortable/registry.tsx",
+      "params": "candidates/comfortable/params.json",
+      "pages": {
+        "task": "candidates/comfortable/pages/task.json"
+      }
+    },
+    {
+      "id": "compact",
+      "title": "紧凑工作",
+      "registry": "candidates/compact/registry.tsx",
+      "params": "candidates/compact/params.json",
+      "pages": {
+        "task": "candidates/compact/pages/task.json"
+      }
+    }
+  ],
+  "viewports": [
+    {
+      "id": "desktop",
+      "title": "桌面",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "id": "window",
+      "title": "窄窗口",
+      "width": 900,
+      "height": 900
+    },
+    {
+      "id": "mobile",
+      "title": "手机",
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "controls": [
+    {
+      "id": "radius",
+      "label": "面板圆角",
+      "page": "task",
+      "target": "task-form",
+      "property": "radius",
+      "type": "range",
+      "min": 4,
+      "max": 28,
+      "step": 2,
+      "unit": "px"
+    },
+    {
+      "id": "gap",
+      "label": "内容间距",
+      "page": "task",
+      "target": "task-form",
+      "property": "gap",
+      "type": "range",
+      "min": 12,
+      "max": 36,
+      "step": 4,
+      "unit": "px"
+    },
+    {
+      "id": "heading",
+      "label": "页面标题",
+      "page": "task",
+      "target": "task-page",
+      "property": "title",
+      "type": "text",
+      "maxLength": 120
+    }
+  ]
+}

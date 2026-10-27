@@ -7,41 +7,12 @@ import {isWithin, isFile, walk} from "./files.js";
 
 export const ROOT = path.resolve(import.meta.dirname, "..");
 export const SKILL_NAMES = ["design-harness-init", "design-harness-interaction", "design-harness-visual", "design-harness-writeback"];
-// Every public entry carries the same executable template and local protocol.
-export const WORKSPACE_FILES = [
-  ".gitignore",
-  "README.md",
-  "foundation/components.tsx",
-  "foundation/design.md",
-  "foundation/foundation.json",
-  "foundation/tokens.css",
-  "package-lock.json",
-  "package.json",
-  "studio/app.tsx",
-  "studio/assets.d.ts",
-  "studio/assets/harness-icon.png",
-  "studio/cli.mjs",
-  "studio/lib/build.mjs",
-  "studio/lib/protocol.mjs",
-  "studio/lib/server.mjs",
-  "studio/lib/workspace.mjs",
-  "studio/preview.tsx",
-  "studio/starter/candidates/comfortable.json",
-  "studio/starter/candidates/compact.json",
-  "studio/starter/handoff.md",
-  "studio/starter/manifest.json",
-  "studio/starter/requirement.md",
-  "studio/starter/scenarios.json",
-  "studio/starter/src/pages/TaskPage.tsx",
-  "studio/starter/src/pages/task.css",
-  "studio/studio.css",
-  "studio/types.ts",
-  "tsconfig.json",
-  "workspace.json"
-];
+// Each entry carries instructions, a launcher and business-only templates; the plugin owns one runtime.
+export const WORKSPACE_FILES = [".gitignore","README.md","project.json","foundation/components.tsx","foundation/catalog.ts","foundation/registry.tsx","foundation/design.md","foundation/foundation.json","foundation/tokens.css"];
+export const WORKBENCH_FILES = ["app.tsx","interaction-reader.tsx","conditions.mjs","conditions.d.mts","live-agent.tsx","agent-controls.mjs","agent-controls.d.mts","inspector.ts","preview.tsx","sdk.tsx","types.ts","assets.d.ts","assets/harness-icon.png","studio.css","cli.mjs",...["paths","protocol","dependencies","typecheck","build","server","workspace","live-agent","agent-events","validate-preview","markdown","interaction-docs"].map(n=>"lib/"+n+".mjs"),"vendor/impeccable/live-browser-dom.js","vendor/impeccable/LICENSE","vendor/impeccable/NOTICE.md","starter/manifest.json","starter/scenarios.json","starter/interactions/task.md","starter/requirement.md","starter/handoff.md",...["comfortable","compact"].flatMap(c=>["catalog.ts","registry.tsx","params.json","pages/task.json","components/Task.tsx","components/task.css"].map(f=>"starter/candidates/"+c+"/"+f))];
 export const SHARED_SKILL_GROUPS = [{
   skills:SKILL_NAMES,
-  files:["scripts/harness.mjs","references/workspace.md","references/protocol.md","references/preview-export.md","references/handoff.md",
+  files:["scripts/harness.mjs","references/fidelity.md","references/workspace.md","references/protocol.md","references/interactions.md","references/preview-export.md","references/handoff.md",
     ...WORKSPACE_FILES.map(file=>"assets/workspace/"+file)]
 }];
 export function requiredSkillFiles(name) {
@@ -57,15 +28,11 @@ export function requiredSkillFiles(name) {
 const PNG_SIGNATURE=Buffer.from("89504e470d0a1a0a","hex");
 function validateWorkspaceTemplate(directory) {
   try {
-    const workspace=JSON.parse(fs.readFileSync(path.join(directory,"workspace.json"),"utf8"));
-    const pkg=JSON.parse(fs.readFileSync(path.join(directory,"package.json"),"utf8"));
-    const lock=JSON.parse(fs.readFileSync(path.join(directory,"package-lock.json"),"utf8"));
-    const starter=JSON.parse(fs.readFileSync(path.join(directory,"studio/starter/manifest.json"),"utf8"));
-    if(workspace.schemaVersion!==1 || workspace.templateVersion!=="0.2.0" || pkg.version!==workspace.templateVersion ||
-      lock.version!==pkg.version || starter.schemaVersion!==1 || !Array.isArray(starter.pages) || !starter.pages.length)
-      return ["Invalid React workspace template protocol or version"];
+    const project=JSON.parse(fs.readFileSync(path.join(directory,"project.json"),"utf8"));
+    if(project.schemaVersion!==1||project.renderer!=="json-render/react")return ["Invalid business resource template protocol"];
+    if(["studio","workbench","package-lock.json","tsconfig.json"].some(name=>fs.existsSync(path.join(directory,name))))return ["Business resource template must not contain workbench code or tool configuration"];
     return [];
-  } catch(error) {return ["Invalid React workspace template: "+error.message];}
+  }catch(error){return ["Invalid business resource template: "+error.message];}
 }
 
 function validateBranding(root, manifest) {
@@ -206,6 +173,8 @@ export function validate(directory = ROOT) {
   check(packageManifest.version === manifest.version?.split("+")[0] && packageLock.version === packageManifest.version &&
     packageLock.packages?.[""]?.version === packageManifest.version, "Plugin and npm package versions must agree");
 
+  for(const relative of WORKBENCH_FILES)check(isFile(path.join(root,"workbench",relative)),"Missing fixed workbench resource: "+relative);
+  check(packageManifest.dependencies?.["@json-render/core"]&&packageManifest.dependencies?.["@json-render/react"],"Fixed workbench requires json-render runtime dependencies");
   const skillRoot = path.join(root, "skills");
   const skills = fs.existsSync(skillRoot) ? fs.readdirSync(skillRoot)
     .map(name => path.join(skillRoot, name)).filter(skill => isFile(path.join(skill, "SKILL.md"))) : [];

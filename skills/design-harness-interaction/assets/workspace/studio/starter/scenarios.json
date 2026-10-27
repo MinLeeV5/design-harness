@@ -1,6 +1,0 @@
-[
-  {"id":"new","page":"task","title":"新建任务","state":{"phase":"new"},"annotations":[{"target":"task-form","section":"input"},{"target":"task-submit","section":"submit"}]},
-  {"id":"running","page":"task","title":"运行中","state":{"phase":"running","topic":"课程资料整理"},"annotations":[{"target":"task-progress","section":"progress"}]},
-  {"id":"complete","page":"task","title":"查看结果","state":{"phase":"complete","topic":"课程资料整理"},"annotations":[{"target":"task-result","section":"result"}]},
-  {"id":"error","page":"task","title":"失败与恢复","state":{"phase":"error","topic":"课程资料整理"},"annotations":[{"target":"task-error","section":"recovery"}]}
-]

@@ -1,0 +1,37 @@
+[
+  {
+    "id": "new",
+    "page": "task",
+    "title": "新建任务",
+    "state": {
+      "phase": "new"
+    }
+  },
+  {
+    "id": "running",
+    "page": "task",
+    "title": "运行中",
+    "state": {
+      "phase": "running",
+      "topic": "课程资料整理"
+    }
+  },
+  {
+    "id": "complete",
+    "page": "task",
+    "title": "查看结果",
+    "state": {
+      "phase": "complete",
+      "topic": "课程资料整理"
+    }
+  },
+  {
+    "id": "error",
+    "page": "task",
+    "title": "失败与恢复",
+    "state": {
+      "phase": "error",
+      "topic": "课程资料整理"
+    }
+  }
+]

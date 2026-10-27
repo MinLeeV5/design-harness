@@ -1,0 +1,66 @@
+{
+  "root": "task-page",
+  "elements": {
+    "task-page": {
+      "type": "TaskWorkspace",
+      "props": {
+        "title": "把零散资料，整理成清晰结果。"
+      },
+      "children": [
+        "task-form",
+        "task-progress",
+        "task-error",
+        "task-result"
+      ]
+    },
+    "task-form": {
+      "type": "TaskForm",
+      "props": {
+        "radius": 8,
+        "gap": 16
+      },
+      "children": [],
+      "on": {
+        "submit": {
+          "action": "runTask"
+        }
+      }
+    },
+    "task-progress": {
+      "type": "TaskProgress",
+      "props": {},
+      "children": [],
+      "visible": {
+        "$state": "/phase",
+        "eq": "running"
+      }
+    },
+    "task-error": {
+      "type": "TaskError",
+      "props": {},
+      "children": [],
+      "visible": {
+        "$state": "/phase",
+        "eq": "error"
+      },
+      "on": {
+        "retry": {
+          "action": "runTask"
+        }
+      }
+    },
+    "task-result": {
+      "type": "TaskResult",
+      "props": {},
+      "children": [],
+      "visible": {
+        "$state": "/phase",
+        "eq": "complete"
+      }
+    }
+  },
+  "state": {
+    "phase": "new",
+    "topic": ""
+  }
+}

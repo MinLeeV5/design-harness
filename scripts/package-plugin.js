@@ -12,8 +12,8 @@ import {isWithin, walk} from "./files.js";
 
 const FILES = new Set(["README.md", "LICENSE", "AGENTS.md", "package.json", "package-lock.json", ".nvmrc",
   ".agents/plugins/marketplace.json"]);
-const DIRECTORIES = new Set([".codex-plugin", "skills", "scripts", "docs", "tests", "assets"]);
-const IGNORED = new Set([".git", ".design-harness", "design-harness", "dist", "node_modules", "coverage", ".nyc_output", ".DS_Store"]);
+const DIRECTORIES = new Set([".codex-plugin", "skills", "scripts", "docs", "tests", "assets", "workbench"]);
+const IGNORED = new Set([".git", ".design-harness", "design-harness", "dist", "node_modules", "coverage", ".nyc_output", ".DS_Store", ".cache"]);
 
 export function packagePlugin(destination, directory = ROOT) {
   const root = fs.realpathSync(directory);

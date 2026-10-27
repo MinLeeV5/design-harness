@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "homepage": "https://github.com/MinLeeV5/design-harness",
   "repository": "https://github.com/MinLeeV5/design-harness",
-  "description": "以本地设计基础和独立需求为核心，使用 React 制作 PRD、UX、UI 一体的可运行设计，支持 Live 迭代与固定 HTML 交付。",
+  "description": "插件固定评审工作台，加载 json-render 与 React 业务资源，提供交互说明、统一 Agent 视觉调整、元素上下文聊天与过程记录及离线 HTML 导出。",
   "author": {
     "name": "Min Lee"
   },
@@ -12,6 +12,7 @@
     "设计",
     "HTML",
     "React",
+    "json-render",
     "UI",
     "UX",
     "设计系统",
@@ -21,22 +22,22 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Design Harness · 设计工作流",
-    "shortDescription": "本地设计基础、可运行需求与 Live 迭代，导出固定 HTML 交付",
-    "longDescription": "四个显式入口：初始化本地设计基础，交互与视觉共同迭代同一份 React 产物，按批准增量回写并生成固定 HTML 交付。统一评审工作台支持 PRD/UX 说明定位、多场景多尺寸、候选比较、局部点选与即时调参。每个需求固定基础快照，公共更新不改变既有需求与交付。面向本人与 Agent 的本地评审和离线分享，不依赖 Figma 或业务工程运行。",
+    "shortDescription": "本地设计基础、可运行需求与 Agent 迭代，按需导出离线 HTML",
+    "longDescription": "四个显式入口：初始化项目设计基础，以 json-render Spec 和 Catalog／Registry 注册的 React 组件共同迭代交互与视觉，按批准增量回写并按需导出单文件 HTML。固定工作台由插件维护，项目只保存一份公共基础和需求资源；隔离预览支持编号说明、多尺寸、候选比较与实例属性编辑。每套候选独立保存完整资源，公共更新保持向下兼容；requirements 为唯一需求来源，历史由 Git 管理，验收记录在 handoff.md。完整 UI 按真实基线核对壳层、组件与状态，本地模拟与生产证据分别报告。",
     "developerName": "Min Lee",
     "websiteURL": "https://github.com/MinLeeV5/design-harness",
     "category": "Productivity",
     "capabilities": [
       "本地初始化规则、Token 与设计组件",
-      "PRD、UX 与 React 可运行界面关联",
+      "PRD、UX 与 json-render Spec／React 组件关联",
       "多尺寸、多场景与候选比较",
-      "局部点选、即时调参与定位反馈",
-      "固定 HTML 导出、源码快照与显式基础升级"
+      "元素点选、按需视觉生成、动态控件与多轮Agent聊天",
+      "单文件 HTML 下载与指定文件导出、唯一公共基础与需求来源"
     ],
     "defaultPrompt": [
       "用 $design-harness-init 基于项目现状建立本地设计基础与独立工作区。",
       "用 $design-harness-interaction 制作这项需求的可运行原型，并关联 PRD 与 UX 说明。",
-      "用 $design-harness-visual 在现有需求中细化视觉，通过候选比较与 Live 调参评审实际画面。"
+      "用 $design-harness-visual 在现有需求中细化视觉，通过候选比较与 Agent 视觉调整评审实际画面。"
     ],
     "brandColor": "#A259FF",
     "composerIcon": "./assets/icon.png",

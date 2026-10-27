@@ -9,7 +9,7 @@ DevKeel 为本仓库的 Codex 开发会话提供执行入口和通用能力。�
 | 根 `AGENTS.md` | 每次任务生效的执行契约、仓库边界及条件读取入口；不追加完整历史规范或维护手册 |
 | [Skill 维护指南](skill-maintenance.md) | 修改设计流程、本地知识协议、Skill 资源、外部来源或分发约定时，读取对应主题及阶段依据 |
 | [README](../README.md) | 插件定位、四个入口、用户工作方式、安装与开发命令 |
-| 各公开 Skill 的 `references/`、`assets/` 和 `scripts/` | 本阶段的可执行流程、评价、蓝图和运行资源，独立复制仍须完整 |
+| 各公开 Skill 的 `references/`、`assets/` 和 `scripts/` | 本阶段指导、评价、业务模板与轻量启动器；运行依赖完整插件固定工具 |
 | [验证范围](validation.md)、[品牌说明](../assets/README.md) | 分别承载验证细节和品牌资源维护要求 |
 
 执行约束和授权边界不能只埋在背景说明中。调整存放位置时，先在目标文档合并并核对语义与链接，再从 `AGENTS.md` 删除原段落并补上必读条件；已有内容按主题复用，不保留整段正文副本。命令以 `package.json` 为准，不在多个入口维护第二套值。
@@ -29,7 +29,7 @@ DevKeel 为本仓库的 Codex 开发会话提供执行入口和通用能力。�
 
 使用方项目的设计知识、独立需求与交接保存在其代码仓库的 design-harness/，与业务工程运行隔离，不迁入本插件仓库。DevKeel 接入不启动设计入口，也不启用 hooks、遥测或自动跨项目学习。
 
-ZIP 沿用现有文件白名单，不包含 `.harness/`、`openspec/` 或新增的平台链接。插件引用检查也不将这两个开发目录中的模板示例链接当成已生成的插件资产。独立复制某个公开 Skill 时，无需携带 DevKeel 目录或安装其 CLI。
+ZIP 沿用现有文件白名单，不包含 `.harness/`、`openspec/` 或新增的平台链接。插件引用检查也不将这两个开发目录中的模板示例链接当成已生成的插件资产。公开 Skill 不依赖 DevKeel；单独复制 Skill 不包含固定工作台，运行时需完整 Design Harness 插件。
 
 `.harness/skills-state.json` 与 `.harness/skills-backups/` 是被 Git 忽略的本地入口状态及冲突备份，不作为项目知识提交。
 

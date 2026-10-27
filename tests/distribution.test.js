@@ -66,6 +66,14 @@ describe("Plugin distribution", () => {
     const plugin = path.resolve(marketRoot, market.plugins[0].source.path);
     assert.equal(market.name, "design-harness");
     assert.deepEqual(validate(plugin), []);
+    const install=spawnSync("npm",["ci","--ignore-scripts","--include=dev","--offline","--no-audit","--no-fund"],{cwd:plugin,encoding:"utf8"});assert.equal(install.status,0,install.stderr);
+    for(const name of SKILL_NAMES) {
+      const project=path.join(base,"业务 项目 "+name);fs.mkdirSync(project);
+      const run=(...args)=>spawnSync(process.execPath,[path.join(plugin,"skills",name,"scripts/harness.mjs"),...args,"--project",project],{cwd:base,encoding:"utf8"});
+      const initialized=run("init","--example");assert.equal(initialized.status,0,initialized.stderr);
+      const built=run("check");assert.equal(built.status,0,built.stderr);assert.equal(fs.existsSync(path.join(project,"design-harness/studio")),false);
+      if(name===SKILL_NAMES[0]){const types=run("typecheck");assert.equal(types.status,0,types.stderr);const output=path.join(base,"exported-example.html"),exported=run("export","example","--out",output);assert.equal(exported.status,0,exported.stderr);assert.match(fs.readFileSync(output,"utf8"),/<!doctype html>/i);assert.equal(fs.existsSync(path.join(project,"design-harness/releases")),false);}
+    }
     const resultProcess = spawnSync(process.execPath, ["scripts/validate.js"], {cwd: plugin, encoding: "utf8"});
     assert.equal(resultProcess.status, 0, resultProcess.stdout + resultProcess.stderr);
     assert.deepEqual(fs.readdirSync(path.join(plugin, "skills")).sort(), [...SKILL_NAMES].sort());
@@ -238,7 +246,7 @@ describe("Plugin distribution", () => {
 
   test("Missing skills or workflow assets prevent packaging", () => {
     for(const relative of [
-      "skills/design-harness-init/SKILL.md","skills/design-harness-init/assets/workspace/studio/app.tsx",
+      "skills/design-harness-init/SKILL.md","workbench/app.tsx",
       "skills/design-harness-interaction/references/protocol.md","skills/design-harness-visual/references/assets.md",
       "skills/design-harness-writeback/references/preview-export.md",
       ...SKILL_NAMES.map(name=>"skills/"+name+"/scripts/harness.mjs")
@@ -251,17 +259,12 @@ describe("Plugin distribution", () => {
   });
 
 
-  test("Each skill works when copied without the plugin or sibling skill", () => {
+  test("Each entry keeps complete instructions and reports missing fixed tool when copied alone", () => {
     for(const name of SKILL_NAMES) {
-      const isolated=path.join(base,"isolated "+name,name);
-      fs.cpSync(path.join(root,"skills",name),isolated,{recursive:true});
-      assert.deepEqual(validateSkill(isolated),[]);
-      const project=path.join(base,"project "+name);
-      fs.mkdirSync(project);
-      const result=spawnSync(process.execPath,[path.join(isolated,"scripts/harness.mjs"),"init","--project",project,"--example"],{cwd:isolated,encoding:"utf8"});
-      assert.equal(result.status,0,result.stderr);
-      assert.equal(readJson(path.join(project,"design-harness/requirements/example/manifest.json")).id,"example");
-      assert.ok(fs.existsSync(path.join(project,"design-harness/package-lock.json")));
+      const isolated=path.join(base,"isolated "+name,name);fs.cpSync(path.join(root,"skills",name),isolated,{recursive:true});assert.deepEqual(validateSkill(isolated),[]);
+      const project=path.join(base,"project "+name);fs.mkdirSync(project);
+      const result=spawnSync(process.execPath,[path.join(isolated,"scripts/harness.mjs"),"init","--project",project],{cwd:isolated,encoding:"utf8"});
+      assert.notEqual(result.status,0);assert.match(result.stderr,/完整 Design Harness 插件/);assert.equal(fs.existsSync(path.join(project,"design-harness")),false);
     }
   });
 
@@ -299,10 +302,10 @@ describe("Plugin distribution", () => {
     }
   });
 
-  test("Invalid React template protocols prevent distribution", () => {
+  test("Invalid resource protocol or embedded tool code prevents distribution", () => {
     const skill=path.join(root,"skills/design-harness-init");
-    fs.writeFileSync(path.join(skill,"assets/workspace/workspace.json"),JSON.stringify({schemaVersion:99,templateVersion:"0.2.0"}));
-    assert.ok(validateSkill(skill).some(error=>error.includes("React workspace template")));
-    assert.throws(()=>packagePlugin(path.join(base,"out"),root),/React workspace template/);
+    fs.writeFileSync(path.join(skill,"assets/workspace/project.json"),JSON.stringify({schemaVersion:99,renderer:"json-render/react"}));
+    assert.ok(validateSkill(skill).some(error=>error.includes("business resource template")));
+    assert.throws(()=>packagePlugin(path.join(base,"out"),root),/business resource template/);
   });
 });

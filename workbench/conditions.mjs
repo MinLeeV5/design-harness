@@ -1,0 +1,2 @@
+export function pointerValue(state,path){return path.split("/").slice(1).reduce((value,key)=>value&&typeof value==="object"&&Object.hasOwn(value,key.replaceAll("~1","/").replaceAll("~0","~"))?value[key.replaceAll("~1","/").replaceAll("~0","~")]:undefined,state);}
+export function matchesWhen(when,state){return Object.entries(when??{}).every(([path,expected])=>{const value=pointerValue(state,path);return (Array.isArray(expected)?expected:[expected]).some(item=>Object.is(item,value));});}
