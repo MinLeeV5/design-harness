@@ -43,6 +43,8 @@ esbuild 从各候选 registry 生成浏览器 IIFE，嵌入 CSS、图片与字�
 
 工具编译只引用自身和工具依赖，不加载业务 Registry 到父页面。项目代码只在 sandbox="allow-scripts allow-downloads" 的 iframe 中执行，没有 allow-same-origin。CSP 禁止网络连接与远程资源。该隔离用于本地可信设计资源，不承诺对恶意项目实施 CPU／内存资源限额。
 
+工作台 HTML 的 favicon 复用 `workbench/assets/harness-icon.png`，在构建时以内嵌 PNG data URL 写入 `<head>`；本地服务与离线导出共用此入口，候选产品 iframe 继续使用独立文档。
+
 Catalog 代码在 iframe 中执行，实际验证组件名及逐组件已解析属性；检查 on/watch 和后续回调动作是否有声明及实现（保留内建动作），Registry 缺失、组件和动作错误向工作台显示。结构、循环、文件边界在构建前校验；浏览器组件契约与交互另行验证，check 不宣称执行了真实产品行为。
 
 固定桥接使用上游 markDevtoolsActive 启用生产 DOM 的 data-jr-key，不启用上游 Devtools 面板。designPart 暴露组件内子目标；说明和聊天附件引用 Spec key／子目标。重复实例通过 useRepeatScope.basePath 暴露实例地址，点选、定位和聊天附件区分具体行；Agent 仍修改共享的 Spec 定义，独立行设计差异需不同元素 ID 或场景数据。
