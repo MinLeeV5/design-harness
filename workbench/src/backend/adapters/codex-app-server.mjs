@@ -3,8 +3,9 @@ import {StringDecoder} from "node:string_decoder";
 import {createCodexActivityStream} from "./codex-events.mjs";
 import {createCodexConnection} from "./codex-connection.mjs";
 import {validatePermissionMode} from "../../contracts/agent-permissions.mjs";
+import {tokenUsage} from "../../contracts/agent-observation.mjs";
 
-const instructions="You are the design agent embedded in Design Harness. Follow the supplied design Skill and scope. Use available commands and tools under the native permission policy selected for this turn. Each turn includes authoritative current source, permission mode and proposal disposition; earlier proposals are not necessarily accepted. Prefer editing the current temporary design copy. Return the final structured proposal; public commentary may describe actual progress. Never claim an action that was not performed.";
+const instructions="You are the design agent embedded in Design Harness. Follow the supplied internal identity, execution scope and resource map. Public phase Skills are separate entry points. Read necessary design resources on demand. Use available commands and tools under the native permission policy selected for this turn. Each turn includes authoritative current source, permission mode and proposal disposition; earlier proposals are not necessarily accepted. Prefer editing the current temporary design copy. Return the final structured proposal; public commentary may describe actual progress. Never claim an action that was not performed.";
 function permissions(mode,directory){
   validatePermissionMode(mode);
   return {approvalPolicy:mode==="full-access"?"never":"on-request",approvalsReviewer:"user",sandboxPolicy:mode==="full-access"?{type:"dangerFullAccess"}:mode==="read-only"?{type:"readOnly"}:{type:"workspaceWrite",writableRoots:[directory],networkAccess:false,excludeSlashTmp:true,excludeTmpdirEnvVar:true}};
@@ -15,6 +16,14 @@ function permissions(mode,directory){
 export function createCodexProvider({connection=createCodexConnection(),spawnProcess=spawn,rpcTimeoutMs=30000,cancelTimeoutMs=5000}={}) {
   const pending=new Map(),lateResponses=new Map(),active=new Map(),sessions=new Set();
   let child,starting,closed=false,serial=0;
+  function publishUsage(session,params){
+    if(closed||session.unavailable)return;
+    const usage=tokenUsage(params.tokenUsage);if(!usage)return;
+    const total=usage.total?.totalTokens;
+    if(total!==undefined&&session.usageTotal!==undefined&&total<session.usageTotal)return;
+    if(total!==undefined)session.usageTotal=total;
+    try{session.observe?.({kind:"usage",usage});}catch{/* Observation cannot affect execution. */}
+  }
   function fail(error) {
     for(const request of pending.values()){clearTimeout(request.timer);request.reject(error);}pending.clear();lateResponses.clear();
     for(const turn of [...active.values()])turn.finish(error);
@@ -37,7 +46,13 @@ export function createCodexProvider({connection=createCodexConnection(),spawnPro
       return;
     }
     const turn=active.get(message.params?.threadId);
-    if(!turn)return;
+    if(!turn){
+      if(message.method==="thread/tokenUsage/updated"){
+        const p=message.params??{},session=[...sessions].find(s=>s.threadId===p.threadId);
+        if(session&&!session.unavailable&&(!p.turnId||p.turnId===session.lastTurnId))publishUsage(session,p);
+      }
+      return;
+    }
     if(!turn.id)turn.buffer.push(message);else turn.receive(message);
   }
   async function start() {
@@ -67,11 +82,12 @@ export function createCodexProvider({connection=createCodexConnection(),spawnPro
     if(!result?.thread?.id)throw new Error("Codex 未返回原生会话标识");
     const session={threadId:result.thread.id,unavailable:false};sessions.add(session);return session;
   }
-  async function runTurn({session,directory,prompt,schema,imageFiles=[],model,signal,permissionMode="proposal",onEvent=()=>{},onApproval=async()=>({decision:"decline"})}) {
+  async function runTurn({session,directory,prompt,schema,imageFiles=[],model,signal,permissionMode="proposal",onEvent=()=>{},onObservation=()=>{},onApproval=async()=>({decision:"decline"})}) {
     const policy=permissions(permissionMode,directory);
     if(closed||!sessions.has(session)||session.unavailable)throw new Error("Codex 会话已失效，请新建会话");
     if(signal.aborted)throw new Error("生成已取消");
     if(active.has(session.threadId))throw new Error("当前会话仍在处理上一轮");
+    session.observe=onObservation;
     return new Promise((resolve,reject)=>{
       let resultText="",settled=false,finishing=false,cancelTimer;
       const approvals=new Map(),nativeItems=new Map();
@@ -117,6 +133,10 @@ export function createCodexProvider({connection=createCodexConnection(),spawnPro
         if(settled)return;settled=true;for(const id of approvals.keys())clearApproval(id);clearTimeout(cancelTimer);signal.removeEventListener("abort",abort);active.delete(session.threadId);error?reject(error):resolve(result);
       },receive(message){
         const p=message.params??{},id=p.turnId??p.turn?.id;
+        if(message.method==="thread/tokenUsage/updated"){
+          if(id&&id!==turn.id)return;
+          publishUsage(session,p);return;
+        }
         if(message.method==="serverRequest/resolved"){clearApproval(p.requestId,false);return;}
         if(finishing){
           if(message.id!==undefined){
@@ -128,6 +148,7 @@ export function createCodexProvider({connection=createCodexConnection(),spawnPro
         }
         if(id!==turn.id&&!(message.id!==undefined&&message.method==="mcpServer/elicitation/request"&&p.turnId==null)){if(message.id!==undefined)child?.stdin.write(JSON.stringify({id:message.id,error:{code:-32601,message:"Request does not belong to the active turn"}})+"\n");return;}
         if(message.id!==undefined){approval(message);return;}
+        if(message.method==="item/completed"&&p.item?.type==="contextCompaction"&&typeof p.item.id==="string")try{onObservation({kind:"compaction",id:p.item.id,at:Date.now()});}catch{/* Observation cannot affect execution. */}
         if(p.item?.id&&nativeItems.size<256)nativeItems.set(p.item.id,p.item);
         if(message.method==="item/completed"&&p.item?.type==="agentMessage"&&p.item.phase!=="commentary")resultText=p.item.text;
         stream(message);
@@ -147,7 +168,7 @@ export function createCodexProvider({connection=createCodexConnection(),spawnPro
       void rpc("turn/start",{threadId:session.threadId,cwd:directory,input:[{type:"text",text:prompt},...imageFiles.map(file=>({type:"localImage",path:file}))],model:model.id,effort:model.effort||null,summary:"auto",...policy,outputSchema:schema},interruptStarted).then(response=>{
         if(settled){if(signal.aborted)interruptStarted(response);return;}
         if(!response?.turn?.id)throw new Error("Codex 未返回轮次标识");
-        turn.id=response.turn.id;emit({id:"codex-turn",label:"生成回复或设计修改",status:"running"});
+        turn.id=response.turn.id;session.lastTurnId=turn.id;emit({id:"codex-turn",label:"生成回复或设计修改",status:"running"});
         for(const message of turn.buffer)turn.receive(message);turn.buffer=[];
         if(signal.aborted&&!settled)abort();
       }).catch(error=>{session.unavailable=true;turn.finish(error);});

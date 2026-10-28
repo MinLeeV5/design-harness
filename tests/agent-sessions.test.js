@@ -23,12 +23,12 @@ test('Same candidate sessions run concurrently, reserve one turn each, isolate s
  });
 });
 test('Concurrent proposals keep separate staged files; accepting one rejects stale acceptance and preserves the other preview',async()=>{
- const calls=[];await fixture(async input=>{calls.push(input);const spec=JSON.parse(fs.readFileSync(path.join(input.directory,'requirements/example/candidates/comfortable/pages/task.json')));spec.elements['task-page'].props.title=input.sessionId;return {summary:input.sessionId,files:[{path:'candidates/comfortable/pages/task.json',content:JSON.stringify(spec)}],controls:[]};},async({runtime,workspace})=>{
+ const calls=[];await fixture(async input=>{calls.push(input);const spec=JSON.parse(fs.readFileSync(path.join(input.directory,'requirements/example/candidates/comfortable/pages/task.json')));input.sourceTitle=spec.elements['task-page'].props.title;spec.elements['task-page'].props.title=input.sessionId;return {summary:input.sessionId,files:[{path:'candidates/comfortable/pages/task.json',content:JSON.stringify(spec)}],controls:[]};},async({runtime,workspace})=>{
   const a=runtime.createSession('example','comfortable'),b=runtime.createSession('example','comfortable'),file=path.join(workspace,'requirements/example/candidates/comfortable/pages/task.json'),before=fs.readFileSync(file);
   const jobs=await Promise.all([runtime.event(request(workspace,a.id)),runtime.event(request(workspace,b.id))]),[first,second]=await Promise.all(jobs.map(job=>done(runtime,job)));assert.equal(first.state,'ready',first.error);assert.equal(second.state,'ready',second.error);assert.notEqual(calls[0].directory,calls[1].directory);assert.deepEqual(fs.readFileSync(file),before);
   await assert.rejects(runtime.event({...request(workspace,a.id),baseJob:second.id}),/只能继续/);
   await runtime.event({type:'accept',job:first.id,sessionId:a.id});assert.equal(JSON.parse(fs.readFileSync(file)).elements['task-page'].props.title,a.id);await assert.rejects(runtime.event({type:'accept',job:second.id,sessionId:b.id}),/源资源已被修改/);assert.equal(runtime.get(second.id,b.id).state,'ready');assert.equal(runtime.get(second.id,b.id).proposal.spec.elements['task-page'].props.title,b.id);
-  await runtime.event({type:'discard',job:second.id,sessionId:b.id});const next=await done(runtime,await runtime.event(request(workspace,b.id,'基于实际资源重试')));assert.equal(next.state,'ready',next.error);assert.match(calls.at(-1).prompt,/"previousProposal":"discarded"/);assert.ok(calls.at(-1).prompt.includes(a.id));assert.equal(calls.at(-1).session,calls[1].session);
+  await runtime.event({type:'discard',job:second.id,sessionId:b.id});const next=await done(runtime,await runtime.event(request(workspace,b.id,'基于实际资源重试')));assert.equal(next.state,'ready',next.error);assert.match(calls.at(-1).prompt,/"previousProposal":"discarded"/);assert.equal(calls.at(-1).sourceTitle,a.id);assert.equal(calls.at(-1).session,calls[1].session);
  });
 });
 

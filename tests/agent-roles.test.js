@@ -18,21 +18,30 @@ async function settled(runtime,id){const deadline=Date.now()+45000;while(Date.no
 async function fixture(run,check){const temp=fs.mkdtempSync(path.join(os.tmpdir(),"dh-roles-")),workspace=initialize(temp,{example:true}).workspace,runtime=createLiveAgentRuntime(workspace,{connection:testConnection(),run,capture:async({directory})=>{const file=path.join(directory,"current-view.png");fs.writeFileSync(file,png);return file;}});try{await check({workspace,runtime});}finally{await runtime.close();fs.rmSync(temp,{recursive:true,force:true});}}
 const changedFile=(directory,relative,transform)=>({path:relative,content:transform(fs.readFileSync(path.join(directory,"requirements/example",relative),"utf8"))});
 
-test("Explicit identities load the real Skill sources, share candidate conversation and receive documents, live state and images",async()=>{
+test("Internal identities share conversation and expose readable resources without preloading documents or state",async()=>{
   const calls=[];
-  await fixture(async input=>{calls.push(input);assert.equal(input.imageFiles.length,calls.length===1?2:1);for(const file of input.imageFiles)assert.ok(fs.readFileSync(file).subarray(0,8).equals(png.subarray(0,8)));return {summary:"先确认阅读目标，再落实设计。",files:[],controls:[]};},async({workspace,runtime})=>{
+  await fixture(async input=>{
+    const map=JSON.parse(input.prompt.match(/^Resource map: (.+)$/m)[1]);
+    const stateFile=map.entries.find(e=>e.path.endsWith("/state.json")).path;
+    const screenshot=map.entries.find(e=>e.path.endsWith("/current-view.png")).path;
+    assert.equal(fs.readFileSync(screenshot).subarray(0,8).equals(png.subarray(0,8)),true);
+    calls.push({...input,map,screenshot,state:JSON.parse(fs.readFileSync(stateFile,"utf8"))});
+    assert.equal(input.imageFiles.length,calls.length===1?1:0);
+    return {summary:"先确认阅读目标，再落实设计。",files:[],controls:[]};
+  },async({workspace,runtime})=>{
     await assert.rejects(runtime.event({...request(workspace),role:"unknown"}),/选择.*身份/);
     const first=await settled(runtime,(await runtime.event({...request(workspace,"visual"),prompt:"我希望更安静的会话样式",references:[{name:"阅读参考.png",data:"data:image/png;base64,"+png.toString("base64")}]})).id);
-    assert.equal(first.state,"answered",first.error);assert.equal(first.role,"visual");assert.equal(first.skill,"design-harness-visual");assert.equal(first.messages.at(-1).identity,"visual");
-    const trusted=JSON.parse(calls[0].prompt.match(/Trusted Skill documents: (.*)\n/)[1]);
-    const workflow=trusted.find(doc=>doc.file==="skills/design-harness-visual/references/workflow.md");assert.equal(workflow.content,fs.readFileSync(new URL("../skills/design-harness-visual/references/workflow.md",import.meta.url),"utf8"));
-    const sourcePolicy=fs.readFileSync(new URL("../shared/references/product-source.md",import.meta.url),"utf8");
-    assert.equal(trusted.find(doc=>doc.file==="shared/references/product-source.md")?.content,sourcePolicy);
-    assert.match(calls[0].prompt,/用户实际输入/);assert.match(calls[0].prompt,/阅读参考.png/);assert.match(calls[0].prompt,/requirement.md/);assert.match(calls[0].prompt,/handoff.md/);assert.equal(fs.existsSync(calls[0].imageFiles[0]),false,"纯回答后截图应清理");
+    assert.equal(first.state,"answered",first.error);assert.equal(first.skill,"workbench-visual");
+    assert.equal(calls[0].state.topic,"用户实际输入");assert.doesNotMatch(calls[0].prompt,/用户实际输入|Trusted Skill documents|using \$design-harness/);
+    assert.ok(calls[0].map.identity.entry.endsWith("workbench/agents/visual.md"));
+    assert.ok(calls[0].map.entries.some(e=>e.path.endsWith("shared/references/visual-method.md")));
+    assert.ok(calls[0].map.entries.some(e=>e.path.endsWith("shared/references/product-source.md")));
+    assert.equal(fs.existsSync(calls[0].screenshot),false);
     const second=await settled(runtime,(await runtime.event({...request(workspace),prompt:"保留已确认阅读方向，补充失败恢复"})).id);
-    assert.equal(second.state,"answered",second.error);assert.equal(second.messages.length,4);assert.deepEqual(second.messages.filter(message=>message.role==="assistant").map(message=>message.identity),["visual","interaction"]);assert.equal(calls[1].session,calls[0].session);assert.doesNotMatch(calls[1].prompt,/我希望更安静的会话样式/);assert.match(calls[1].prompt,/design-harness-interaction/);assert.equal(runtime.session("example","comfortable").identity,"interaction");assert.equal(runtime.session("example","compact").messages.length,0);
-    const interactionTrusted=JSON.parse(calls[1].prompt.match(/Trusted Skill documents: (.*)\n/)[1]);
-    assert.equal(interactionTrusted.find(doc=>doc.file==="shared/references/product-source.md")?.content,sourcePolicy);
+    assert.equal(second.state,"answered",second.error);assert.equal(second.messages.length,4);
+    assert.deepEqual(second.messages.filter(m=>m.role==="assistant").map(m=>m.identity),["visual","interaction"]);
+    assert.equal(calls[1].session,calls[0].session);assert.doesNotMatch(calls[1].prompt,/我希望更安静的会话样式/);
+    assert.match(calls[1].prompt,/workbench-interaction/);assert.equal(runtime.session("example","compact").messages.length,0);
   });
 });
 

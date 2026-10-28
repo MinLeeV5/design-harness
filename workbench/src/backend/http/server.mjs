@@ -4,10 +4,10 @@ import {openWorkspace} from "../services/workspace.mjs";
 import {createLiveAgentRuntime} from "../services/agent-runtime.mjs";
 import {createRouter} from "./routes.mjs";
 
-export async function startServer(workspace,{port=4173,agentRun,agentConnection,agentPreferences}={}) {
+export async function startServer(workspace,{port=4173,agentRun,agentConnection,agentPreferences,projectRoot}={}) {
   workspace=openWorkspace(workspace);
   const token=randomBytes(24).toString("hex");
-  const agent=createLiveAgentRuntime(workspace,{run:agentRun,connection:agentConnection,preferences:agentPreferences});
+  const agent=createLiveAgentRuntime(workspace,{run:agentRun,connection:agentConnection,preferences:agentPreferences,projectRoot});
   let origin="";
   const server=http.createServer(createRouter({workspace,token,agent,origin:()=>origin}));
   server.once("close",()=>void agent.close());

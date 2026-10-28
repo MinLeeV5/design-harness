@@ -12,8 +12,12 @@ export const SKILL_NAMES = ["design-harness-init", "design-harness-interaction",
 export const WORKSPACE_FILES = [".gitignore","README.md","project.json","foundation/components.tsx","foundation/catalog.ts","foundation/registry.tsx","foundation/design.md","foundation/foundation.json","foundation/tokens.css"];
 export const WORKBENCH_FILES = [
   "assets/harness-icon.png",
+  "agents/interaction.md",
+  "agents/visual.md",
   "cli.mjs",
   "src/backend/adapters/agent-prompt.mjs",
+  "src/backend/adapters/agent-context.mjs",
+  "src/backend/adapters/host-project.mjs",
   "src/backend/adapters/agent-preferences.mjs",
   "src/backend/adapters/agent-skills.mjs",
   "src/backend/adapters/bundler.mjs",
@@ -47,6 +51,7 @@ export const WORKBENCH_FILES = [
   "src/contracts/agent-controls.d.mts",
   "src/contracts/agent-controls.mjs",
   "src/contracts/agent-output.mjs",
+  "src/contracts/agent-observation.mjs",
   "src/contracts/agent-provider.d.mts",
   "src/contracts/agent-permissions.mjs",
   "src/contracts/agent-permissions.d.mts",
@@ -110,7 +115,7 @@ export const WORKBENCH_FILES = [
   "vendor/impeccable/NOTICE.md",
   "vendor/impeccable/live-browser-dom.js",
 ];
-export const SHARED_REFERENCES = ["agent.md", "assets.md", "design-organization.md", "fidelity.md", "workspace.md", "protocol.md", "interactions.md", "preview-export.md", "handoff.md", "product-source.md", "sources.md"];
+export const SHARED_REFERENCES = ["interaction-method.md", "visual-method.md", "proposal.md", "agent.md", "assets.md", "design-organization.md", "fidelity.md", "workspace.md", "protocol.md", "interactions.md", "preview-export.md", "handoff.md", "product-source.md", "sources.md"];
 export const SHARED_NOTICES = ["lucide/LICENSE", "visual-assets/NOTICE.md", "design-md/LICENSE", "design-md/NOTICE.md", "impeccable/NOTICE.md", "ui-ux-pro-max/LICENSE", "ui-ux-pro-max/NOTICE.md", "harness-designing-plugin/LICENSE"];
 export const SHARED_FILES = [
   ...WORKSPACE_FILES.map(file => "workspace/" + file),

@@ -9,6 +9,8 @@ import {createAgentProvider} from "./agent-providers.mjs";
 import {promptFor} from "../adapters/agent-prompt.mjs";
 import {typecheck} from "../adapters/typecheck.mjs";
 import {loadAgentSkill} from "../adapters/agent-skills.mjs";
+import {hostProjectRoot} from "../adapters/host-project.mjs";
+import {prepareAgentContext} from "../adapters/agent-context.mjs";
 import {captureDesignView,saveDesignReferences} from "../adapters/design-capture.mjs";
 import {copyResources,changesFor,stageValues,createProposalDirectory,removeProposalDirectory,snapshotFiles,snapshotProposalFiles,checkProposalFiles,freezeProposalFiles,stageModelFiles,snapshotTuningFiles,restoreTuningFiles,commitProposalFiles} from "../adapters/proposal-files.mjs";
 import {buildRequirement} from "./preview.mjs";
@@ -16,8 +18,9 @@ import {validateJob,checkControls} from "./proposals.mjs";
 import {checkAgentScope} from "./proposal-policy.mjs";
 import {createAgentSettings} from "./agent-settings.mjs";
 const terminal=new Set(["accepted","answered","discarded","cancelled","failed","superseded"]);
-export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,connection,provider=createAgentProvider({run,connection}),preferences,timeoutMs=600000}={}) {
+export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,connection,provider=createAgentProvider({run,connection}),preferences,projectRoot,timeoutMs=600000}={}) {
   workspace=canonicalDirectory(workspace);const jobs=new Map(),sessions=new Map(),defaults=new Map(),starting=new Set(),settings=createAgentSettings(preferences);let closed=false;
+  const hostProject=hostProjectRoot(workspace,projectRoot);
   const cleanup=job=>{clearTimeout(job.timer);if(job.temp){removeProposalDirectory(job.temp);job.temp=null;}};
   const find=id=>{const job=jobs.get(id);assert(job,"生成记录不存在或已过期");return job;};
   function sessionFor(id,candidate,sessionId) {
@@ -30,15 +33,21 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
   function createSession(id,candidate) {
     assert(!closed,"Agent 已关闭");const data=loadRequirement(workspace,id);
     assert(data.manifest.candidates.some(c=>c.id===candidate),"候选不存在");
-    const session={id:randomBytes(16).toString("hex"),providerId:provider.id,requirement:id,candidate,title:"新会话",createdAt:Date.now(),messages:[],native:null,jobId:null,lastRequest:undefined};
+    const session={id:randomBytes(16).toString("hex"),providerId:provider.id,requirement:id,candidate,title:"新会话",createdAt:Date.now(),messages:[],native:null,jobId:null,lastRequest:undefined,observation:{compactions:0},compactionIds:new Set()};
     settings.current(session.id);sessions.set(session.id,session);return session;
   }
   const sessionForJob=job=>sessions.get(job.sessionId);
   const message=(job,role,content,state)=>{const item={id:randomBytes(8).toString("hex"),role,identity:job.role,skill:job.skill.skill,model:job.model,permissionMode:job.permissionMode,content,page:job.page,selection:role==="user"?job.selection:null,state,startedAt:Date.now(),...(role==="assistant"?{activity:[],approvals:job.approvals}: {})};sessionForJob(job).messages.push(item);return item;};
-  const view=job=>({id:job.id,sessionId:job.sessionId,providerId:provider.id,state:job.state,permissionMode:job.permissionMode,sourceChanged:job.sourceChanged,approvals:job.approvals,startedAt:job.startedAt,page:job.page,role:job.role,skill:job.skill.skill,model:job.model,error:job.error??"",candidate:job.candidate,revision:job.revision,summary:job.summary??"",messages:sessionForJob(job).messages,proposal:job.state==="ready"?job.proposal:undefined});
+  const view=job=>({id:job.id,sessionId:job.sessionId,providerId:provider.id,state:job.state,permissionMode:job.permissionMode,sourceChanged:job.sourceChanged,approvals:job.approvals,startedAt:job.startedAt,page:job.page,role:job.role,skill:job.skill.skill,model:job.model,error:job.error??"",candidate:job.candidate,revision:job.revision,summary:job.summary??"",messages:sessionForJob(job).messages,observation:sessionForJob(job).observation,lastRequest:sessionForJob(job).lastRequest,proposal:job.state==="ready"?job.proposal:undefined});
   const summary=session=>({id:session.id,providerId:session.providerId,requirement:session.requirement,candidate:session.candidate,title:session.title,createdAt:session.createdAt,state:session.jobId?(find(session.jobId).pendingApprovals.size?"awaiting_approval":find(session.jobId).state):"idle"});
   const snapshot=session=>({...summary(session),messages:session.messages,...settings.current(session.id),job:session.jobId?view(find(session.jobId)):null});
   function record(session,model,state){session.lastRequest={model:model.id,name:model.name,provider:model.provider,state,at:Date.now()};provider.record?.(model,state);}
+  function observe(session,event){
+    if(event.kind==="usage")session.observation={...session.observation,usage:event.usage};
+    if(event.kind==="compaction"&&!session.compactionIds.has(event.id)){
+      session.compactionIds.add(event.id);session.observation={...session.observation,compactions:session.compactionIds.size,lastCompactionAt:event.at};
+    }
+  }
   function ownedJob(id,sessionId){const job=find(id);assert(sessionId?job.sessionId===sessionId:defaults.get(job.requirement+":"+job.candidate)===job.sessionId,"任务不属于当前会话");return job;}
   function activity(job,id,label,status="running",text,details={}){
     const items=job.reply?.activity;if(!items)return;
@@ -104,13 +113,16 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
     job.done=(async()=>{
       try {
         const currentImage=await capture({capture:request.capture,directory:temp,signal:job.controller.signal});if(!job.callActive)return;
-        const imageFiles=[...(currentImage?[currentImage]:[]),...saveDesignReferences(request.references,temp)],prompt=promptFor(loadRequirement(directory,job.requirement),{...request,permissionMode,sourceRoot:job.originalRoot},disposition,skill,imageFiles);
+        const imageFiles=saveDesignReferences(request.references,temp),data=loadRequirement(directory,job.requirement);
+        const resources=prepareAgentContext({data,request,disposition,identity:skill,temp,currentImage,referenceFiles:imageFiles,hostProject,sourceResources:workspace,sourceRequirement:job.originalRoot});
+        const {text:prompt,metrics}=promptFor(data,{...request,permissionMode,sourceRoot:job.originalRoot},disposition,skill,imageFiles,resources);
+        session.observation={...session.observation,context:metrics};
         phase(job,"request","请求已提交至本机 Codex");
         const signal=job.controller.signal;record(session,model,"running");let result;
         try{
           session.native??=provider.createSession({id:session.id,directory,model,permissionMode}).catch(error=>{session.native=null;throw error;});
           const native=await session.native;if(!job.callActive){record(session,model,signal.reason==="timeout"?"failed":"cancelled");return;}
-          result=await provider.runTurn({session:native,sessionId:session.id,directory,prompt,schema:outputSchema,imageFiles,model,signal,permissionMode,onApproval:(request,options)=>requestApproval(job,request,options),onEvent:event=>{if(job.callActive)activity(job,event.id,event.label,event.status,event.text,event);}});record(session,model,signal.aborted?signal.reason==="timeout"?"failed":"cancelled":"succeeded");}
+          result=await provider.runTurn({session:native,sessionId:session.id,directory,prompt,schema:outputSchema,imageFiles,model,signal,permissionMode,onObservation:event=>{if(!closed&&(job.callActive||event.kind==="usage"))observe(session,event);},onApproval:(request,options)=>requestApproval(job,request,options),onEvent:event=>{if(job.callActive)activity(job,event.id,event.label,event.status,event.text,event);}});record(session,model,signal.aborted?signal.reason==="timeout"?"failed":"cancelled":"succeeded");}
         catch(error){record(session,model,signal.aborted&&signal.reason!=="timeout"?"cancelled":"failed");throw error;}if(!job.callActive)return;
         assert(result&&typeof result.summary==="string"&&result.summary.trim()&&result.summary.length<=10000&&Array.isArray(result.files)&&result.files.length<=60,"Agent 未返回有效回答或修改");
         clearApprovals(job);detectSourceChanges(job);checkProposalFiles(job,{readOnly:permissionMode==="read-only"});freezeProposalFiles(job);stageModelFiles(job,result);checkProposalFiles(job);
@@ -158,7 +170,7 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
   }
   return {
     event,get:(id,sessionId)=>view(ownedJob(id,sessionId)),
-    async connection(options={}){const status=await provider.inspect(options);if(!options.sessionId)return {...status,agentProvider:{id:provider.id,capabilities:provider.capabilities}};const session=sessions.get(options.sessionId);assert(session,"会话不存在");return {...status,lastRequest:session.lastRequest,agentProvider:{id:provider.id,capabilities:provider.capabilities}};},
+    async connection(options={}){const status=await provider.inspect(options);if(!options.sessionId)return {...status,agentProvider:{id:provider.id,capabilities:provider.capabilities}};const session=sessions.get(options.sessionId);assert(session,"会话不存在");return {...status,lastRequest:session.lastRequest,observation:session.observation,agentProvider:{id:provider.id,capabilities:provider.capabilities}};},
     createSession:(id,candidate)=>snapshot(createSession(id,candidate)),
     sessions(id,candidate){sessionFor(id,candidate);return [...sessions.values()].filter(s=>s.requirement===id&&s.candidate===candidate).map(summary);},
     async saveSettings(id,candidate,patch,sessionId){const session=sessionFor(id,candidate,sessionId),job=session.jobId?find(session.jobId):null;assert(!starting.has(session.id)&&(!job||!["running","validating","accepting","refining"].includes(job.state)),"当前会话正在处理，请稍后调整设置");if(job?.state==="ready"&&patch.identity)assert(patch.identity===job.role,"请先接受或放弃当前身份的提案");return settings.update(session.id,patch);},

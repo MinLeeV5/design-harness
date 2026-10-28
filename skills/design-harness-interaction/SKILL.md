@@ -15,7 +15,7 @@ metadata:
 
 先读取项目已确认的[设计组织模式](../../shared/references/design-organization.md)：持续模式更新同一产品主稿，按需求模式维护对应独立设计；只有用户明确要求单独设计时才拆分，单次例外不改默认模式。
 
-在工作台显式选择“交互设计”身份时，同样采用本阶段的方法和评价；运行方式与能力边界见[专业 Agent](../../shared/references/agent.md)。
+在工作台显式选择“交互设计”身份时，按需采用共同专业方法与质量标准，使用独立内部身份入口；运行方式与能力边界见[专业 Agent](../../shared/references/agent.md)。
 
 工作台由完整插件固定提供；项目只维护业务资源。页面采用 json-render Spec，Catalog／Registry 注册项目自定义 React 组件；实例属性写回 Spec，组件内部实现由 Agent 修改。公共命令使用[插件 CLI](../../workbench/cli.mjs)，插件目录为本文件所在目录的 ../..。
 

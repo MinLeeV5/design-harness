@@ -17,6 +17,26 @@ function harness({early=false,deferStarts=false,deferCleanup=false,cancelTimeout
  return {provider,child,requests,send,notify,complete,input,spawned:()=>spawned};
 }
 async function until(check){for(let i=0;i<100;i++){if(check())return;await new Promise(r=>setTimeout(r,5));}throw new Error('missing protocol event');}
+test('Native usage without turnId and compaction events are isolated by thread and preserve missing data',async()=>{
+ const h=harness(),observationsA=[],observationsB=[];
+ try{
+  const a=await h.provider.createSession(h.input),b=await h.provider.createSession(h.input);
+  const first=h.provider.runTurn({...h.input,session:a,onObservation:e=>observationsA.push(e)}),second=h.provider.runTurn({...h.input,session:b,onObservation:e=>observationsB.push(e)});
+  await until(()=>h.requests.filter(r=>r.method==='turn/start').length===2);
+  const usage={last:{inputTokens:500,cachedInputTokens:300,outputTokens:40,totalTokens:540},total:{inputTokens:1200,outputTokens:100,totalTokens:1300},modelContextWindow:200000};
+  h.notify('thread/tokenUsage/updated',{threadId:a.threadId,tokenUsage:usage});
+  h.notify('thread/tokenUsage/updated',{threadId:a.threadId,turnId:'stale',tokenUsage:usage});
+  h.notify('thread/tokenUsage/updated',{threadId:b.threadId,tokenUsage:{last:{inputTokens:-1}}});
+  h.notify('item/completed',{threadId:a.threadId,turnId:'turn-1',item:{id:'compact',type:'contextCompaction'}});
+  await until(()=>observationsA.length===2);assert.equal(observationsA[0].usage.last.inputTokens,500);assert.equal(observationsA[0].usage.last.reasoningOutputTokens,undefined);assert.equal(observationsA[1].kind,'compaction');assert.equal(observationsB.length,0);
+  h.complete(a.threadId,'turn-1','甲');h.complete(b.threadId,'turn-2','乙');await Promise.all([first,second]);
+  const newer={...usage,total:{inputTokens:1300,outputTokens:110,totalTokens:1410}};
+  h.notify('thread/tokenUsage/updated',{threadId:a.threadId,turnId:'turn-1',tokenUsage:newer});
+  h.notify('thread/tokenUsage/updated',{threadId:a.threadId,turnId:'old-turn',tokenUsage:newer});
+  h.notify('thread/tokenUsage/updated',{threadId:a.threadId,tokenUsage:usage});
+  await until(()=>observationsA.length===3);assert.equal(observationsA[2].usage.total.totalTokens,1410);assert.equal(observationsB.length,0);
+ }finally{await h.provider.dispose();}
+});
 test('Native threads multiplex out-of-order turns, preserve history handles and use per-turn model/schema/images',async()=>{
  const h=harness(),eventsA=[],eventsB=[];try{
   const [a,b]=await Promise.all([h.provider.createSession(h.input),h.provider.createSession(h.input)]);assert.notEqual(a.threadId,b.threadId);assert.equal(h.spawned(),1);

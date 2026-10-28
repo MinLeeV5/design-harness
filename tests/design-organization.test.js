@@ -113,8 +113,9 @@ test("Workbench roles receive the saved organization on every turn and cannot ch
     const context=input=>JSON.parse(input.prompt.match(/^Project design organization: (.+)$/m)[1]);
     try {
       for(const role of ["interaction","visual"]){assert.equal((await done(await runtime.event(request("product",role)))).state,"answered");assert.deepEqual(context(calls.at(-1)),{mode:"continuous",primary:"product",current:"product",purpose:"design"});}
-      const trusted=JSON.parse(calls[0].prompt.match(/^Trusted Skill documents: (.+)$/m)[1]);
-      assert.equal(trusted.find(doc=>doc.file==="shared/references/design-organization.md").content,fs.readFileSync(new URL("../shared/references/design-organization.md",import.meta.url),"utf8"));
+      const map=JSON.parse(calls[0].prompt.match(/^Resource map: (.+)$/m)[1]);
+      const guide=map.entries.find(e=>e.path.endsWith("shared/references/design-organization.md"));
+      assert.ok(guide);assert.equal(fs.readFileSync(guide.path,"utf8"),fs.readFileSync(new URL("../shared/references/design-organization.md",import.meta.url),"utf8"));
       await done(await runtime.event(request("experiment","interaction")));
       assert.deepEqual(context(calls.at(-1)),{mode:"continuous",primary:"product",current:"experiment",purpose:"design"});
       const file=path.join(workspace,"project.json"),before=fs.readFileSync(file);

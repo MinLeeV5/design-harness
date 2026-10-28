@@ -20,7 +20,7 @@ export async function main(args=process.argv.slice(2)) {
   if(action==="check")return checkWorkspace(workspace,id);
   if(action==="export"){assert(positionals.length<=2,"export 仅接受需求 ID，输出位置使用 --out <文件.html>");return exportToFile(workspace,defaultDesign(workspace,id),values.out);}
   if(action==="serve"){
-    const {startServer}=await import("../backend/http/server.mjs"),service=await startServer(workspace,{port:Number(values.port)});console.log("Design Harness: "+service.origin);let closing=false;const close=()=>{if(!closing){closing=true;void service.close();}};process.once("SIGINT",close);process.once("SIGTERM",close);return;
+    const {startServer}=await import("../backend/http/server.mjs"),project=path.resolve(values.project??process.cwd()),service=await startServer(workspace,{port:Number(values.port),projectRoot:project===workspace?undefined:project});console.log("Design Harness: "+service.origin);let closing=false;const close=()=>{if(!closing){closing=true;void service.close();}};process.once("SIGINT",close);process.once("SIGTERM",close);return;
   }
   throw new Error("用法: init [--mode continuous|per-requirement] [--primary <主稿ID>] [--example] | organization [--mode <模式>] [--primary <主稿ID>] | new [id] [--separate|--preview] | clone <id> <原候选> <新候选> | serve [--port 4173] | check [id] | typecheck | deps | export [id] --out <文件.html>；资源命令使用 --project <项目或资源目录>");
 }

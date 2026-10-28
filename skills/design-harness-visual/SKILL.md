@@ -15,7 +15,7 @@ metadata:
 
 先读取项目已确认的[设计组织模式](../../shared/references/design-organization.md)，在对应产品主稿或独立设计内细化。局部候选比较沿用当前设计，用户明确要求的单次拆分不改变项目默认模式。
 
-在工作台显式选择“视觉设计”身份时，同样采用本阶段的方法和评价；运行方式与能力边界见[专业 Agent](../../shared/references/agent.md)。
+在工作台显式选择“视觉设计”身份时，按需采用共同专业方法与质量标准，使用独立内部身份入口；运行方式与能力边界见[专业 Agent](../../shared/references/agent.md)。
 
 工作台由完整插件固定提供；项目只维护业务资源。页面采用 json-render Spec，Catalog／Registry 注册项目自定义 React 组件；实例属性写回 Spec，组件内部实现由 Agent 修改。公共命令使用[插件 CLI](../../workbench/cli.mjs)，插件目录为本文件所在目录的 ../..。
 

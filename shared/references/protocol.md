@@ -43,23 +43,15 @@ scenarios.json 为 [{id,page,title,state}]，只保存预置场景。state 与 S
 
 ## 候选参数与实例属性
 
-params.json 保存 {"css":{"--自定义变量":"值"}}，属于候选独立资源；Spec 保存实例属性。manifest.controls 保留登记属性的约束与受控保存接口，不作为打开 Agent 时的预设参数面板。
+params.json 保存 {"css":{"--自定义变量":"值"}}，属于候选独立资源；Spec 保存实例属性。manifest.controls 保留登记属性的约束与受控保存接口。
 
 登记 controls 项包含 id、label、page、target、property、type；property 为一级字面量属性名，range 包含 min/max/step，可选 unit，text 可选 maxLength，boolean 为布尔值。各候选目标与初始值必须满足约束。直接保存接口按原 Spec 哈希比较，冲突拒绝覆盖。
 
-生成结果可返回0–4项本次控件，字段为 id、label、type、binding、target、property、min、max、step、unit。binding=prop 只绑定当前页面已存在的 Spec 字面量属性；binding=css 只允许 range，绑定候选 params 中的数值变量，且该变量必须已在候选 React／CSS 中引用。CSS值为数值加明确单位。非法目标、表达式、范围和未生成控件的值均拒绝，不把任意 DOM 样式直接反写为源码。控件定义属于本次临时预览，接受只将选定值落实到 Spec／params；再次调整按当前资源生成。
+内部生成的修改和动态控件遵循[提案结果契约](proposal.md)。
 
 ## 扩展依赖
 
 React、json-render、zod 和渲染工具由插件固定，项目不能覆盖。可选 package.json 只允许 dependencies 中的精确 npm 版本，不承载工具 scripts/devDependencies；运行 deps 生成或更新 dependencies.lock.json；构建和插件重建使用项目当前匹配锁；不隐式更新依赖。依赖安装使用 --ignore-scripts，缓存位于用户缓存目录的 design-harness/business。项目文件不包含 node_modules 或工具配置，工具不执行项目构建脚本。
-
-## Agent 会话与处理活动
-
-本地服务提供 message／accept／discard／cancel／approval 事件与令牌保护的会话读取，均校验会话和任务归属。统一 message 支持讨论和视觉修改，附件可选；结构化结果包含 summary、files、controls，纯回答的 files／controls 为空。只有用户发送时调用本机 Codex，沿用账号和模型配置；命令和工具按用户所选原生权限执行，权限与审批边界见[专业 Agent](agent.md#权限审批与执行过程)。
-
-每轮保存用户消息与一条持续更新的 Agent 消息，固定发送时的页面和元素上下文。Agent 消息包含 state、startedAt／completedAt 与 activity 列表，记录实际阶段、公开进展和工具状态。JSONL 读取支持分块和 UTF-8 边界，归并公开消息、Provider 推理摘要、命令、目录、退出码与可折叠输出；过滤原始内部推理及最终源码 JSON。审批状态、输入字段及本轮权限与任务一起保留。客户端轮询更新同一条消息，按真实活动显示 loading／耗时；失败和取消补齐结果状态。当前服务会话完整保存在内存，模型上下文使用原生 thread 历史和本轮权威资源；服务重启清空，不写项目日志。
-
-继续修改通过 baseJob 承接当前暂存代码和控件值。修改只限当前候选，接受前核对完整 revision 和最终控件值，重新验证调节后的临时资源，再写 Spec／React／CSS／params。纯回答可不产生提案；完全访问可能产生独立的直接源文件修改，取消或放弃不自动回滚。细化失败或显式取消保留上一版预览；放弃或关闭服务清理整条暂存，切页／候选与刷新不取消任务。离线不启动 Agent，共享基础与跨候选变更按已有授权单独处理。
 
 ## 保真与交接
 
