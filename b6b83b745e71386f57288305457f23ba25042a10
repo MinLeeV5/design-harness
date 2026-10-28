@@ -1,0 +1,136 @@
+workbench/src/backend/services/agent-runtime.mjs
+  cd18901a21022990 12-13,21,23,36,41,45-50,116-119
+  56dd91024f005af2 125
+workbench/src/backend/adapters/codex-app-server.mjs
+  56dd91024f005af2 6,8,19,21-26,49-50,52-55,85,90,136-139,151,171
+skills/design-harness-visual/references/workflow.md
+  56dd91024f005af2 3-7,9
+skills/design-harness-interaction/SKILL.md
+  56dd91024f005af2 18
+scripts/agent-smoke.js
+  057792d389d73168 18
+workbench/agents/interaction.md
+  56dd91024f005af2 1-9
+workbench/src/backend/adapters/agent-context.mjs
+  56dd91024f005af2 1-37
+workbench/src/cli/main.mjs
+  cd18901a21022990 23
+workbench/src/backend/adapters/host-project.mjs
+  56dd91024f005af2 1-7,9-15
+tests/live-agent.test.js
+  56dd91024f005af2 47,50
+workbench/agents/visual.md
+  56dd91024f005af2 1-9
+tests/codex-app-server.test.js
+  56dd91024f005af2 20-39
+workbench/src/contracts/types.ts
+  56dd91024f005af2 27-31
+shared/references/agent.md
+  56dd91024f005af2 3,5,7,9,13,15,19,21,25,27
+shared/references/visual-method.md
+  56dd91024f005af2 1-11
+workbench/src/backend/adapters/agent-prompt.mjs
+  56dd91024f005af2 4-16
+skills/design-harness-interaction/references/evaluation.md
+  56dd91024f005af2 9
+tests/design-organization.test.js
+  56dd91024f005af2 116-118
+shared/references/protocol.md
+  56dd91024f005af2 46,50
+skills/design-harness-visual/SKILL.md
+  56dd91024f005af2 18
+tests/agent-context.test.js
+  56dd91024f005af2 1-46,48-76
+shared/references/interactions.md
+  56dd91024f005af2 3,59,78,84,86,88,92
+workbench/src/contracts/agent-provider.d.mts
+  56dd91024f005af2 1,8
+workbench/src/backend/http/server.mjs
+  cd18901a21022990 7,10
+workbench/src/contracts/agent-observation.mjs
+  56dd91024f005af2 1-10
+tests/agent-roles.test.js
+  56dd91024f005af2 21,23-31,34-39,41-44
+workbench/src/contracts/agent-roles.mjs
+  cd18901a21022990 2-3
+shared/references/proposal.md
+  56dd91024f005af2 1-9
+skills/design-harness-interaction/references/workflow.md
+  56dd91024f005af2 3-10
+scripts/validate.js
+  56dd91024f005af2 15-16,19-20,54,118
+tests/agent-sessions.test.js
+  56dd91024f005af2 26,31
+workbench/src/backend/adapters/agent-skills.mjs
+  56dd91024f005af2 4,10-22,24-26
+shared/references/interaction-method.md
+  56dd91024f005af2 1-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.8.2",
+  "base_commit_sha": "b6b83b745e71386f57288305457f23ba25042a10",
+  "prompts": {
+    "057792d389d73168": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18300-1808-7d43-9058-5d87c5847738",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 107,
+      "overriden_lines": 0,
+      "token_usage": {
+        "input_tokens": 310234,
+        "output_tokens": 31302,
+        "cache_read_tokens": 3696384,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "56dd91024f005af2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18370-97ec-7a40-8e4d-2c2b6f0ab775",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 567,
+      "total_deletions": 256,
+      "accepted_lines": 513,
+      "overriden_lines": 5,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/4d0f8d6697b47c7130d7623907f2348a803ecef8ae0435efad598a1a3df30125",
+      "token_usage": {
+        "input_tokens": 1060496,
+        "output_tokens": 146858,
+        "cache_read_tokens": 24834560,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "cd18901a21022990": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a183a3-65d7-79f3-84e0-4155a4ba8be8",
+        "model": "gpt-6-luna"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 13,
+      "total_deletions": 7,
+      "accepted_lines": 13,
+      "overriden_lines": 0,
+      "token_usage": {
+        "input_tokens": 26869,
+        "output_tokens": 251,
+        "cache_read_tokens": 0,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    }
+  }
+}
