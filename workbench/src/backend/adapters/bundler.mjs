@@ -13,6 +13,10 @@ export function document(title,output,extraHead="") {
   const js=output.outputFiles.filter(f=>f.path.endsWith(".js")).map(f=>f.text).join("\n"),css=output.outputFiles.filter(f=>f.path.endsWith(".css")).map(f=>f.text).join("\n");
   return '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+escape(title)+"</title>"+extraHead+"<style>"+css.replace(/<\/style/gi,"<\\/style")+'</style></head><body><div id="root"></div><script>'+safeScript(js)+"</script></body></html>";
 }
+export function workbenchDocument(title,output,extraHead="") {
+  const icon=fs.readFileSync(path.join(TOOL,"assets/harness-icon.png"),"base64");
+  return document(title,output,'<link rel="icon" type="image/png" href="data:image/png;base64,'+icon+'">'+extraHead);
+}
 function boundary(allowed,sources=[]) {
   return {name:"design-boundary",setup(api){api.onLoad({filter:/.*/},args=>{const real=fs.realpathSync(args.path);assert(!sources.some(base=>inside(base,real)&&path.relative(base,real).split(path.sep).some(part=>["node_modules",".cache",".git"].includes(part))),"设计导入越界：不能从缓存或保留目录加载源码: "+args.path);assert(allowed.some(base=>inside(base,real)),"设计导入越界：只能使用当前候选、公共基础和工具依赖: "+args.path);return null;});}};
 }
