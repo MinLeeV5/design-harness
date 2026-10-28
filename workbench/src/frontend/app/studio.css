@@ -216,8 +216,8 @@ button[aria-pressed=true],button[aria-expanded=true],button.active {color:#6640b
 .codex-connection dd time {display:block;color:#97909e;font-size:10px;margin-top:3px;}
 .codex-connection p {margin:8px 0;font-size:11px;color:#946956;line-height:1.6;}
 .codex-connection footer small {color:#96909f;font-size:10px;}
-.composer-selection {min-width:0;margin:0;padding:8px 10px;border-radius:10px;}
-.composer-selection .element-chip {align-items:center;gap:6px;}
+.composer-selection {min-width:0;grid-template-columns:minmax(0,1fr);margin:0;padding:8px 10px;border-radius:10px;}
+.composer-selection .element-chip {min-width:0;align-items:center;gap:6px;}
 .composer-selection .element-chip>svg {width:14px;height:14px;flex-shrink:0;color:#8c74a7;}
 .composer-selection .element-chip strong {font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .composer-selection .composer-icon {width:26px;height:26px;min-height:26px;padding:5px;}
