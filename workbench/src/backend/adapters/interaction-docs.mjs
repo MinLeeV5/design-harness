@@ -1,6 +1,6 @@
 import {parseDocument} from "yaml";
 import {Marked} from "marked";
-import {renderMarkdown} from "./markdown.mjs";
+import {renderMarkdown} from "../../contracts/markdown.mjs";
 
 const id=value=>typeof value==="string"&&/^[a-z][a-z0-9-]{0,63}$/.test(value);
 const record=value=>value&&typeof value==="object"&&!Array.isArray(value);

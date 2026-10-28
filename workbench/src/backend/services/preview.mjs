@@ -1,7 +1,7 @@
 import {loadRequirement,listRequirements,loadProject} from "../adapters/resource-store.mjs";
 import {canonicalDirectory} from "../adapters/filesystem.mjs";
 import {dependencyDirectory} from "../adapters/dependencies.mjs";
-import {renderMarkdown} from "../adapters/markdown.mjs";
+import {renderMarkdown} from "../../contracts/markdown.mjs";
 import {buildApp,buildCandidate,document,workbenchDocument,json,licenseText} from "../adapters/bundler.mjs";
 
 export async function buildRequirement(workspace,id,{development=false,token=""}={}) {

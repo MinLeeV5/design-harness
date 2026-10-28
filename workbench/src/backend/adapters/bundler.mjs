@@ -47,7 +47,7 @@ function aliases(workspace,cache) {
 }
 function checkImports(result){for(const file of Object.values(result.metafile.outputs))for(const entry of file.imports)assert(!entry.external||/^(data:|#)/.test(entry.path),"离线产物不允许外部资源: "+entry.path);}
 export function licenseText(cache){
-  let text="";for(const name of ["react","react-dom","scheduler","@json-render/core","@json-render/react","zod","@base-ui/react","@base-ui/utils","@babel/runtime","@floating-ui/core","@floating-ui/dom","@floating-ui/react-dom","@floating-ui/utils","reselect","use-sync-external-store"]){
+  let text="";for(const name of ["react","react-dom","scheduler","@json-render/core","@json-render/react","zod","marked","@base-ui/react","@base-ui/utils","@babel/runtime","@floating-ui/core","@floating-ui/dom","@floating-ui/react-dom","@floating-ui/utils","reselect","use-sync-external-store"]){
     let directory;try{directory=path.dirname(requireTool.resolve(name+"/package.json"));}catch{directory=path.dirname(requireTool.resolve(name));while(!fs.existsSync(path.join(directory,"package.json"))||JSON.parse(fs.readFileSync(path.join(directory,"package.json"))).name!==name){const parent=path.dirname(directory);assert(parent!==directory,"找不到依赖包信息: "+name);directory=parent;}}const file=["LICENSE","LICENSE.md","LICENSE.txt"].map(n=>path.join(directory,n)).find(f=>fs.existsSync(f));
     assert(file,"依赖缺少许可证: "+name);text+="\n"+name+"\n"+fs.readFileSync(file,"utf8");
   }
