@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {publicCodexEvent,createCodexEventReader} from "../workbench/lib/agent-events.mjs";
+import {publicCodexEvent,createCodexEventReader} from "../workbench/src/backend/adapters/codex-events.mjs";
 test("Codex activity accepts only public messages and metadata, never reasoning, command text or generated source",()=>{
  assert.equal(publicCodexEvent({type:"item.completed",item:{id:"bad",type:{toString:null}}}),null);
  for(const type of ["reasoning","reasoning_summary","unknown"])assert.equal(publicCodexEvent({type:"item.completed",item:{id:"secret",type,text:"PRIVATE_REASONING"}}),null);

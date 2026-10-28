@@ -1,0 +1,36 @@
+.wb-select-trigger {display:inline-flex;align-items:center;justify-content:space-between;gap:9px;min-width:0;text-align:left;cursor:pointer;}
+.wb-select-field {width:100%;min-height:38px;padding:8px 11px;border:1px solid #dfe1e8;border-radius:8px;background:#fff;font-size:13px;color:#414451;}
+.wb-select-trigger:hover:not(:disabled) {border-color:#c4b5d9;background:#faf8fd;}
+.wb-select-trigger:focus-visible {outline:2px solid #9e86c4;outline-offset:2px;}
+.wb-select-trigger:disabled {cursor:default;opacity:.5;}
+.wb-select-value {flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wb-select-chevron {flex-shrink:0;width:13px;height:13px;color:#99929f;}
+.wb-select-trigger-icon,.wb-select-option-icon {display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.wb-select-trigger-icon svg,.wb-select-option-icon svg {width:17px;height:17px;}
+.wb-select-toolbar {flex-shrink:0;width:auto;max-width:78px;min-height:32px;height:32px;padding:5px;gap:4px;border:0;border-radius:7px;background:transparent;color:#696373;font-size:11px;}
+.wb-select-toolbar:hover:not(:disabled),.wb-select-toolbar[data-popup-open] {background:#eee9f6;color:#654391;}
+.wb-select-toolbar .wb-select-chevron {width:10px;height:10px;}
+.wb-select-toolbar.composer-model {min-width:64px;max-width:112px;flex-shrink:1;}
+.wb-select-toolbar.composer-effort {max-width:66px;}
+.wb-select-positioner {z-index:200;max-width:calc(100vw - 20px);outline:none;}
+.wb-select-popup {display:flex;flex-direction:column;width:var(--anchor-width);min-width:min(236px,calc(100vw - 20px));max-width:min(380px,calc(100vw - 20px));max-height:min(380px,var(--available-height));padding:5px;border:1px solid #e1dbe9;border-radius:12px;background:#fff;color:#45404e;box-shadow:0 10px 34px #2f20441f,0 2px 7px #2f20440a;outline:none;transform-origin:var(--transform-origin);overscroll-behavior:contain;}
+.wb-select-heading {flex-shrink:0;padding:7px 9px 8px;font-size:11px;font-weight:600;color:#8d8296;}
+.wb-select-list {min-height:0;overflow-y:auto;overscroll-behavior:contain;scroll-padding:5px;outline:none;}
+.wb-select-option {display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;min-height:38px;padding:9px;border-radius:7px;font-size:13px;line-height:1.5;cursor:pointer;outline:none;user-select:none;scroll-margin:5px;}
+.wb-select-option[data-highlighted] {background:#f3eef9;color:#64438e;}
+.wb-select-option[data-selected] {color:#7049a3;}
+.wb-select-option[data-disabled] {color:#96909b;cursor:default;}
+.wb-select-option-content {display:flex;align-items:center;gap:9px;min-width:0;}
+.wb-select-option-copy {display:flex;flex-direction:column;gap:3px;min-width:0;overflow-wrap:anywhere;}
+.wb-select-option-copy small {font-size:11px;line-height:1.45;color:#93899d;font-weight:400;}
+.wb-select-check {display:flex;align-items:center;flex-shrink:0;margin-left:auto;width:16px;height:16px;color:#7953b1;}
+.wb-select-check svg {width:16px;height:16px;}
+.wb-select-search {display:flex;align-items:center;gap:7px;flex-shrink:0;margin:0 4px 5px;padding:0 9px;min-height:36px;border:1px solid #e8e2ef;border-radius:7px;background:#faf9fc;}
+.wb-select-search>svg {width:16px;height:16px;color:#a198aa;flex-shrink:0;}
+.wb-select-search input {width:100%;min-width:0;padding:8px 0;border:0;background:transparent;outline:none;font-size:12px;color:#504557;}
+.wb-select-search:focus-within {border-color:#b8a4d1;box-shadow:0 0 0 2px #9e86c40a;}
+.wb-select-empty {padding:18px 10px;text-align:center;font-size:12px;line-height:1.6;color:#958a9e;}
+.wb-select-empty:empty {display:none;}
+@media(pointer:coarse) {.wb-select-option{min-height:44px;}.wb-select-trigger{min-height:40px;height:auto;}.wb-select-search{min-height:40px;}}
+@media(max-width:700px) {.wb-select-toolbar.composer-model{max-width:104px;}.wb-select-popup{max-height:min(360px,var(--available-height));}}
+@media(prefers-reduced-motion:no-preference) {.wb-select-popup{transition:opacity .1s,transform .1s;}.wb-select-popup[data-starting-style],.wb-select-popup[data-ending-style]{opacity:0;transform:translateY(-3px);}}

@@ -1,13 +1,15 @@
+import {testConnection} from "./helpers/codex-connection.mjs";
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import {initialize} from "../workbench/lib/workspace.mjs";
-import {loadRequirement,readJson} from "../workbench/lib/protocol.mjs";
-import {createLiveAgentRuntime} from "../workbench/lib/live-agent.mjs";
+import {initialize} from "../workbench/src/backend/services/workspace.mjs";
+import {loadRequirement} from "../workbench/src/backend/adapters/resource-store.mjs";
+import {readJson} from "../workbench/src/backend/adapters/filesystem.mjs";
+import {createLiveAgentRuntime} from "../workbench/src/backend/services/agent-runtime.mjs";
 
-async function fixture(run,check){const base=fs.mkdtempSync(path.join(os.tmpdir(),"dh-agent-test-")),workspace=initialize(base,{example:true}).workspace,runtime=createLiveAgentRuntime(workspace,{run,capture:async()=>null});try{await check({workspace,runtime});}finally{await runtime.close();fs.rmSync(base,{recursive:true,force:true});}}
+async function fixture(run,check){const base=fs.mkdtempSync(path.join(os.tmpdir(),"dh-agent-test-")),workspace=initialize(base,{example:true}).workspace,runtime=createLiveAgentRuntime(workspace,{connection:testConnection(),run,capture:async()=>null});try{await check({workspace,runtime});}finally{await runtime.close();fs.rmSync(base,{recursive:true,force:true});}}
 const request=workspace=>({type:"generate",role:"visual",capture:{html:"<html><body>fixture</body></html>",width:1440,height:960,page:"task",state:{phase:"new"}},id:"example",candidate:"comfortable",page:"task",expectedRevision:loadRequirement(workspace,"example").revision,prompt:"更新标题"});
 const update=directory=>{const spec=readJson(path.join(directory,"requirements/example/candidates/comfortable/pages/task.json"));spec.elements["task-page"].props.title="隔离生成标题";return {summary:"更新当前方案标题",files:[{path:"candidates/comfortable/pages/task.json",content:JSON.stringify(spec,null,2)+"\n"}]};};
 async function settled(runtime,id){
@@ -78,7 +80,7 @@ test("Failed or cancelled refinement retains the last valid preview and its tune
  });}
 });
 test("Generated controls reject duplicate bindings and excess knobs",async()=>{
- const {validateControls}=await import("../workbench/agent-controls.mjs");await fixture(async()=>({summary:"ok",files:[]}),async({workspace})=>{const spec=loadRequirement(workspace,"example").specs["comfortable:task"];assert.throws(()=>validateControls([gapControl,{...gapControl,id:"another"}],spec,{}),/同一写回目标/);assert.throws(()=>validateControls(Array.from({length:5},(_,i)=>({...gapControl,id:"knob-"+i})),spec,{}),/最多提供4项/);});
+ const {validateControls}=await import("../workbench/src/contracts/agent-controls.mjs");await fixture(async()=>({summary:"ok",files:[]}),async({workspace})=>{const spec=loadRequirement(workspace,"example").specs["comfortable:task"];assert.throws(()=>validateControls([gapControl,{...gapControl,id:"another"}],spec,{}),/同一写回目标/);assert.throws(()=>validateControls(Array.from({length:5},(_,i)=>({...gapControl,id:"knob-"+i})),spec,{}),/最多提供4项/);});
 });
 test("Failed accept restores the staged snapshot so retrying the same invalid Catalog value cannot report success",async()=>{
  await fixture(async({directory})=>{const root=path.join(directory,"requirements/example/candidates/comfortable"),spec=readJson(path.join(root,"pages/task.json")),catalog=fs.readFileSync(path.join(root,"catalog.ts"),"utf8").replace('title:z.string()','title:z.enum(["原始枚举标题","新枚举标题"])');spec.elements["task-page"].props.title="原始枚举标题";return {summary:"准备标题方案",files:[{path:"candidates/comfortable/catalog.ts",content:catalog},{path:"candidates/comfortable/pages/task.json",content:JSON.stringify(spec)}],controls:[{id:"title-choice",label:"标题选择",type:"text",binding:"prop",target:"task-page",property:"title",min:0,max:0,step:1,unit:""}]};},async({workspace,runtime})=>{

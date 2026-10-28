@@ -1,4 +1,5 @@
-import {openSettings,selectPreview,previewField,openPanel,clickTool} from "./browser-ui.js";
+import {testConnection,memoryPreferences} from "../tests/helpers/codex-connection.mjs";
+import {openSettings,selectPreview,openPanel,clickTool,chooseOption,choiceOptions} from "./browser-ui.js";
 // Real Chrome acceptance of the generic template; no project or backend access.
 import fs from "node:fs";
 import path from "node:path";
@@ -6,9 +7,9 @@ import os from "node:os";
 import assert from "node:assert/strict";
 import {pathToFileURL} from "node:url";
 import {chromium} from "playwright";
-import {initialize} from "../workbench/lib/workspace.mjs";
-import {createRequirement} from "../workbench/lib/workspace.mjs";
-import {startServer} from "../workbench/lib/server.mjs";
+import {initialize} from "../workbench/src/backend/services/workspace.mjs";
+import {createRequirement} from "../workbench/src/backend/services/workspace.mjs";
+import {startServer} from "../workbench/src/backend/http/server.mjs";
 const root=path.resolve(import.meta.dirname,"..");
 const project=fs.mkdtempSync(path.join(os.tmpdir(),"dh-browser-check-"));
 const evidence=path.join(project,"temporary-check");
@@ -34,7 +35,7 @@ fs.writeFileSync(path.join(repeatRoot,"scenarios.json"),JSON.stringify([{id:"new
 fs.writeFileSync(path.join(repeatRoot,"interactions/task.md"),"---\nschemaVersion: 1\npage: task\nannotations:\n  - id: input\n    target: row\n---\n\n## 输入与校验 {#input}\n\n点选重复列表中的具体行。\n");
 const componentFile=path.join(workspace,"requirements/sample/candidates/comfortable/components/Task.tsx");
 fs.appendFileSync(componentFile,'\ndocument.addEventListener("pointerup",()=>{(window as any).__pointerUpTriggered=true;});\n(window as any).__projectCodeRuns=true;try{parent.document.documentElement.dataset.projectEscaped="true";}catch{}\n');
-const service=await startServer(workspace,{port:0});
+const service=await startServer(workspace,{agentPreferences:memoryPreferences(),agentConnection:testConnection(),port:0});
 let browser;
 const errors=[];
 // Convert an observed rectangle through the scaled iframe before a real mouse click.
@@ -68,6 +69,24 @@ try {
   assert.equal(await frame.locator("html").evaluate(()=>window.__projectCodeRuns),true);
   assert.equal(await page.locator("html").getAttribute("data-project-escaped"),null,"隔离预览不能修改工作台 DOM");
   assert.equal(await page.getByRole("dialog").count(),0,"辅助面板默认收起");
+  const header=page.locator('.studio-header'),panelEntries=header.getByRole('navigation',{name:'辅助面板',exact:true});
+  assert.equal(await header.locator('[data-workbench-select]').count(),2,"页面与场景直接显示在 Header");
+  assert.equal(await page.locator('#studio-settings [aria-label="页面"],#studio-settings [aria-label="场景"]').count(),0,"设置中不重复页面与场景");
+  const titleBox=await header.locator('.requirement-title').boundingBox(),contextBox=await header.getByRole('navigation',{name:'页面与场景',exact:true}).boundingBox();
+  assert.ok(contextBox.x>=titleBox.x+titleBox.width&&contextBox.x-titleBox.x-titleBox.width<=16,"页面与场景应紧接需求标题右侧");
+  const localStatus=header.getByRole('button',{name:'本地草稿',exact:true}),statusTip=page.getByRole('tooltip');
+  assert.equal(await localStatus.innerText(),'',"状态入口仅展示图标");
+  const beforeStatus=await previewMetrics(owner);
+  await localStatus.hover();await statusTip.getByText('本地草稿',{exact:true}).waitFor();await statusTip.getByText(/生成的修改接受后才写入/).waitFor();
+  assert.deepEqual(await previewMetrics(owner),beforeStatus,"状态说明不改变预览布局");
+  await header.locator('.studio-brand').hover();await statusTip.waitFor({state:'hidden'});
+  await localStatus.focus();await statusTip.waitFor();await page.keyboard.press('Tab');await statusTip.waitFor({state:'hidden'});
+  assert.equal(await header.locator('[aria-label="页面"]').evaluate(element=>element===document.activeElement),true,"状态说明不截断 Header 的键盘导航");
+  for(const name of ['交互说明','Agent','工具']){
+    const entry=panelEntries.getByRole('button',{name,exact:true});await entry.click();await page.getByRole('dialog',{name,exact:true}).waitFor();
+    assert.equal(await entry.getAttribute('aria-expanded'),'true');assert.equal(await page.getByRole('navigation',{name:'切换辅助面板',exact:true}).count(),0);
+    await entry.click();assert.equal(await page.getByRole('dialog').count(),0,"再次点击对应入口可收起面板");
+  }
   assert.equal(await page.getByRole("slider").count(),0);
   const stage=await page.getByRole("region",{name:"设计预览",exact:true}).boundingBox();
   assert.ok(stage&&stage.width>1380,"预览应占满主画布宽度");
@@ -76,6 +95,8 @@ try {
   await openSettings(page);assert.deepEqual(await previewMetrics(owner),previewBefore);await page.getByRole("button",{name:"关闭预览设置",exact:true}).click();
   await openPanel(page,"交互说明");
   await page.getByRole("dialog",{name:"交互说明",exact:true}).waitFor();
+  await localStatus.hover();await statusTip.waitFor();await page.keyboard.press('Escape');await statusTip.waitFor({state:'hidden'});
+  assert.equal(await page.getByRole('dialog',{name:'交互说明',exact:true}).isVisible(),true,"Esc应先关闭状态说明并保留面板");
   assert.deepEqual(await previewMetrics(owner),previewBefore,"打开抽屉不能改变实际分辨率、缩放或位置");
   assert.equal(await frame.getByRole("textbox",{name:"任务主题"}).inputValue(),"保留预览输入","打开抽屉不能重置产品状态");
   const pin=frame.getByRole("button",{name:"① 输入与校验",exact:true});await pin.waitFor();
@@ -86,9 +107,11 @@ try {
   await page.keyboard.press("Escape");
   await page.getByRole("dialog").waitFor({state:"hidden"});
   assert.equal(await page.getByRole("dialog").count(),0);
-  await page.waitForFunction(()=>document.activeElement?.getAttribute("aria-label")==="工作台工具");
-  await page.getByRole("button",{name:"工作台工具",exact:true}).click();await page.getByRole("button",{name:"工作台工具",exact:true}).click();
-  assert.equal(await page.getByRole("dialog").count(),0,"再次点击悬浮入口可收起抽屉");
+  await page.waitForFunction(()=>document.activeElement?.getAttribute("aria-label")==="交互说明");
+  await panelEntries.getByRole('button',{name:'Agent',exact:true}).click();await panelEntries.getByRole('button',{name:'工具',exact:true}).click();
+  await page.getByRole('dialog',{name:'工具',exact:true}).waitFor();assert.equal(await panelEntries.getByRole('button',{name:'Agent',exact:true}).getAttribute('aria-expanded'),'false');
+  await page.keyboard.press('Escape');await page.waitForFunction(()=>document.activeElement?.getAttribute('aria-label')==='工具');
+  assert.equal(await page.getByRole("dialog").count(),0,"Esc关闭后焦点回到当前面板的入口");
   assert.deepEqual(await previewMetrics(owner),previewBefore,"收起抽屉不能改变实际分辨率、缩放或位置");
   await frame.getByRole("textbox",{name:"任务主题"}).fill("");
   await clickProduct(page,owner,frame.getByRole("button",{name:"开始整理",exact:true}));
@@ -114,8 +137,8 @@ try {
   await page.locator(".element-selection strong").filter({hasText:"button"}).waitFor();
   assert.equal(await frame.getByRole("alert").count(),0,"点选按钮不能触发提交");
   assert.equal(await frame.locator("html").evaluate(()=>window.__pointerUpTriggered),undefined,"点选不能向业务发送pointerup");
-  const hierarchy=page.getByRole("combobox",{name:"选择元素层级"});assert.ok(await hierarchy.locator("option").count()>1);
-  const parentId=await hierarchy.locator("option").nth(1).getAttribute("value");await hierarchy.selectOption(parentId);
+  const hierarchy=page.getByRole("combobox",{name:"选择元素层级",exact:true});const levels=await choiceOptions(hierarchy);assert.ok(levels.length>1);
+  const parentId=levels[1].value;await chooseOption(hierarchy,parentId);
   await page.waitForFunction(()=>!document.querySelector(".element-selection strong")?.textContent?.startsWith("button"));
   await page.getByRole("button",{name:"点选元素",exact:true}).click();
   await clickProduct(page,owner,frame.locator('.product-surface'),{x:8,y:8});
@@ -146,9 +169,15 @@ try {
     await page.getByRole("button",{name:"关闭辅助面板",exact:true}).click();
   }
   console.log("Browser: real viewport and narrow workspace");
+  for(const width of [900,700,360,320]){
+    await page.setViewportSize({width,height:980});
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    assert.equal(await page.locator("html").evaluate(el=>el.scrollWidth<=window.innerWidth),true,"工作台窄屏溢出: "+width);
+    for(const name of ['页面','场景']){const box=await header.locator('[aria-label="'+name+'"]').boundingBox();assert.ok(box&&box.x>=0&&box.x+box.width<=width,"Header控件应位于视口内: "+name);}
+    await openPanel(page,'交互说明');const drawer=await page.getByRole('dialog',{name:'交互说明',exact:true}).boundingBox(),headerBox=await header.boundingBox();assert.ok(drawer.y>=headerBox.y+headerBox.height,"抽屉应避让完整 Header");await page.getByRole('button',{name:'关闭辅助面板',exact:true}).click();
+  }
   await page.setViewportSize({width:360,height:980});
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
-  assert.equal(await page.locator("html").evaluate(el=>el.scrollWidth<=window.innerWidth),true,"工作台窄屏溢出");
   await page.screenshot({path:path.join(evidence,"studio-mobile.png")});
   const mobilePreview=await previewMetrics(owner);
   await openPanel(page,"交互说明");
@@ -157,6 +186,15 @@ try {
   assert.deepEqual(await previewMetrics(owner),mobilePreview,"手机浮层不能改变实际分辨率、缩放或位置");
   await page.screenshot({path:path.join(evidence,"studio-mobile-sheet.png")});
   await page.getByRole("button",{name:"关闭辅助面板"}).click();
+  const touchContext=await browser.newContext({viewport:{width:360,height:980},isMobile:true,hasTouch:true}),phone=await touchContext.newPage();
+  await phone.goto(service.origin+'/?id=sample');
+  const touchStatus=phone.getByRole('button',{name:'本地草稿',exact:true}),touchTip=phone.getByRole('tooltip');
+  await touchStatus.tap();await touchTip.getByText('本地草稿',{exact:true}).waitFor();
+  for(const width of [360,320]){
+    await phone.setViewportSize({width,height:980});const box=await touchTip.boundingBox();assert.ok(box&&box.x>=0&&box.x+box.width<=width,"触屏状态说明应避让屏幕边缘");
+    assert.equal(await phone.locator('html').evaluate(element=>element.scrollWidth<=innerWidth),true,'触屏Header不能横向溢出');
+  }
+  await touchStatus.tap();await touchTip.waitFor({state:'hidden'});await touchContext.close();
   await openPanel(page,"Agent");await page.getByRole("button",{name:"点选元素",exact:true}).click();
   await frame.getByRole("button",{name:"预览材料"}).focus();
   await frame.getByRole("button",{name:"预览材料"}).press("Escape");
@@ -171,6 +209,8 @@ try {
   const requests=[];offline.on("request",request=>{if(/^https?:/.test(request.url()))requests.push(request.url());});
   await offline.goto(pathToFileURL(offlineHtml).href);
   assert.equal(await offline.getByRole("dialog").count(),0,"离线默认收起辅助面板");
+  const offlineStatus=offline.getByRole('button',{name:'离线预览',exact:true});await offlineStatus.hover();
+  await offline.getByRole('tooltip').getByText('离线预览',{exact:true}).waitFor();await offline.getByRole('tooltip').getByText(/导出的独立 HTML/).waitFor();await offline.keyboard.press('Escape');await offline.getByRole('tooltip').waitFor({state:'hidden'});
   const offlineOwner=offline.locator('iframe[title="产品预览 · comfortable"]');
   const offlineFrame=offlineOwner.contentFrame();
   await offlineFrame.getByRole("textbox",{name:"任务主题"}).fill("离线体验");

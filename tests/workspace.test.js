@@ -4,12 +4,15 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import {spawnSync} from "node:child_process";
-import {dependencyDirectory,installDependencies} from "../workbench/lib/dependencies.mjs";
-import {initialize,workspacePath,createRequirement,cloneCandidate,exportHtml,exportToFile} from "../workbench/lib/workspace.mjs";
-import {loadRequirement,readJson,hash,checkSpec,filesIn} from "../workbench/lib/protocol.mjs";
-import {buildRequirement,checkWorkspace} from "../workbench/lib/build.mjs";
-import {startServer} from "../workbench/lib/server.mjs";
-import {typecheck} from "../workbench/lib/typecheck.mjs";
+import {dependencyDirectory,installDependencies} from "../workbench/src/backend/adapters/dependencies.mjs";
+import {initialize,workspacePath,createRequirement,cloneCandidate} from "../workbench/src/backend/services/workspace.mjs";
+import {exportHtml,exportToFile} from "../workbench/src/backend/services/export.mjs";
+import {loadRequirement} from "../workbench/src/backend/adapters/resource-store.mjs";
+import {readJson,hash,filesIn} from "../workbench/src/backend/adapters/filesystem.mjs";
+import {checkSpec} from "../workbench/src/contracts/resources.mjs";
+import {buildRequirement,checkWorkspace} from "../workbench/src/backend/services/preview.mjs";
+import {startServer} from "../workbench/src/backend/http/server.mjs";
+import {typecheck} from "../workbench/src/backend/adapters/typecheck.mjs";
 const tool=path.resolve(import.meta.dirname,"../workbench");
 const write=(file,data)=>fs.writeFileSync(file,JSON.stringify(data,null,2)+"\n");
 describe("Fixed workbench and independent business resources",()=>{
@@ -45,9 +48,9 @@ describe("Fixed workbench and independent business resources",()=>{
     const {payload}=await buildRequirement(workspace,"example");assert.equal(payload.specs['alternative:task'].elements['task-page'].props.title,"独立新方案");assert.deepEqual(fs.readFileSync(specFile()),other);assert.deepEqual(fs.readFileSync(path.join(req,"candidates/comfortable/params.json")),params);assert.throws(()=>cloneCandidate(workspace,"example","comfortable","alternative"),/已存在/);
   });
   test("Build embeds project components, specs, styles and assets with safe Markdown",async()=>{
-    const before=fs.readFileSync(path.join(tool,"app.tsx")),page=path.join(req,"candidates/comfortable/components/Task.tsx"),image=path.join(path.dirname(page),"example.svg");fs.writeFileSync(image,'<svg xmlns="http://www.w3.org/2000/svg"><rect width="12" height="12"/></svg>');
+    const before=fs.readFileSync(path.join(tool,"src/frontend/app/App.tsx")),page=path.join(req,"candidates/comfortable/components/Task.tsx"),image=path.join(path.dirname(page),"example.svg");fs.writeFileSync(image,'<svg xmlns="http://www.w3.org/2000/svg"><rect width="12" height="12"/></svg>');
     fs.writeFileSync(page,'import graphic from "./example.svg";\n'+fs.readFileSync(page,"utf8").replace('<main className="task-page">','<main className="task-page"><img src={graphic} alt="样例"/>'));fs.appendFileSync(path.join(req,"requirement.md"),'\n<script>window.INJECTED=1</script>\n[bad](javascript:alert(1))\n');
-    const {html,payload}=await buildRequirement(workspace,"example");assert.match(html,/data:image\/svg\+xml/);assert.match(payload.documentation,/id="overview-input"/);assert.doesNotMatch(payload.documentation,/<script>|href="javascript:/);assert.match(html,/Third-party licenses/);assert.equal(payload.token,undefined);assert.deepEqual(fs.readFileSync(path.join(tool,"app.tsx")),before);
+    const {html,payload}=await buildRequirement(workspace,"example");assert.match(html,/data:image\/svg\+xml/);assert.match(payload.documentation,/id="overview-input"/);assert.doesNotMatch(payload.documentation,/<script>|href="javascript:/);assert.match(html,/Third-party licenses/);assert.equal(payload.token,undefined);assert.deepEqual(fs.readFileSync(path.join(tool,"src/frontend/app/App.tsx")),before);
   });
   test("Candidate code shares public foundation but cannot import business source or another candidate",async()=>{
     const page=path.join(req,"candidates/comfortable/components/Task.tsx"),source=fs.readFileSync(page,"utf8");

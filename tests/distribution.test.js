@@ -262,7 +262,7 @@ describe("Plugin distribution", () => {
   test("Missing skills, shared resources or the central CLI prevent packaging", () => {
     for(const relative of [
       ...SKILL_NAMES.map(name => "skills/" + name + "/SKILL.md"),
-      "workbench/app.tsx", "workbench/cli.mjs", ...SHARED_FILES.map(file => "shared/" + file)
+      "workbench/src/frontend/app/App.tsx", "workbench/cli.mjs", ...SHARED_FILES.map(file => "shared/" + file)
     ]) {
       const filename=path.join(root,relative),original=fs.readFileSync(filename);
       fs.unlinkSync(filename);

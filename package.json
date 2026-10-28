@@ -13,7 +13,7 @@
     "check": "npm run validate && npm test",
     "package": "node scripts/package-plugin.js",
     "demo": "node scripts/demo.js",
-    "test:browser": "node scripts/browser-smoke.js && node scripts/navigation-smoke.js && node scripts/agent-smoke.js && node scripts/roles-smoke.js",
+    "test:browser": "node scripts/select-smoke.js && node scripts/browser-smoke.js && node scripts/navigation-smoke.js && node scripts/agent-smoke.js && node scripts/roles-smoke.js && node scripts/composer-smoke.js && node scripts/preferences-smoke.js",
     "workbench": "node workbench/cli.mjs",
     "typecheck": "node workbench/cli.mjs typecheck"
   },
@@ -26,6 +26,7 @@
     "typescript": "7.0.2"
   },
   "dependencies": {
+    "@base-ui/react": "1.9.0",
     "@json-render/core": "0.21.3",
     "@json-render/react": "0.21.3",
     "esbuild": "0.28.2",

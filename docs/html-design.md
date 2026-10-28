@@ -4,7 +4,7 @@
 
 插件 [workbench/](../workbench/cli.mjs) 提供固定工具；项目只维护业务资源。加载器读取 project.json、需求清单、项目公共基础、候选 Catalog／Registry、完整原生 Spec、场景及说明，不执行项目构建配置。
 
-[资源协议](../shared/references/protocol.md)与[加载校验](../workbench/lib/protocol.mjs)一起维护。json-render 0.21.3 的 Spec 维护组合和实例属性，自定义 React 组件维护精确外观和复杂行为。Catalog 定义 Zod 属性与动作，Registry 提供实现；项目可扩展业务组件，无需改固定工作台。
+[资源协议](../shared/references/protocol.md)与[加载校验](../workbench/src/backend/adapters/resource-store.mjs)一起维护。json-render 0.21.3 的 Spec 维护组合和实例属性，自定义 React 组件维护精确外观和复杂行为。Catalog 定义 Zod 属性与动作，Registry 提供实现；项目可扩展业务组件，无需改固定工作台。
 
 项目只保留根目录 foundation 一份源码，需求和候选用 @design-harness/foundation/... 引用。公共更新影响已有需求，重建后的交付也采用最新基础，维护时检查向下兼容。各候选有独立 Spec、参数和专属实现；克隆复制全部候选文件。当前统一最新协议，不保留旧 studio 模式兼容层。
 

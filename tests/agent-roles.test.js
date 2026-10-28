@@ -1,19 +1,21 @@
+import {testConnection} from "./helpers/codex-connection.mjs";
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import {inflateSync} from "node:zlib";
-import {initialize} from "../workbench/lib/workspace.mjs";
-import {createLiveAgentRuntime} from "../workbench/lib/live-agent.mjs";
-import {captureDesignView,saveDesignReferences} from "../workbench/lib/agent-visual.mjs";
-import {loadRequirement,readJson} from "../workbench/lib/protocol.mjs";
+import {initialize} from "../workbench/src/backend/services/workspace.mjs";
+import {createLiveAgentRuntime} from "../workbench/src/backend/services/agent-runtime.mjs";
+import {captureDesignView,saveDesignReferences} from "../workbench/src/backend/adapters/design-capture.mjs";
+import {loadRequirement} from "../workbench/src/backend/adapters/resource-store.mjs";
+import {readJson} from "../workbench/src/backend/adapters/filesystem.mjs";
 
 const png=Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/nq8AAAAASUVORK5CYII=","base64");
 const capture={page:"task",width:1440,height:960,state:{phase:"new",topic:"用户实际输入"},html:'<!doctype html><html><body><input value="用户实际输入"></body></html>'};
 const request=(workspace,role="interaction")=>({type:"message",role,id:"example",candidate:"comfortable",page:"task",scenario:"new",capture,expectedRevision:loadRequirement(workspace,"example").revision,prompt:"完善当前设计"});
 async function settled(runtime,id){const deadline=Date.now()+45000;while(Date.now()<deadline){const job=runtime.get(id);if(!["running","validating"].includes(job.state))return job;await new Promise(resolve=>setTimeout(resolve,25));}throw new Error("专业提案未完成");}
-async function fixture(run,check){const temp=fs.mkdtempSync(path.join(os.tmpdir(),"dh-roles-")),workspace=initialize(temp,{example:true}).workspace,runtime=createLiveAgentRuntime(workspace,{run,capture:async({directory})=>{const file=path.join(directory,"current-view.png");fs.writeFileSync(file,png);return file;}});try{await check({workspace,runtime});}finally{await runtime.close();fs.rmSync(temp,{recursive:true,force:true});}}
+async function fixture(run,check){const temp=fs.mkdtempSync(path.join(os.tmpdir(),"dh-roles-")),workspace=initialize(temp,{example:true}).workspace,runtime=createLiveAgentRuntime(workspace,{connection:testConnection(),run,capture:async({directory})=>{const file=path.join(directory,"current-view.png");fs.writeFileSync(file,png);return file;}});try{await check({workspace,runtime});}finally{await runtime.close();fs.rmSync(temp,{recursive:true,force:true});}}
 const changedFile=(directory,relative,transform)=>({path:relative,content:transform(fs.readFileSync(path.join(directory,"requirements/example",relative),"utf8"))});
 
 test("Explicit identities load the real Skill sources, share candidate conversation and receive documents, live state and images",async()=>{
@@ -86,7 +88,7 @@ test("The static capture renderer creates a PNG with product scripts and network
 
 test("Discarding refinement releases the previous proposal before slow capture teardown completes",async()=>{
   const temp=fs.mkdtempSync(path.join(os.tmpdir(),"dh-role-discard-")),workspace=initialize(temp,{example:true}).workspace;let captures=0;
-  const runtime=createLiveAgentRuntime(workspace,{capture:async({signal})=>{if(++captures===2)await new Promise((resolve,reject)=>signal.addEventListener("abort",()=>setTimeout(()=>reject(new Error("capture stopped")),300),{once:true}));return null;},run:async({directory,prompt})=>prompt.includes('User message: "讨论另一方案"')?{summary:"另一方案可正常讨论",files:[],controls:[]}:{summary:"调整标题",files:[changedFile(directory,"candidates/comfortable/pages/task.json",text=>{const spec=JSON.parse(text);spec.elements["task-page"].props.title="待确认方案";return JSON.stringify(spec);})],controls:[]}});
+  const runtime=createLiveAgentRuntime(workspace,{connection:testConnection(),capture:async({signal})=>{if(++captures===2)await new Promise((resolve,reject)=>signal.addEventListener("abort",()=>setTimeout(()=>reject(new Error("capture stopped")),300),{once:true}));return null;},run:async({directory,prompt})=>prompt.includes('User message: "讨论另一方案"')?{summary:"另一方案可正常讨论",files:[],controls:[]}:{summary:"调整标题",files:[changedFile(directory,"candidates/comfortable/pages/task.json",text=>{const spec=JSON.parse(text);spec.elements["task-page"].props.title="待确认方案";return JSON.stringify(spec);})],controls:[]}});
   try{const first=await settled(runtime,(await runtime.event(request(workspace,"visual"))).id),next=await runtime.event({...request(workspace,"visual"),baseJob:first.id}),discarding=runtime.event({type:"discard",job:next.id});
     const other=await runtime.event({...request(workspace,"visual"),candidate:"compact",prompt:"讨论另一方案"});assert.equal((await settled(runtime,other.id)).state,"answered");await discarding;
   }finally{await runtime.close();fs.rmSync(temp,{recursive:true,force:true});}
@@ -94,7 +96,7 @@ test("Discarding refinement releases the previous proposal before slow capture t
 
 test("Screenshot preparation cannot replace the frozen source context with later external edits",async()=>{
   const temp=fs.mkdtempSync(path.join(os.tmpdir(),"dh-role-snapshot-")),workspace=initialize(temp,{example:true}).workspace;let release,prompt;
-  const gate=new Promise(resolve=>{release=resolve;}),runtime=createLiveAgentRuntime(workspace,{capture:async()=>{await gate;return null;},run:async input=>{prompt=input.prompt;return {summary:"讨论冻结的当前设计",files:[],controls:[]};}});
+  const gate=new Promise(resolve=>{release=resolve;}),runtime=createLiveAgentRuntime(workspace,{connection:testConnection(),capture:async()=>{await gate;return null;},run:async input=>{prompt=input.prompt;return {summary:"讨论冻结的当前设计",files:[],controls:[]};}});
   try{const job=await runtime.event(request(workspace,"visual")),file=path.join(workspace,"requirements/example/candidates/comfortable/pages/task.json"),spec=readJson(file);spec.elements["task-page"].props.title="截图期间的外部修改";fs.writeFileSync(file,JSON.stringify(spec));release();assert.equal((await settled(runtime,job.id)).state,"answered");assert.doesNotMatch(prompt,/截图期间的外部修改/);
   }finally{release();await runtime.close();fs.rmSync(temp,{recursive:true,force:true});}
 });
@@ -102,7 +104,7 @@ test("Screenshot preparation cannot replace the frozen source context with later
 test("Current native popovers and canvas geometry remain visible in the static screenshot",async()=>{
   const directory=fs.mkdtempSync(path.join(os.tmpdir(),"dh-popover-capture-")),{chromium}=await import("playwright"),{transform}=await import("esbuild"),browser=await chromium.launch({channel:"chrome",headless:true});
   try{const page=await browser.newPage({viewport:{width:900,height:900}});await page.setContent('<!doctype html><html><body><main data-jr-key="page">页面</main><div popover="manual" id="panel" style="inset:0;margin:0;padding:0;border:0;width:100vw;height:100vh;background:rgb(12,100,70)">已展开的选择面板</div></body></html>');
-    const script=await transform(fs.readFileSync(new URL("../workbench/capture.ts",import.meta.url),"utf8"),{loader:"ts",format:"iife",globalName:"captureTest"});await page.addScriptTag({content:script.code});
+    const script=await transform(fs.readFileSync(new URL("../workbench/src/preview/capture.ts",import.meta.url),"utf8"),{loader:"ts",format:"iife",globalName:"captureTest"});await page.addScriptTag({content:script.code});
     const html=await page.evaluate(()=>{document.querySelector("#panel").showPopover();return window.captureTest.captureDocument();});assert.match(html,/data-dh-capture-popover/);
     const file=await captureDesignView({capture:{...capture,html,width:900,height:900},directory,signal:new AbortController().signal}),bytes=fs.readFileSync(file),chunks=[];
     for(let offset=8;offset<bytes.length;){const length=bytes.readUInt32BE(offset);if(bytes.toString("ascii",offset+4,offset+8)==="IDAT")chunks.push(bytes.subarray(offset+8,offset+8+length));offset+=length+12;}

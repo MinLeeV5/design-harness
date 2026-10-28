@@ -3,10 +3,10 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import {parseInteractionDocument} from "../workbench/lib/interaction-docs.mjs";
-import {matchesWhen,pointerValue} from "../workbench/conditions.mjs";
-import {initialize} from "../workbench/lib/workspace.mjs";
-import {loadRequirement} from "../workbench/lib/protocol.mjs";
+import {parseInteractionDocument} from "../workbench/src/backend/adapters/interaction-docs.mjs";
+import {matchesWhen,pointerValue} from "../workbench/src/contracts/conditions.mjs";
+import {initialize} from "../workbench/src/backend/services/workspace.mjs";
+import {loadRequirement} from "../workbench/src/backend/adapters/resource-store.mjs";
 const example=`---
 schemaVersion: 1
 page: tasks

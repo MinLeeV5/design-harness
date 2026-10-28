@@ -4,12 +4,102 @@ import fs from "node:fs";
 import path from "node:path";
 import {fileURLToPath} from "node:url";
 import {isWithin, isFile, walk} from "./files.js";
+import {validateArchitecture} from "./architecture.js";
 
 export const ROOT = path.resolve(import.meta.dirname, "..");
 export const SKILL_NAMES = ["design-harness-init", "design-harness-interaction", "design-harness-visual", "design-harness-product"];
 // Entries carry phase instructions; the complete plugin owns the shared resources and runtime.
 export const WORKSPACE_FILES = [".gitignore","README.md","project.json","foundation/components.tsx","foundation/catalog.ts","foundation/registry.tsx","foundation/design.md","foundation/foundation.json","foundation/tokens.css"];
-export const WORKBENCH_FILES = ["app.tsx","interaction-reader.tsx","conditions.mjs","conditions.d.mts","live-agent.tsx","capture.ts","agent-roles.mjs","agent-roles.d.mts","agent-controls.mjs","agent-controls.d.mts","inspector.ts","preview.tsx","sdk.tsx","types.ts","assets.d.ts","assets/harness-icon.png","studio.css","cli.mjs",...["paths","protocol","dependencies","typecheck","build","server","workspace","live-agent","agent-skills","agent-policy","agent-visual","agent-events","validate-preview","markdown","interaction-docs"].map(n=>"lib/"+n+".mjs"),"vendor/impeccable/live-browser-dom.js","vendor/impeccable/LICENSE","vendor/impeccable/NOTICE.md","starter/manifest.json","starter/scenarios.json","starter/interactions/task.md","starter/requirement.md","starter/handoff.md",...["comfortable","compact"].flatMap(c=>["catalog.ts","registry.tsx","params.json","pages/task.json","components/Task.tsx","components/task.css"].map(f=>"starter/candidates/"+c+"/"+f))];
+export const WORKBENCH_FILES = [
+  "assets/harness-icon.png",
+  "cli.mjs",
+  "src/backend/adapters/agent-prompt.mjs",
+  "src/backend/adapters/agent-preferences.mjs",
+  "src/backend/adapters/agent-skills.mjs",
+  "src/backend/adapters/bundler.mjs",
+  "src/backend/adapters/codex-connection.mjs",
+  "src/backend/adapters/codex-events.mjs",
+  "src/backend/adapters/codex-exec.mjs",
+  "src/backend/adapters/dependencies.mjs",
+  "src/backend/adapters/design-capture.mjs",
+  "src/backend/adapters/export-file.mjs",
+  "src/backend/adapters/filesystem.mjs",
+  "src/backend/adapters/interaction-docs.mjs",
+  "src/backend/adapters/markdown.mjs",
+  "src/backend/adapters/proposal-files.mjs",
+  "src/backend/adapters/resource-store.mjs",
+  "src/backend/adapters/spec-store.mjs",
+  "src/backend/adapters/typecheck.mjs",
+  "src/backend/adapters/validate-preview.mjs",
+  "src/backend/adapters/workspace-files.mjs",
+  "src/backend/http/requests.mjs",
+  "src/backend/http/routes.mjs",
+  "src/backend/http/server.mjs",
+  "src/backend/paths.mjs",
+  "src/backend/services/agent-runtime.mjs",
+  "src/backend/services/agent-settings.mjs",
+  "src/backend/services/export.mjs",
+  "src/backend/services/preview.mjs",
+  "src/backend/services/proposal-policy.mjs",
+  "src/backend/services/proposals.mjs",
+  "src/backend/services/workspace.mjs",
+  "src/cli/main.mjs",
+  "src/contracts/agent-controls.d.mts",
+  "src/contracts/agent-controls.mjs",
+  "src/contracts/agent-output.mjs",
+  "src/contracts/agent-policy.mjs",
+  "src/contracts/agent-roles.d.mts",
+  "src/contracts/agent-roles.mjs",
+  "src/contracts/agent-settings.mjs",
+  "src/contracts/agent-settings.d.mts",
+  "src/contracts/assertions.mjs",
+  "src/contracts/conditions.d.mts",
+  "src/contracts/conditions.mjs",
+  "src/contracts/errors.mjs",
+  "src/contracts/resources.mjs",
+  "src/contracts/types.ts",
+  "src/frontend/api/preview.ts",
+  "src/frontend/api/workbench.ts",
+  "src/frontend/app/App.tsx",
+  "src/frontend/app/icons.tsx",
+  "src/frontend/app/studio.css",
+  "src/frontend/app/values.ts",
+  "src/frontend/assets.d.ts",
+  "src/frontend/features/agent/AgentComposer.tsx",
+  "src/frontend/features/agent/AgentPanel.tsx",
+  "src/frontend/features/agent/use-agent.ts",
+  "src/frontend/features/canvas/PreviewFrame.tsx",
+  "src/frontend/features/interactions/InteractionReader.tsx",
+  "src/frontend/features/navigation/use-navigation.ts",
+  "src/frontend/index.tsx",
+  "src/frontend/ui/Select.tsx",
+  "src/frontend/ui/select.css",
+  "src/frontend/ui/scrollbars.css",
+  "src/preview/capture.ts",
+  "src/preview/inspector.ts",
+  "src/preview/runtime.tsx",
+  "src/preview/sdk.tsx",
+  "starter/candidates/comfortable/catalog.ts",
+  "starter/candidates/comfortable/components/Task.tsx",
+  "starter/candidates/comfortable/components/task.css",
+  "starter/candidates/comfortable/pages/task.json",
+  "starter/candidates/comfortable/params.json",
+  "starter/candidates/comfortable/registry.tsx",
+  "starter/candidates/compact/catalog.ts",
+  "starter/candidates/compact/components/Task.tsx",
+  "starter/candidates/compact/components/task.css",
+  "starter/candidates/compact/pages/task.json",
+  "starter/candidates/compact/params.json",
+  "starter/candidates/compact/registry.tsx",
+  "starter/handoff.md",
+  "starter/interactions/task.md",
+  "starter/manifest.json",
+  "starter/requirement.md",
+  "starter/scenarios.json",
+  "vendor/impeccable/LICENSE",
+  "vendor/impeccable/NOTICE.md",
+  "vendor/impeccable/live-browser-dom.js",
+];
 export const SHARED_REFERENCES = ["agent.md", "assets.md", "fidelity.md", "workspace.md", "protocol.md", "interactions.md", "preview-export.md", "handoff.md", "product-source.md", "sources.md"];
 export const SHARED_NOTICES = ["lucide/LICENSE", "visual-assets/NOTICE.md", "design-md/LICENSE", "design-md/NOTICE.md", "impeccable/NOTICE.md", "ui-ux-pro-max/LICENSE", "ui-ux-pro-max/NOTICE.md", "harness-designing-plugin/LICENSE"];
 export const SHARED_FILES = [
@@ -215,6 +305,8 @@ export function validate(directory = ROOT) {
   for (const obsolete of ["workflows", "references", "evaluation", "templates", "third-party", "scripts/figma-reader.js"]) {
     check(!fs.existsSync(path.join(root, obsolete)), `Shared resources belong in shared/; obsolete root resource: ${obsolete}`);
   }
+  // Structural errors remain readable before dependency installation.
+  if (!errors.length) errors.push(...validateArchitecture(root));
   return errors;
 }
 
