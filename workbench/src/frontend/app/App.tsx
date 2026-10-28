@@ -4,6 +4,7 @@ import "./studio.css";
 import {InteractionReader,annotationsFor} from "../features/interactions/InteractionReader";
 import {useAgent} from "../features/agent/use-agent";
 import {AgentPanel} from "../features/agent/AgentPanel";
+import {AgentSessionControls,ProviderStatus} from "../features/agent/AgentHeader";
 import {PreviewFrame} from "../features/canvas/PreviewFrame";
 import {useNavigation} from "../features/navigation/use-navigation";
 import {captureFrame} from "../api/preview";
@@ -198,7 +199,7 @@ export function App({data:initialData}:{data:BundleData}) {
       </div>
     </aside>
     {panel&&<aside id="studio-inspector" className="inspector-drawer" data-pick-hidden={pick} role="dialog" aria-modal="false" aria-labelledby="inspector-title" inert={pick}>
-      <header className="inspector-header"><div><h2 id="inspector-title">{panelNames[panel]}</h2></div><button ref={closeButton} aria-label="关闭辅助面板" title="关闭 · Esc" onClick={closePanel}><CloseIcon/></button></header>
+      <header className="inspector-header"><div className="inspector-title-group">{panel==="agent"&&data.development?<AgentSessionControls agent={agent}/>:<h2 id="inspector-title">{panelNames[panel]}</h2>}</div><div className="inspector-header-actions">{panel==="agent"&&data.development&&<ProviderStatus agent={agent}/>}<button className="inspector-close" ref={closeButton} aria-label="关闭辅助面板" title="关闭 · Esc" onClick={closePanel}><CloseIcon/></button></div></header>
       <div className={"inspector-body "+(panel==="agent"?"agent-body":"")}>
         {panel==="docs"&&<div className="documentation" ref={docRef}>
           <InteractionReader interactions={interactions} page={page} pageTitle={manifest.pages.find(p=>p.id===page)!.title} state={runtimeState} elements={elements} selected={selectedAnnotation} overview={proposal?.documentation??data.documentation} foundation={manifest.foundationVersion} onLocate={locateAnnotation}/>

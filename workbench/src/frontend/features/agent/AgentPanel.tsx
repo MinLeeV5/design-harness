@@ -1,4 +1,4 @@
-import {useEffect,useRef,useState} from "react";
+import {useEffect,useLayoutEffect,useRef,useState} from "react";
 import type {AgentMessage,AgentProposal,AgentApproval,DomSelection} from "../../../contracts/types";
 import {tuneProposal} from "../../../contracts/agent-controls.mjs";
 import {effortLabel} from "../../../contracts/agent-settings.mjs";
@@ -8,6 +8,23 @@ import type {useAgent} from "./use-agent";
 import {Select} from "../../ui/Select";
 import {AgentComposer} from "./AgentComposer";
 import {Markdown} from "../../ui/Markdown";
+function DirectoryPath({path}:{path:string}){
+  const label=useRef<HTMLSpanElement>(null),[display,setDisplay]=useState(path);
+  useLayoutEffect(()=>{
+    const node=label.current,context=document.createElement("canvas").getContext("2d");if(!node||!context)return;
+    const characters=Array.from(path);
+    const compact=(length:number)=>{const head=Math.ceil(length/2),tail=length-head;return characters.slice(0,head).join("")+"..."+(tail?characters.slice(-tail).join(""):"");};
+    const update=()=>{
+      const width=node.clientWidth;if(!width)return;context.font=getComputedStyle(node).font;
+      if(context.measureText(path).width<=width){setDisplay(path);return;}
+      let low=0,high=characters.length-1;
+      while(low<high){const middle=Math.ceil((low+high)/2);if(context.measureText(compact(middle)).width<=width)low=middle;else high=middle-1;}
+      setDisplay(compact(low));
+    };
+    update();const observer=new ResizeObserver(update);observer.observe(node);return()=>observer.disconnect();
+  },[path]);
+  return <small className="agent-directory" title={path}><span>目录：</span><span className="agent-directory-path" ref={label}>{display}</span></small>;
+}
 function ApprovalCard({approval,agent}:{approval:AgentApproval;agent:ReturnType<typeof useAgent>}){
   const [values,setValues]=useState<Record<string,string|boolean>>({});
   const pending=approval.state==="pending"&&agent.job?.approvals?.some(item=>item.id===approval.id&&item.state==="pending");
@@ -20,8 +37,12 @@ function ApprovalCard({approval,agent}:{approval:AgentApproval;agent:ReturnType<
       return [[field.id,field.type==="number"||field.type==="integer"?Number(value):value]];
     })):undefined;void agent.decideApproval(approval.id,choice,content);
   }
+  if(approval.kind==="command"&&!pending){
+    const result=({accepted:"已批准 ✅",declined:"已拒绝",cancelled:"已取消",pending:"已结束"})[approval.state];
+    return <small className="agent-approval-result" aria-label={(approval.command?approval.command+" ":"")+"命令"+result}>{approval.command&&<span className="approval-command" title={approval.command}>{approval.command}</span>}<span>命令{result}</span></small>;
+  }
   return <section className="agent-approval" aria-label={approval.title}>
-    <strong>{approval.title}</strong>{approval.reason&&<p>{approval.reason}</p>}{approval.command&&<pre>{approval.command}</pre>}{approval.cwd&&<small>目录：{approval.cwd}</small>}{approval.details&&<pre>{approval.details}</pre>}
+    <strong>{approval.title}</strong>{approval.reason&&<p>{approval.reason}</p>}{approval.command&&<pre>{approval.command}</pre>}{approval.cwd&&<DirectoryPath path={approval.cwd}/>}{approval.details&&<pre>{approval.details}</pre>}
     {pending&&approval.url&&<a href={approval.url} target="_blank" rel="noopener noreferrer">打开工具授权页面</a>}
     {pending&&approval.fields?.map(field=><label className="approval-field" key={field.id}><span>{field.label}{field.required?"（必填）":""}</span>{field.options?<Select label={field.label} value={String(values[field.id]??"")} options={field.options.map(option=>({value:option.value,label:option.label}))} onValueChange={value=>set(field.id,value)} disabled={agent.submitting}/>:field.type==="boolean"?<input type="checkbox" checked={values[field.id]===true} onChange={event=>set(field.id,event.target.checked)} disabled={agent.submitting}/>:<input type={field.type==="string"?"text":"number"} value={String(values[field.id]??"")} maxLength={field.maxLength??16000} minLength={field.minLength} min={field.minimum} max={field.maximum} step={field.type==="integer"?1:"any"} onChange={event=>set(field.id,event.target.value)} disabled={agent.submitting}/>}<small>{field.description}</small></label>)}
     {pending&&<small>批准可能允许操作超出当前沙箱。涉及源文件或外部服务的修改不会随放弃提案撤销。</small>}
@@ -45,14 +66,13 @@ export function AgentPanel({agent,enabled,blocked,blockedReason,selection,select
   const ready=agent.job?.state==="ready",locked=agent.submitting||agent.waiting||agent.readingReferences,controls=ready?agent.job?.proposal?.controls??[]:[];
   const states:Record<string,string>={running:"正在处理",awaiting_approval:"等待批准",validating:"正在校验",accepting:"正在接受修改",ready:"预览待确认",accepted:"已接受",discarded:"已放弃",superseded:"已继续调整",cancelled:"已取消",failed:"处理失败",answered:"已回复"};
   return <section className="agent-panel chat-panel" aria-label="Agent">
-    {enabled&&<div className="agent-sessions"><Select label="Agent 会话" value={agent.sessionId} onValueChange={id=>void agent.selectSession(id)} options={agent.sessions.map((session,index)=>({value:session.id,label:(index+1)+" · "+session.title,description:states[session.state]??"尚未发送"}))}/><button onClick={()=>void agent.newSession()} disabled={agent.creating||!agent.sessionReady}>新建会话</button></div>}
     <div className="agent-messages" role="log" aria-label="Agent 对话记录" aria-live="polite" ref={log} onScroll={()=>{const el=log.current;if(el)follow.current=el.scrollHeight-el.scrollTop-el.clientHeight<70;}}>
       {agent.messages.length?agent.messages.map(message=><article key={message.id} className={"agent-message "+message.role}>
         <header><strong>{message.role==="user"?"你":message.identity?agentRoles[message.identity].label+" Agent":"Agent"}</strong>{message.startedAt&&<time dateTime={new Date(message.startedAt).toISOString()}>{new Date(message.startedAt).toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})}</time>}</header>
         {message.selection&&<small className="message-element">{message.selection.tag} · {message.selection.label}</small>}
         {message.role==="assistant"&&message.model&&<small className="message-model">{message.model.name} · {message.model.provider}{message.model.effort&&<> · 思考 {effortLabel(message.model.effort)}</>}{message.permissionMode&&<> · {permissionLabel(message.permissionMode)}</>}</small>}{message.content&&<Markdown source={message.content}/>}
         {message.permissionMode==="full-access"&&message.role==="assistant"&&<small className="message-permission">本轮使用完全访问；放弃或取消不会撤销直接修改。</small>}
-        {!!message.activity?.length&&<details className="agent-process" open={["running","validating","accepting"].includes(message.state??"")}><summary>处理过程 · {message.activity.length} 项{message.startedAt&&<span>{activityElapsed(message,now)}</span>}</summary><ol aria-label="实际处理活动">{message.activity.map(item=><li key={item.id} data-state={item.status}>{item.status==="running"?<span className="loading-spinner" aria-hidden="true"/>:<span className="activity-mark" aria-hidden="true">{item.status==="failed"?"!":item.status==="cancelled"?"−":"✓"}</span>}<div><span>{item.label}</span>{item.text&&<Markdown source={item.text}/>}{item.command&&<pre className="agent-command">{item.command}</pre>}{item.cwd&&<small>目录：{item.cwd}</small>}{item.output&&<details className="agent-output"><summary>查看输出{item.exitCode!==undefined?" · 退出码 "+item.exitCode:""}</summary><pre>{item.output}</pre>{item.truncated&&<small>输出较长，已截断。</small>}</details>}{!item.output&&item.exitCode!==undefined&&<small>退出码 {item.exitCode}</small>}</div></li>)}</ol></details>}
+        {!!message.activity?.length&&<details className="agent-process" open={["running","validating","accepting"].includes(message.state??"")}><summary>处理过程 · {message.activity.length} 项{message.startedAt&&<span>{activityElapsed(message,now)}</span>}</summary><ol aria-label="实际处理活动">{message.activity.map(item=><li key={item.id} data-state={item.status}>{item.status==="running"?<span className="loading-spinner" aria-hidden="true"/>:<span className="activity-mark" aria-hidden="true">{item.status==="failed"?"!":item.status==="cancelled"?"−":"✓"}</span>}<div><span>{item.label}</span>{item.text&&<Markdown source={item.text}/>}{item.command&&<pre className="agent-command">{item.command}</pre>}{item.cwd&&<DirectoryPath path={item.cwd}/>}{item.output&&<details className="agent-output"><summary>查看输出{item.exitCode!==undefined?" · 退出码 "+item.exitCode:""}</summary><pre>{item.output}</pre>{item.truncated&&<small>输出较长，已截断。</small>}</details>}{!item.output&&item.exitCode!==undefined&&<small>退出码 {item.exitCode}</small>}</div></li>)}</ol></details>}
         {message.approvals?.map(approval=><ApprovalCard key={approval.id} approval={approval} agent={agent}/>)}
         {message.role==="assistant"&&message.state&&<small className="message-state">{states[message.state]??message.state}</small>}
       </article>):<div className="agent-empty"><strong>从页面开始，一起完善设计</strong><p>默认由交互设计协助，也可切换视觉设计；直接讨论目标、附加参考图或点选元素。提案工作区中的修改先预览，接受后写入。</p></div>}
