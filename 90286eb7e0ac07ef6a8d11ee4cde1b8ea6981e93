@@ -1,0 +1,120 @@
+workbench/src/frontend/app/studio.css
+  6166d6637ed456a6 242
+  c4d2bd524c39d8df 243
+workbench/src/backend/adapters/agent-prompt.mjs
+  6166d6637ed456a6 14-16,20
+workbench/src/frontend/app/App.tsx
+  6166d6637ed456a6 16,18,171
+workbench/src/frontend/features/agent/use-agent.ts
+  6166d6637ed456a6 3,29,76,90-96,106
+workbench/src/contracts/agent-permissions.d.mts
+  6166d6637ed456a6 1-5
+workbench/src/contracts/agent-provider.d.mts
+  6166d6637ed456a6 1,7
+workbench/src/contracts/types.ts
+  6166d6637ed456a6 16-19,23-24,26-27,31
+workbench/src/contracts/agent-permissions.mjs
+  6166d6637ed456a6 1-12
+workbench/src/backend/adapters/codex-app-server.mjs
+  c4d2bd524c39d8df 109,112-115,121-129,135-137,146
+  6166d6637ed456a6 3,5,7-11,36,58,63,65-66,70-71,76-77,79-108,110-111,117,120,130-131,133,147
+workbench/src/frontend/features/agent/AgentPanel.tsx
+  c4d2bd524c39d8df 55
+  6166d6637ed456a6 6,10-29,32,45,52-54,57,59-60
+tests/agent-settings.test.js
+  6166d6637ed456a6 19,30
+workbench/src/backend/adapters/agent-preferences.mjs
+  6166d6637ed456a6 24
+workbench/src/backend/adapters/codex-events.mjs
+  c4d2bd524c39d8df 30-61
+  5e45f3a6f5382126 62
+tests/codex-app-server.test.js
+  6166d6637ed456a6 30-31
+  c4d2bd524c39d8df 54-109
+tests/agent-events.test.js
+  c4d2bd524c39d8df 25-37
+  6166d6637ed456a6 3-4,7
+tests/agent-permissions.test.js
+  6166d6637ed456a6 1-64,74-80
+  c4d2bd524c39d8df 65-73
+workbench/src/backend/services/agent-runtime.mjs
+  c4d2bd524c39d8df 144-152
+  6166d6637ed456a6 5,13,37-39,43,46-48,51-61,67,80,96-97,107,111,113,116,119,121,130,133,141-143,153,157
+workbench/src/contracts/agent-settings.mjs
+  6166d6637ed456a6 2-3,11,14,18
+workbench/src/backend/services/agent-settings.mjs
+  6166d6637ed456a6 2,6,8,11
+workbench/src/backend/adapters/proposal-files.mjs
+  6166d6637ed456a6 38-71
+scripts/validate.js
+  6166d6637ed456a6 52-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.8.2",
+  "base_commit_sha": "90286eb7e0ac07ef6a8d11ee4cde1b8ea6981e93",
+  "prompts": {
+    "5e45f3a6f5382126": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18028-60da-7a52-87a1-c1e1be115f9d",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 728,
+      "overriden_lines": 0,
+      "token_usage": {
+        "input_tokens": 174645,
+        "output_tokens": 64079,
+        "cache_read_tokens": 8625408,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "6166d6637ed456a6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18148-861c-7061-b52d-f788086e6a1f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 460,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/96365afea5cf04c575267034830e963723d24bc80dffa49c6bd27f423519ba98",
+      "token_usage": {
+        "input_tokens": 1050669,
+        "output_tokens": 159047,
+        "cache_read_tokens": 37068544,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "c4d2bd524c39d8df": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a181ca-3eca-7d90-befc-029b27040e62",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 320,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/bd17d586686498aa3a0cd803b29f24d342e99d43a6be6dd9939de9ff9d664f60",
+      "token_usage": {
+        "input_tokens": 166841,
+        "output_tokens": 31169,
+        "cache_read_tokens": 5405824,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    }
+  }
+}
