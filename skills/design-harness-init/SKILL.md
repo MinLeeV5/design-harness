@@ -11,6 +11,8 @@ metadata:
 
 由用户显式启动本阶段，承接当前范围、授权与决定。设计交付独立于产品工程，知识保存到项目仓库的 design-harness/，不依赖 Figma。
 
+先盘点约定范围，再建立有来源、可复用并经运行验证的设计基础。已有产品提取指定版本的实现；尚无界面的新项目按已确认意图建立设计草稿。基础验证预览属于 Init，用于核对组件、布局模式与状态，不自动启动新的业务需求或后续设计阶段。仅生成目录和 Token 不构成初始化交付。
+
 工作台由完整插件固定提供；项目只维护业务资源。页面采用 json-render Spec，Catalog／Registry 注册项目自定义 React 组件；实例属性写回 Spec，组件内部实现由 Agent 修改。公共命令使用[插件 CLI](../../workbench/cli.mjs)，插件目录为本文件所在目录的 ../..。
 
 完整 UI 交付须覆盖声明范围内的产品壳层、组件与状态，按最高保真要求核对；独立于工程复用不降低设计质量。先读[交付保真](../../shared/references/fidelity.md)，再读[工作流](references/workflow.md)。建立工作区读[模板职责](../../shared/references/workspace.md)，编写文件读[协议](../../shared/references/protocol.md)，

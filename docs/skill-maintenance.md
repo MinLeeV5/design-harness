@@ -4,6 +4,10 @@
 
 四个入口显式启动；产品共创独立处理业务 PRD，交互和视觉共同编辑同一 json-render Spec 与 React 组件产物。维护流程时读取实际影响阶段的 references/workflow.md、evaluation.md。
 不恢复固定逐页逐状态审批，不强制小修改探索多套候选。范围内直接落实明确改动；关键业务行为或交付边界变化才重新对齐。
+
+Init 按[初始化工作流](../skills/design-harness-init/references/workflow.md)与[阶段评价](../skills/design-harness-init/references/evaluation.md)维护交付契约：先建立范围与覆盖清单，已有产品校准运行及布局基线后提取，新项目按已确认意图建立草稿；公共组件与实际页面模式在基础验证预览中核对。该预览使用现有 requirements 协议，属于 Init，不启动新业务需求或后续阶段。覆盖及验证未齐备时报告阶段性结果，用户验收状态另记。不得将单次试点的组件数、页面类别或设备尺寸固化为通用完成标准。
+维护时同步[基础说明模板](../shared/workspace/foundation/design.md)、[模板职责](../shared/references/workspace.md)、README 与验证说明；唯一公共 foundation 的复用约定保持一致，不恢复复制基础或额外模板 UI 树。
+
 交互与视觉在当前任务中完成过程维护、获准的公共基础更新、验证与交接，按请求导出并验证离线 HTML；共同规则只维护在[设计维护与交接](../shared/references/handoff.md)，不另设回写入口。各阶段仍保留自身的交互或视觉评价。
 验证输出临时清理，不在项目和分发中维护 evidence；必要结论和未决项记入 handoff.md。真实决定、反馈与实际变化记入需求 handoff.md，工具成功和导出版本不等于验收。
 
