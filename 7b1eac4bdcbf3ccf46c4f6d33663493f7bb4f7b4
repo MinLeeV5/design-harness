@@ -1,0 +1,65 @@
+skills/design-harness-interaction/SKILL.md
+  c4d2bd524c39d8df 16-17
+shared/workspace/foundation/design.md
+  c4d2bd524c39d8df 9-12
+skills/design-harness-visual/SKILL.md
+  c4d2bd524c39d8df 16-17
+skills/design-harness-interaction/references/evaluation.md
+  c4d2bd524c39d8df 6
+skills/design-harness-visual/references/evaluation.md
+  c4d2bd524c39d8df 6
+shared/references/product-source.md
+  c4d2bd524c39d8df 7-8
+shared/references/handoff.md
+  c4d2bd524c39d8df 9-10,29
+skills/design-harness-visual/references/workflow.md
+  c4d2bd524c39d8df 3
+skills/design-harness-init/references/evaluation.md
+  c4d2bd524c39d8df 6
+skills/design-harness-init/references/workflow.md
+  c4d2bd524c39d8df 3,9,11
+skills/design-harness-interaction/references/workflow.md
+  c4d2bd524c39d8df 3-4
+README.md
+  c4d2bd524c39d8df 13,20-21,94
+docs/validation.md
+  c4d2bd524c39d8df 52-53
+skills/design-harness-init/SKILL.md
+  c4d2bd524c39d8df 16-17
+shared/references/preview-export.md
+  c4d2bd524c39d8df 9,18-19,68-69
+docs/html-design.md
+  c4d2bd524c39d8df 36-37,70
+docs/skill-maintenance.md
+  c4d2bd524c39d8df 11-12
+shared/references/workspace.md
+  c4d2bd524c39d8df 30-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.8.2",
+  "base_commit_sha": "7b1eac4bdcbf3ccf46c4f6d33663493f7bb4f7b4",
+  "prompts": {
+    "c4d2bd524c39d8df": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a181ca-3eca-7d90-befc-029b27040e62",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 88,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/a7d1514f46c93475ea7c55c7516c9f5ec66cca511ff87b5ee63a5928cd9b904a",
+      "token_usage": {
+        "input_tokens": 286558,
+        "output_tokens": 80853,
+        "cache_read_tokens": 15283840,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    }
+  }
+}
