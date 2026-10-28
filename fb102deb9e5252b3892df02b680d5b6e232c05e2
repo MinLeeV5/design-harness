@@ -1,0 +1,307 @@
+workbench/src/backend/adapters/design-capture.mjs
+  5e45f3a6f5382126 3-4
+workbench/src/contracts/agent-policy.mjs
+  5e45f3a6f5382126 1-11
+workbench/src/backend/adapters/typecheck.mjs
+  e7fa9cc4519aa980 13
+  5e45f3a6f5382126 5-8
+workbench/src/frontend/features/agent/use-agent.ts
+  e7fa9cc4519aa980 3,5,10-11,13,17-23,26-31,43,49,51,58
+  3bc7e361c04414b1 14,24-25
+  5e45f3a6f5382126 1-2,4,6-9,12,15-16,32-42,44-48,50,52-57,59
+workbench/src/contracts/agent-settings.mjs
+  3bc7e361c04414b1 1-20
+workbench/src/backend/adapters/workspace-files.mjs
+  5e45f3a6f5382126 3-6
+scripts/composer-smoke.js
+  3bc7e361c04414b1 1-48
+workbench/src/backend/services/preview.mjs
+  5e45f3a6f5382126 1-18
+workbench/src/backend/adapters/agent-prompt.mjs
+  5e45f3a6f5382126 1-40
+workbench/src/backend/services/export.mjs
+  5e45f3a6f5382126 1-19
+scripts/navigation-smoke.js
+  3bc7e361c04414b1 1-2,10-12,92,96,99-101,103,106,122,128-129,137,144,146,150-151,161
+workbench/src/backend/adapters/bundler.mjs
+  af51e0c242c3a484 47
+  f6c4b0bf23427ceb 46
+  5e45f3a6f5382126 4-6,9,25,45,56,58-60,66
+workbench/src/backend/services/proposal-policy.mjs
+  5e45f3a6f5382126 3-4,6
+workbench/src/frontend/features/agent/AgentPanel.tsx
+  5e45f3a6f5382126 2-3,5-7,34,36
+  e7fa9cc4519aa980 4,29,32
+workbench/src/backend/adapters/agent-skills.mjs
+  5e45f3a6f5382126 3-6
+workbench/src/backend/http/server.mjs
+  e7fa9cc4519aa980 7,10
+  5e45f3a6f5382126 3-6,8-9,11-12,14-22
+workbench/src/frontend/app/icons.tsx
+  af51e0c242c3a484 10-14
+  5e45f3a6f5382126 1,5-6,8-9,15-19
+  3bc7e361c04414b1 2-4
+  e7fa9cc4519aa980 7
+tests/workspace.test.js
+  3bc7e361c04414b1 7-15,51,53
+workbench/src/frontend/features/interactions/InteractionReader.tsx
+  5e45f3a6f5382126 2-3
+workbench/src/contracts/types.ts
+  e7fa9cc4519aa980 19-21,29
+  5e45f3a6f5382126 22-23,25-28
+workbench/src/backend/adapters/dependencies.mjs
+  5e45f3a6f5382126 5-6
+tests/codex-connection.test.js
+  3bc7e361c04414b1 1-79
+workbench/src/frontend/features/canvas/PreviewFrame.tsx
+  5e45f3a6f5382126 1-46
+workbench/src/backend/adapters/resource-store.mjs
+  5e45f3a6f5382126 3,5-7
+scripts/roles-smoke.js
+  3bc7e361c04414b1 1,7-9,14,32-34,38,45,48,50
+tests/helpers/codex-connection.mjs
+  5e45f3a6f5382126 1,3-4
+  e7fa9cc4519aa980 2,5
+scripts/preferences-smoke.js
+  3bc7e361c04414b1 1-32
+workbench/src/backend/adapters/codex-exec.mjs
+  5e45f3a6f5382126 1-24
+workbench/src/preview/inspector.ts
+  5e45f3a6f5382126 1-3
+workbench/src/backend/http/routes.mjs
+  5e45f3a6f5382126 1-49,51-58,63-78
+  e7fa9cc4519aa980 50,59-62
+scripts/select-smoke.js
+  3bc7e361c04414b1 1-34
+workbench/src/backend/services/agent-runtime.mjs
+  5e45f3a6f5382126 2-16,21,24,49,62-63,67-68,74-76,78,89,91,94,96
+  e7fa9cc4519aa980 17,19-20,48,66,105
+  3bc7e361c04414b1 64
+workbench/src/backend/paths.mjs
+  5e45f3a6f5382126 3-9
+workbench/src/contracts/agent-settings.d.mts
+  3bc7e361c04414b1 1-5
+workbench/src/frontend/api/preview.ts
+  5e45f3a6f5382126 1-10
+workbench/src/backend/adapters/validate-preview.mjs
+  5e45f3a6f5382126 1-3
+workbench/src/contracts/assertions.mjs
+  5e45f3a6f5382126 1-5
+workbench/src/frontend/ui/select.css
+  3bc7e361c04414b1 1-36
+workbench/src/contracts/errors.mjs
+  5e45f3a6f5382126 1
+workbench/src/backend/adapters/spec-store.mjs
+  5e45f3a6f5382126 1-17
+tests/distribution.test.js
+  3bc7e361c04414b1 265
+scripts/browser-smoke.js
+  3bc7e361c04414b1 1-2,10-12,38,72-89,98-99,110-114,140-141,172-178,189-197,212-213
+workbench/src/contracts/resources.mjs
+  5e45f3a6f5382126 1-32
+workbench/src/frontend/index.tsx
+  5e45f3a6f5382126 1-3,5-7
+  ccee6898e237bb9a 4
+tests/agent-roles.test.js
+  3bc7e361c04414b1 1,8-12,18,91,99,107
+scripts/browser-ui.js
+  3bc7e361c04414b1 1,3-7,9
+scripts/demo.js
+  3bc7e361c04414b1 3-4
+workbench/src/frontend/api/workbench.ts
+  3bc7e361c04414b1 1-41
+workbench/cli.mjs
+  3bc7e361c04414b1 4-15
+docs/html-design.md
+  3bc7e361c04414b1 7
+workbench/src/contracts/agent-output.mjs
+  5e45f3a6f5382126 1-2
+workbench/src/backend/services/workspace.mjs
+  5e45f3a6f5382126 1-35
+tests/agent-settings.test.js
+  3bc7e361c04414b1 1-54
+scripts/agent-smoke.js
+  3bc7e361c04414b1 1-2,9-10,14,33,36,47
+tests/agent-events.test.js
+  3bc7e361c04414b1 3
+workbench/src/backend/adapters/filesystem.mjs
+  5e45f3a6f5382126 1-30
+workbench/src/frontend/app/values.ts
+  5e45f3a6f5382126 1-3
+workbench/src/backend/http/requests.mjs
+  5e45f3a6f5382126 1-17
+scripts/validate.js
+  3bc7e361c04414b1 7,13-102,308-309
+workbench/src/backend/adapters/codex-connection.mjs
+  5e45f3a6f5382126 1-52,56-60
+  3bc7e361c04414b1 53
+  e7fa9cc4519aa980 54-55
+tests/interaction-docs.test.js
+  3bc7e361c04414b1 6-9
+workbench/src/backend/adapters/export-file.mjs
+  5e45f3a6f5382126 1-22
+workbench/src/frontend/ui/scrollbars.css
+  e7fa9cc4519aa980 1-30
+workbench/src/frontend/app/studio.css
+  af51e0c242c3a484 123,125-126,131-138,140,167-168,170
+  e7fa9cc4519aa980 50,52,110,127-130,141-146,151-158,169,186-237
+  3bc7e361c04414b1 51
+package.json
+  3bc7e361c04414b1 16,29
+workbench/src/frontend/ui/Select.tsx
+  af51e0c242c3a484 21
+  e7fa9cc4519aa980 1-20,22-38
+tests/live-agent.test.js
+  3bc7e361c04414b1 1,7-10,12,83
+workbench/src/backend/adapters/agent-preferences.mjs
+  3bc7e361c04414b1 1-28
+workbench/src/backend/services/agent-settings.mjs
+  3bc7e361c04414b1 1-13
+workbench/src/frontend/features/navigation/use-navigation.ts
+  5e45f3a6f5382126 1-25
+workbench/src/backend/services/proposals.mjs
+  5e45f3a6f5382126 1-11
+workbench/src/cli/main.mjs
+  5e45f3a6f5382126 1-21
+workbench/src/backend/adapters/proposal-files.mjs
+  5e45f3a6f5382126 1-62
+workbench/src/preview/runtime.tsx
+  5e45f3a6f5382126 8,10
+workbench/src/frontend/features/agent/AgentComposer.tsx
+  5e45f3a6f5382126 1-4,7,9-13,15-27,29-33,35-42,44-52,56-60,64-66
+  e7fa9cc4519aa980 5-6,8,14,28,34,43,53-55,61-63
+workbench/src/frontend/app/App.tsx
+  e7fa9cc4519aa980 12,39-40,57,60,64,66,76,157-164,179-181,203,207
+  af51e0c242c3a484 1,13-14,16-22,156
+  5e45f3a6f5382126 2,4-11,15,24-26,41,50-53,84-85,99-100,129,170,177,186,195-201
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.8.2",
+  "base_commit_sha": "fb102deb9e5252b3892df02b680d5b6e232c05e2",
+  "prompts": {
+    "3bc7e361c04414b1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1809a-4e73-7d22-8fe7-f0d3de5f68a6",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 739,
+      "total_deletions": 1710,
+      "accepted_lines": 748,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/d703fa8a10d0ccb84311dcea6d9adfb1e0c10e28e0b693ebcb6cfe78d7ad088a",
+      "token_usage": {
+        "input_tokens": 98665,
+        "output_tokens": 16807,
+        "cache_read_tokens": 2119424,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "5e45f3a6f5382126": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18028-60da-7a52-87a1-c1e1be115f9d",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 1806,
+      "overriden_lines": 0,
+      "token_usage": {
+        "input_tokens": 174645,
+        "output_tokens": 64079,
+        "cache_read_tokens": 8625408,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "af51e0c242c3a484": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18072-110e-7ea1-9094-a968641bf121",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 135,
+      "overriden_lines": 0,
+      "token_usage": {
+        "input_tokens": 204624,
+        "output_tokens": 54215,
+        "cache_read_tokens": 7881728,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "ccee6898e237bb9a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18087-6e55-74e0-a359-7a59e0f1d570",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/1f3d6cb17d1b59cd72ff03897ae733df1d6c96b7b74b80ad0edb48202612dade",
+      "token_usage": {
+        "input_tokens": 286766,
+        "output_tokens": 19219,
+        "cache_read_tokens": 2192000,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "e7fa9cc4519aa980": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17b40-9f0e-7cc0-9755-5385e877ee0f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 788,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/44145136dfaf8d3fac8354415051fdc7d934642a6c646c9cab2c1a1767bc4cb7",
+      "token_usage": {
+        "input_tokens": 2308316,
+        "output_tokens": 579724,
+        "cache_read_tokens": 124398592,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "f6c4b0bf23427ceb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1801f-7bbb-7cb2-8e60-ffc4f25d4979",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0,
+      "token_usage": {
+        "input_tokens": 152538,
+        "output_tokens": 29215,
+        "cache_read_tokens": 4927744,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    }
+  }
+}
