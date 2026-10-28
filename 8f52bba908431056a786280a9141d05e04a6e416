@@ -1,0 +1,122 @@
+scripts/navigation-smoke.js
+  ccee6898e237bb9a 147-152
+workbench/src/frontend/features/agent/AgentPanel.tsx
+  ccee6898e237bb9a 7,26,37
+workbench/src/contracts/agent-provider.d.mts
+  ccee6898e237bb9a 1-7,9-11
+workbench/src/backend/services/agent-runtime.mjs
+  ccee6898e237bb9a 7,12,18-19,22-41,63-65,67,75,77,82-83,85-87,93,95-100,105,110,125-126,130-138
+workbench/src/frontend/api/workbench.ts
+  ccee6898e237bb9a 1,16-17,19-20,22-27
+workbench/src/backend/adapters/agent-prompt.mjs
+  ccee6898e237bb9a 7,30-31
+tests/live-agent.test.js
+  ccee6898e237bb9a 47,50,96,104-105,107-108
+scripts/agent-smoke.js
+  ccee6898e237bb9a 14-15,43-44,48
+scripts/sessions-smoke.js
+  ccee6898e237bb9a 1-43
+tests/agent-roles.test.js
+  ccee6898e237bb9a 33
+tests/workspace.test.js
+  ccee6898e237bb9a 62
+workbench/src/backend/services/agent-providers.mjs
+  ccee6898e237bb9a 1-12
+workbench/src/backend/adapters/codex-app-server.mjs
+  ccee6898e237bb9a 1-105
+scripts/roles-smoke.js
+  ccee6898e237bb9a 50
+scripts/validate.js
+  ccee6898e237bb9a 22,40,51
+workbench/src/frontend/features/agent/use-agent.ts
+  ccee6898e237bb9a 2-3,6-11,13-84,86-91,94-97,99-100
+tests/agent-sessions.test.js
+  ccee6898e237bb9a 1-39
+workbench/src/backend/adapters/typecheck.mjs
+  ccee6898e237bb9a 4,10,18-23
+workbench/src/frontend/features/agent/AgentComposer.tsx
+  ccee6898e237bb9a 34
+workbench/src/frontend/features/canvas/PreviewFrame.tsx
+  ccee6898e237bb9a 36
+workbench/src/backend/adapters/proposal-files.mjs
+  ccee6898e237bb9a 38
+package.json
+  ccee6898e237bb9a 16
+workbench/src/frontend/app/studio.css
+  ccee6898e237bb9a 238-239
+workbench/src/frontend/app/App.tsx
+  ccee6898e237bb9a 24-25,48-61,66,96-97,99-100,115,129,134,173,185
+workbench/src/backend/http/routes.mjs
+  ccee6898e237bb9a 39-51,55,59,62,71-73,75
+tests/codex-app-server.test.js
+  ccee6898e237bb9a 1-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.8.2",
+  "base_commit_sha": "8f52bba908431056a786280a9141d05e04a6e416",
+  "prompts": {
+    "3bc7e361c04414b1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1809a-4e73-7d22-8fe7-f0d3de5f68a6",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0,
+      "token_usage": {
+        "input_tokens": 100461,
+        "output_tokens": 17054,
+        "cache_read_tokens": 2333440,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "6166d6637ed456a6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18148-861c-7061-b52d-f788086e6a1f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 10,
+      "total_deletions": 6,
+      "accepted_lines": 10,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/106b5d5c9736185b7285bf3be6616367d758fb98927fa46ea6cbb413c2c95a7c",
+      "token_usage": {
+        "input_tokens": 93541,
+        "output_tokens": 5105,
+        "cache_read_tokens": 698368,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "ccee6898e237bb9a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18087-6e55-74e0-a359-7a59e0f1d570",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 619,
+      "total_deletions": 238,
+      "accepted_lines": 572,
+      "overriden_lines": 2,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/36eedc3a871054afda9e45caf9e9a8682b5eca9b9c7822b5bf277a03bd3a8c65",
+      "token_usage": {
+        "input_tokens": 708180,
+        "output_tokens": 106059,
+        "cache_read_tokens": 23929984,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    }
+  }
+}
