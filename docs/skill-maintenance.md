@@ -8,6 +8,8 @@
 Init 按[初始化工作流](../skills/design-harness-init/references/workflow.md)与[阶段评价](../skills/design-harness-init/references/evaluation.md)维护交付契约：先建立范围与覆盖清单，已有产品校准运行及布局基线后提取，新项目按已确认意图建立草稿；公共组件与实际页面模式在基础验证预览中核对。该预览使用现有 requirements 协议，属于 Init，不启动新业务需求或后续阶段。覆盖及验证未齐备时报告阶段性结果，用户验收状态另记。不得将单次试点的组件数、页面类别或设备尺寸固化为通用完成标准。
 维护时同步[基础说明模板](../shared/workspace/foundation/design.md)、[模板职责](../shared/references/workspace.md)、README 与验证说明；唯一公共 foundation 的复用约定保持一致，不恢复复制基础或额外模板 UI 树。
 
+项目[设计组织模式](../shared/references/design-organization.md)由 Init 协助选择并取得实际确认，保存到 project.json 的 designOrganization；持续模式记录主稿，按需求模式保持独立。后续交互、视觉、产品到设计承接及工作台 Agent 每轮读取，用户明确的单次拆分不改默认或自动合并。共同选择依据与例外规则只维护在 shared；阶段入口保留自身承接与评价。未选择模式不自动猜测，基础验证以 purpose 区分，不能作为主稿。
+
 交互与视觉在当前任务中完成过程维护、获准的公共基础更新、验证与交接，按请求导出并验证离线 HTML；共同规则只维护在[设计维护与交接](../shared/references/handoff.md)，不另设回写入口。各阶段仍保留自身的交互或视觉评价。
 验证输出临时清理，不在项目和分发中维护 evidence；必要结论和未决项记入 handoff.md。真实决定、反馈与实际变化记入需求 handoff.md，工具成功和导出版本不等于验收。
 

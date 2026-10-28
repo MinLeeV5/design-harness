@@ -6,6 +6,8 @@
 
 随设计更新 requirement.md、interactions/*.md、场景及候选 Spec／参数／组件，使依据、说明与实际行为一致。需求专属实现保留在当前需求；公共规则、组件、Token 与资产才进入项目唯一 foundation。
 
+按[设计组织模式](design-organization.md)维护本轮归属。持续模式在同一主稿累积已确认设计，requirement.md 承接当前完整范围，handoff.md 记录本次变化、涉及的正式 PRD 来源及关联页面验证；按需求模式在对应独立资源内维护。用户主动拆分时记录独立设计的来源、范围和确认，不改变项目模式，不自动合并；基础验证预览不充当主稿。
+
 未保存实例属性和外部编辑冲突由 Agent 明确处理，不自动覆盖用户草稿。工作台内置 Agent 的“接受修改”只写入当前候选；公共基础、需求登记和交互文档由执行本 Skill 的外部 Agent 按授权维护。
 
 ## 公共基础更新
@@ -24,7 +26,7 @@
 
 ## 恢复与交接记录
 
-恢复时依次读取 project.json、需求 manifest.json、requirement.md、interactions/*.md、handoff.md；随后按当前候选读取完整 Spec、参数、Catalog／Registry、专属组件和项目唯一公共基础。工具从完整插件启动，项目不承载工作台源码或绝对安装路径。
+恢复时依次读取 project.json 中的组织模式与主稿、当前设计 manifest.json 的用途、requirement.md、interactions/*.md、handoff.md；随后按当前候选读取完整 Spec、参数、Catalog／Registry、专属组件和项目唯一公共基础。沿用项目已确认默认及本次明确例外，不根据目录顺序猜测主稿。工具从完整插件启动，项目不承载工作台源码或绝对安装路径。
 
 handoff.md 至少记录当前范围、事实基线、已确认决定、当前候选及选择理由、实际变化、检查结果、未决项和下一步。沿用区域与本次新增分开，保留基线版本、环境、上下文和实际视口。
 

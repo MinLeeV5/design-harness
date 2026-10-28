@@ -33,6 +33,8 @@
 
 项目只保留根目录 foundation 一份源码，需求和候选用 @design-harness/foundation/... 引用。公共更新影响已有需求，重建后的交付也采用最新基础，维护时检查向下兼容。各候选有独立 Spec、参数和专属实现；克隆复制全部候选文件。当前统一最新协议，不保留旧 studio 模式兼容层。
 
+project.json 的 designOrganization 保存已确认组织方式，contracts/design-organization 统一校验配置与创建边界；workspace 文件适配器保存配置，CLI init／organization／new 复用该边界。持续模式记录 primary，普通新建只允许主稿，独立例外须显式 --separate，基础预览用 --preview；工作台默认进入已建立主稿。模式缺失时仍可读取旧资源，不自动推断。loadRequirement 返回冻结的项目配置，Agent 每轮从提案副本读取模式、主稿与用途，并装载共享组织指导；配置变化纳入 revision，旧提案不能继续接受。基础预览不是产品主稿，项目配置也不属于工作台提案写入范围。
+
 工具依赖固定在插件；可选业务 package.json 只声明精确版本的 dependencies，锁定到 dependencies.lock.json。deps 使用 --ignore-scripts 安装到用户缓存目录；deps 显式更新扩展锁；构建与重建使用项目当前匹配锁和外部缓存。项目不产生 node_modules 或工具配置。构建将 React/json-render/zod 固定到插件，避免重复 React 或业务覆盖引擎。
 
 ## 构建与隔离
@@ -64,6 +66,8 @@ requirements/ 是本地设计产物的唯一维护来源。用户指定正式业
 工作台按钮 POST /__dh/export，服务验证 Host、Origin 与父端令牌，返回 text/html attachment；浏览器下载该文件，页面不询问版本号。导出期间阻止重复操作和实例属性编辑，废弃旧轮询重载；导出完成恢复编辑，预览输入保持不变。
 
 CLI export <需求> --out <文件.html> 要求明确选择资源目录外的输出位置。解析父目录真实路径，拒绝写回资源树、目录或软链接；在目标旁写临时文件，再原子替换选定输出。构建失败不会覆盖原文件。重新生成同样走 export；工具不提供 release 版本、sources 副本、release.json、verify 或 rebuild 命令。
+
+持续模式的 CLI export 可省略需求 ID，默认使用配置中的主稿；同一 --out 会更新同一 HTML。按需求模式要求明确 ID，浏览器下载当前打开的设计。所有模式继续从完整 Spec 构建，不直接维护导出 HTML。
 
 离线 payload 无可用服务令牌；HTML 内嵌工作台、全部候选、图片、样式、说明和许可，可从 file:// 独立体验，不启动 Agent 或连接本地写回端点。源文件后续更新不改变已有导出，再次导出采用最新源。验收状态和必要结果保留于 handoff.md，历史用 Git 显式记录，导出不代表用户验收。
 

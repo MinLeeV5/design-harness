@@ -10,12 +10,14 @@
 | --- | --- |
 | $design-harness-product | 共创产品问题、方案及取舍，形成可评审 PRD，并按评审意见维护业务结论 |
 | $design-harness-init | 盘点范围与依据，建立公共组件和页面模式，以基础预览核对布局及状态；交付可复用基础后停止 |
-| $design-harness-interaction | 建立独立需求、完整页面 Spec、说明及场景，验证用户任务；完成交互评审和交接后停止 |
+| $design-harness-interaction | 按项目模式更新主稿或独立设计，维护完整 Spec、说明及场景，验证用户任务；完成交互评审和交接后停止 |
 | $design-harness-visual | 在同一 Spec 与组件上细化高保真、多尺寸和候选；完成视觉评审和交接后停止 |
 
 四个入口显式调用，承接已有范围、授权与决定，不自动串联。产品共创支持有界面或无界面的需求，无需设计工作区；按用户模板和实际资料形成草稿，可保留待评审问题。飞书等文档使用环境已有工具，未连接时提供可复制草稿；评审后可根据提供的意见更新正式文档。
 
 Init 先建立覆盖清单：已有产品提取指定版本的公共基础，先核对代表页面的运行与布局基线，再扩展组件和实际页面模式；尚无界面的新项目按已确认意图建立设计草稿。基础验证预览属于 Init，使用现有 requirements 协议，不自动开展新业务需求。仅生成目录、Token 或在 0 个需求上通过检查不构成完整初始化交付；缺少约定范围的实现或验证时明确交付阶段性结果。详见[初始化工作流](skills/design-harness-init/references/workflow.md)。
+
+初始化同时协助选择并确认[设计组织模式](shared/references/design-organization.md)：产品持续迭代维护同一多页主稿与 HTML，按需求独立设计则分别预览、评审和导出。选择保存到 project.json，后续交互、视觉和工作台 Agent 默认沿用；只有用户明确要求才单独拆分，例外不改项目默认，也不自动合回主稿。基础验证预览保持验证用途。
 
 例如输入 `使用 $design-harness-product 和我讨论导入记录的重复处理规则，形成待评审 PRD`。需要维护正式文档时提供目标链接或创建位置；Skill 会按实际工具能力处理，无法完成的写入会明确说明。
 
@@ -88,6 +90,8 @@ node workbench/cli.mjs export <需求> --project <项目> --out <资源目录之
 各 Skill 直接引用同一个公共入口 node <插件目录>/workbench/cli.mjs；插件目录为当前 SKILL.md 所在目录向上两级。产品共创无需运行 CLI 或初始化设计工作区。阶段工作流和评价各自维护，业务模板、公共指导和许可集中在 shared/，随完整插件分发。项目无需 npm ci；工具依赖安装在插件，扩展业务依赖用 deps 命令安装到项目之外的缓存。
 
 CLI init 只建立资源目录，拒绝覆盖已有 design-harness/；已有工作区由 Skill 承接维护。模板默认基础仍是草稿，应按项目真实依据或已确认设计修订，再建立基础验证预览。Figma、Pencil、截图与代码可作为输入，日常运行不依赖这些设计工具，也不导入业务工程模块。
+
+用户确认组织模式后，可运行 init --mode continuous --primary product 或 init --mode per-requirement；已有工作区通过 organization 保存同样配置。持续模式的 new 与 export 可省略 ID，分别建立或导出主稿；后续设计直接维护已有主稿，用户明确要求的独立设计使用 new <ID> --separate，基础预览使用 new <ID> --preview。缺失模式的旧工作区仍可读取，需确定新设计归属时再协助确认。
 
 ## 预览、定位与 Agent
 

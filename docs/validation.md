@@ -49,6 +49,8 @@ Init 按[本阶段验证](../skills/design-harness-init/references/evaluation.md
 
 修改 Init 指令和说明模板运行 npm run validate 与 node --test tests/distribution.test.js，核对引用、完整插件分发、模板复制及异地运行。工具仍只负责资源初始化，不自动提取产品或生成基础预览；实际 Agent 改善需另行试跑确认。
 
+组织模式由 tests/design-organization.test.js 覆盖：实际 CLI 保存与读取选择、无模式及旧配置保持可读、持续主稿默认入口、普通新建拒绝隐式拆分、显式独立例外及基础预览、预览不能作为主稿、切换配置不迁移资源、同一输出 HTML 的持续更新、工作台两种身份每轮获取实际配置，以及提案不能改写项目模式。共享指导加载使用模型夹具核对真实上下文，不据此声称 Agent 已正确协助用户决策；后者需实际 Skill 试跑。工作区与 Agent 邻近测试、完整检查、类型、分发及相关浏览器路径一并验证。
+
 ## 边界
 
 协议或类型通过不能证明元素真实存在、候选审美质量、读屏体验、用户验收或生产后端能力。

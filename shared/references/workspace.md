@@ -27,6 +27,8 @@ reviews/
 
 requirements 是本地设计产物的唯一维护来源；用户指定正式业务 PRD 时按[来源与承接](product-source.md)记录设计摘要与来源。工作台按需导出单文件 HTML；CLI 通过 --out 选择资源目录外的文件，历史用 Git 记录。
 
+项目的[设计组织模式](design-organization.md)保存在 project.json：持续模式维护同一产品主稿，按需求模式维护独立设计。两者复用相同资源协议与唯一 foundation；单次拆分由用户明确提出，不改项目默认，不自动合并。基础验证预览单独标明用途。
+
 页面同步和说明写法见[交互协议](interactions.md)。说明、字段和命令分别见[协议](protocol.md)、[操作](preview-export.md)、[交接](handoff.md)。可选 package.json 只声明精确版本的业务扩展依赖，锁文件为 dependencies.lock.json；安装与构建缓存放在项目之外。
 
 ## 组件与页面

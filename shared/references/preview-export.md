@@ -6,6 +6,7 @@
 
 ```sh
 node <插件目录>/workbench/cli.mjs init --project <项目目录>
+node <插件目录>/workbench/cli.mjs organization --project <项目目录>
 node <插件目录>/workbench/cli.mjs new <需求ID> --project <项目目录> --title <名称>
 node <插件目录>/workbench/cli.mjs serve --project <项目目录> --port 4173
 node <插件目录>/workbench/cli.mjs check --project <项目目录> [需求ID]
@@ -13,6 +14,8 @@ node <插件目录>/workbench/cli.mjs typecheck --project <项目目录>
 ```
 
 init --example 创建局部合成示例，不代表真实产品完整稿。已有 design-harness/ 拒绝覆盖；--project 可指向资源目录。额外业务依赖用 deps 安装到项目外缓存。
+
+初始化按[设计组织模式](design-organization.md)协助确认后，以 init --mode continuous --primary <主稿ID> 或 init --mode per-requirement 保存选择；已有工作区使用 organization 加同样参数。无参数 organization 只读配置，缺失模式不自动猜测。持续模式的 new 可省略 ID 来建立主稿，后续直接更新已有主稿；用户明确要求独立设计时用 new <ID> --separate，基础验证用 new <ID> --preview。两种参数不并用，基础预览不作为主稿。
 
 ## 预览、标注与点选
 
@@ -61,6 +64,8 @@ node <插件目录>/workbench/cli.mjs export <需求ID> --project <项目目录>
 ```
 
 export 使用当前 requirements、公共 foundation 与当前插件生成一个 HTML，内嵌工作台、候选、样式、资源、说明与许可，可从 file:// 离线体验。CLI 重新导出可以替换选定文件，构建失败保留原输出；目标不能位于 design-harness 资源目录内，不能是目录或软链接。
+
+持续模式可省略 export 的 ID，读取配置中的主稿，后续通过相同 --out 更新同一 HTML；浏览器默认下载名由设计 ID 稳定生成。按需求模式指定各自 ID，显式打开独立例外时导出当前独立设计，不自动合入主稿。
 
 requirements 是唯一维护来源；项目不创建 releases、sources 副本、运行器或 release.json。重新生成统一使用 export，无独立 verify/rebuild 或版本归档流程。历史用 Git 显式记录，验收状态记在需求 handoff.md，下载和导出不自动登记已验收。
 
