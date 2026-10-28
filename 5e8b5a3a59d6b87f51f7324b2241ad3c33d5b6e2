@@ -1,0 +1,66 @@
+docs/skill-maintenance.md
+  ccee6898e237bb9a 23-24,29
+shared/references/agent.md
+  ccee6898e237bb9a 3-5,20-25
+shared/references/preview-export.md
+  ccee6898e237bb9a 19-21,29-31,33
+skills/design-harness-visual/references/workflow.md
+  ccee6898e237bb9a 6
+docs/validation.md
+  ccee6898e237bb9a 9-10,22-25,28,44-50,55
+README.md
+  ccee6898e237bb9a 92-96,102-104,134
+docs/html-design.md
+  ccee6898e237bb9a 3-27,56-58,76,86,97-126
+skills/design-harness-interaction/references/workflow.md
+  ccee6898e237bb9a 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.8.2",
+  "base_commit_sha": "5e8b5a3a59d6b87f51f7324b2241ad3c33d5b6e2",
+  "prompts": {
+    "3bc7e361c04414b1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1809a-4e73-7d22-8fe7-f0d3de5f68a6",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/5a6e62dd6ecab033645cea841664fdbfdc805649b430058f1397dcbe559be427",
+      "token_usage": {
+        "input_tokens": 100461,
+        "output_tokens": 17054,
+        "cache_read_tokens": 2333440,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "ccee6898e237bb9a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18087-6e55-74e0-a359-7a59e0f1d570",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 106,
+      "total_deletions": 14,
+      "accepted_lines": 106,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/fb84ecc45bfc639b090f9def49c6466cdf91663af1e95583fb950083596e7e5f",
+      "token_usage": {
+        "input_tokens": 286936,
+        "output_tokens": 22057,
+        "cache_read_tokens": 2401152,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    }
+  }
+}
