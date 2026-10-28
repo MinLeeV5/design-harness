@@ -59,6 +59,8 @@ export const WORKBENCH_FILES = [
   "src/contracts/assertions.mjs",
   "src/contracts/conditions.d.mts",
   "src/contracts/conditions.mjs",
+  "src/contracts/design-organization.mjs",
+  "src/contracts/design-organization.d.mts",
   "src/contracts/errors.mjs",
   "src/contracts/resources.mjs",
   "src/contracts/types.ts",
@@ -105,7 +107,7 @@ export const WORKBENCH_FILES = [
   "vendor/impeccable/NOTICE.md",
   "vendor/impeccable/live-browser-dom.js",
 ];
-export const SHARED_REFERENCES = ["agent.md", "assets.md", "fidelity.md", "workspace.md", "protocol.md", "interactions.md", "preview-export.md", "handoff.md", "product-source.md", "sources.md"];
+export const SHARED_REFERENCES = ["agent.md", "assets.md", "design-organization.md", "fidelity.md", "workspace.md", "protocol.md", "interactions.md", "preview-export.md", "handoff.md", "product-source.md", "sources.md"];
 export const SHARED_NOTICES = ["lucide/LICENSE", "visual-assets/NOTICE.md", "design-md/LICENSE", "design-md/NOTICE.md", "impeccable/NOTICE.md", "ui-ux-pro-max/LICENSE", "ui-ux-pro-max/NOTICE.md", "harness-designing-plugin/LICENSE"];
 export const SHARED_FILES = [
   ...WORKSPACE_FILES.map(file => "workspace/" + file),

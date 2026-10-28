@@ -1,10 +1,12 @@
 import type {Spec} from "@json-render/core";
 export type {Spec};
+export type {DesignOrganization} from "./design-organization.mjs";
+import type {RequirementPurpose} from "./design-organization.mjs";
 export type Value = number|string|boolean;
 export type Scenario = {id:string;page:string;title:string;state:Record<string,unknown>};
 export type Control = {id:string;label:string;page:string;target:string;property:string;type:"range"|"text"|"boolean";min?:number;max?:number;step?:number;unit?:string;maxLength?:number};
 export type Candidate = {id:string;title:string;registry:string;params:string;pages:Record<string,string>};
-export type Manifest = {schemaVersion:1;renderer:"json-render/react";id:string;title:string;foundationVersion:string;pages:{id:string;title:string}[];navigation?:{pageStatePath:string};candidates:Candidate[];viewports:{id:string;title:string;width:number;height:number}[];controls:Control[]};
+export type Manifest = {schemaVersion:1;renderer:"json-render/react";id:string;title:string;purpose?:RequirementPurpose;foundationVersion:string;pages:{id:string;title:string}[];navigation?:{pageStatePath:string};candidates:Candidate[];viewports:{id:string;title:string;width:number;height:number}[];controls:Control[]};
 export type BundleData = {manifest:Manifest;scenarios:Scenario[];interactions:Interaction[];documentation:string;previews:Record<string,string>;specs:Record<string,Spec>;params:Record<string,{css:Record<string,string>}>;hashes:Record<string,string>;revision:string;requirements:{id:string;title:string}[];development:boolean;proposal?:boolean;proposalPermission?:AgentPermissionMode;token?:string};
 
 export type Annotation={id:string;target:string;section:string;label:string;number:string;placement?:"auto"|"top"|"right"|"bottom"|"left"};

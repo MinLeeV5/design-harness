@@ -1,11 +1,12 @@
 import {assert} from "../../contracts/assertions.mjs";
 import {SourceConflict} from "../../contracts/errors.mjs";
 import {applyValues} from "../../contracts/resources.mjs";
+import {designOrganization,requirementPurpose} from "../../contracts/design-organization.mjs";
 import {canonicalDirectory,fileHash} from "../adapters/filesystem.mjs";
 import {loadProject,loadRequirement,listRequirements} from "../adapters/resource-store.mjs";
 import {writeSpec} from "../adapters/spec-store.mjs";
 
-export {workspacePath,initialize,createRequirement,cloneCandidate} from "../adapters/workspace-files.mjs";
+export {workspacePath,initialize,configureOrganization,createRequirement,cloneCandidate} from "../adapters/workspace-files.mjs";
 
 export function openWorkspace(workspace) {
   const directory = canonicalDirectory(workspace);
@@ -16,11 +17,25 @@ export function openWorkspace(workspace) {
 export const requirementRevision = (workspace, id) => loadRequirement(workspace, id).revision;
 
 export function firstRequirement(workspace) {
-  return listRequirements(workspace).find(item => {
-    try { loadRequirement(workspace, item.id); return true; }
+  const organization=designOrganization(loadProject(workspace)),items=listRequirements(workspace);
+  if(organization?.mode==="continuous"&&items.some(item=>item.id===organization.primary)) {
+    loadRequirement(workspace,organization.primary);
+    return organization.primary;
+  }
+  return items.find(item => {
+    try { const data=loadRequirement(workspace,item.id);return organization?.mode!=="continuous"||requirementPurpose(data.manifest)==="foundation-preview"; }
     catch { return false; }
   })?.id;
 }
+
+export function defaultDesign(workspace,id) {
+  if(id)return id;
+  const organization=designOrganization(loadProject(workspace));
+  assert(organization?.mode==="continuous","请指定需求 ID；仅持续模式可默认使用产品主稿");
+  return organization.primary;
+}
+
+export const projectOrganization=workspace=>designOrganization(loadProject(workspace));
 
 export function saveValues(workspace, {id,candidate,page,expectedHash,values}) {
   const data = loadRequirement(workspace,id), key = candidate+":"+page;

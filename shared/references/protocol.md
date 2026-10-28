@@ -6,9 +6,12 @@
 
 project.json 包含 schemaVersion、renderer 与 name，不保存插件绝对路径。foundation/ 保存组件、catalog.ts、registry.tsx、Token、规则与素材；foundation.json 保存 schemaVersion、version、status。项目只保留这一处基础；manifest.foundation 为 shared，工具读取当前基础版本显示和记录，不在需求固定副本。共享组件用 @design-harness/foundation/... 引用。
 
+project.json 的 designOrganization 按[组织模式](design-organization.md)保存用户决定：持续模式为 {mode:"continuous",primary:"product"}，按需求独立为 {mode:"per-requirement"}；缺失或 null 表示未确认。primary 为合法设计 ID，可在首次实际设计时建立；不能指向基础预览。模式改变会使已有资源 revision 变化，旧提案不能继续接受。
+
 manifest.json：
 
 - id、title、schemaVersion、renderer、foundation: "shared"。
+- purpose: 可选 "design" 或 "foundation-preview"，缺失按业务设计解释；基础验证须明确标记，持续模式的主稿不能使用该用途。
 - pages: [{id,title}]；viewports: [{id,title,width,height}]，实际尺寸 320–3840。
 - candidates: [{id,title,registry,params,pages}]。pages 为页面 ID 到完整 Spec 路径的映射；每套候选提供全部页面。registry、params、Spec 均在 candidates/<候选>/ 内，不共用另一候选文件。
 - controls: 实例属性编辑白名单，见下文。

@@ -3,11 +3,13 @@ import path from "node:path";
 import {TOOL,PLUGIN} from "../paths.mjs";
 import {parseInteractionDocument} from "./interaction-docs.mjs";
 import {assert,safeId} from "../../contracts/assertions.mjs";
+import {designOrganization,requirementPurpose} from "../../contracts/design-organization.mjs";
 import {unique,checkSpec,pageControls,validValue} from "../../contracts/resources.mjs";
 import {readJson,hash,inside,resolveFile,filesIn,resourceFiles} from "./filesystem.mjs";
 export function loadProject(workspace) {
   const project=readJson(resolveFile(workspace,"project.json"));
   assert(project.schemaVersion===1 && project.renderer==="json-render/react" && typeof project.name==="string","项目资源协议不受支持");
+  designOrganization(project);
   return project;
 }
 export function requirementRoot(workspace,id) {
@@ -19,6 +21,8 @@ export function requirementRoot(workspace,id) {
 export function loadRequirement(workspace,id) {
   const folder=requirementRoot(workspace,id);const manifest=readJson(resolveFile(folder,"manifest.json"));
   assert(manifest.schemaVersion===1&&manifest.renderer==="json-render/react"&&manifest.id===id&&typeof manifest.title==="string"&&manifest.title.trim(),"需求协议或 ID 不匹配");
+  const project=loadProject(workspace),organization=designOrganization(project),purpose=requirementPurpose(manifest);
+  assert(!(organization?.mode==="continuous"&&organization.primary===id&&purpose==="foundation-preview"),"产品主稿不能指向基础验证预览");
   const pages=unique(manifest.pages,"页面");unique(manifest.candidates,"候选");unique(manifest.viewports,"视口");
   if(manifest.navigation!==undefined)assert(manifest.navigation&&typeof manifest.navigation==="object"&&Object.keys(manifest.navigation).every(key=>key==="pageStatePath")&&/^\/(?:[^~\/]|~[01])+(?:\/(?:[^~\/]|~[01])+)*$/.test(manifest.navigation.pageStatePath),"navigation 需要合法 pageStatePath");
   const foundationRoot=path.join(workspace,"foundation"),foundation=readJson(resolveFile(foundationRoot,"foundation.json"));assert(foundation.schemaVersion===1&&typeof foundation.version==="string","公共设计基础无效");manifest.foundationVersion=foundation.version;manifest.foundation="shared";
@@ -59,7 +63,7 @@ export function loadRequirement(workspace,id) {
   const inputs=[...resourceFiles(folder),...filesIn(foundationRoot),resolveFile(workspace,"project.json"),...filesIn(TOOL),path.join(PLUGIN,"package-lock.json")];
   for(const name of ["package.json","dependencies.lock.json"])if(fs.existsSync(path.join(workspace,name)))inputs.push(resolveFile(workspace,name));
   const revision=hash(Buffer.concat(inputs.flatMap(file=>[Buffer.from(inside(folder,file)?path.relative(folder,file):inside(foundationRoot,file)?"foundation/"+path.relative(foundationRoot,file):inside(TOOL,file)?"tool/"+path.relative(TOOL,file):path.basename(file)),fs.readFileSync(file)])));
-  return {folder,foundationRoot,manifest,scenarios,documentation,interactions,specs,hashes,params,specFiles,candidateRoots,revision};
+  return {folder,foundationRoot,project,manifest,scenarios,documentation,interactions,specs,hashes,params,specFiles,candidateRoots,revision};
 }
 export function listRequirements(workspace) {
   loadProject(workspace);const directory=path.join(workspace,"requirements");if(!fs.existsSync(directory))return [];
