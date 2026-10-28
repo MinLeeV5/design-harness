@@ -77,7 +77,7 @@ try {
   const localStatus=header.getByRole('button',{name:'本地草稿',exact:true}),statusTip=page.getByRole('tooltip');
   assert.equal(await localStatus.innerText(),'',"状态入口仅展示图标");
   const beforeStatus=await previewMetrics(owner);
-  await localStatus.hover();await statusTip.getByText('本地草稿',{exact:true}).waitFor();await statusTip.getByText(/生成的修改接受后才写入/).waitFor();
+  await localStatus.hover();await statusTip.getByText('本地草稿',{exact:true}).waitFor();await statusTip.getByText(/提案工作区中的修改接受后写入/).waitFor();
   assert.deepEqual(await previewMetrics(owner),beforeStatus,"状态说明不改变预览布局");
   await header.locator('.studio-brand').hover();await statusTip.waitFor({state:'hidden'});
   await localStatus.focus();await statusTip.waitFor();await page.keyboard.press('Tab');await statusTip.waitFor({state:'hidden'});

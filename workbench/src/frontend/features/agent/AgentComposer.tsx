@@ -1,17 +1,24 @@
 import {useRef,useState,type ReactNode} from "react";
 import type {useAgent} from "./use-agent";
-import type {DomSelection} from "../../../contracts/types";
+import type {DomSelection,AgentPermissionMode} from "../../../contracts/types";
+import {permissionModes} from "../../../contracts/agent-permissions.mjs";
 import {agentRoles} from "../../../contracts/agent-roles.mjs";
 import {Select} from "../../ui/Select";
+import {ModelSettings} from "./ModelSettings";
 import {effortLabel} from "../../../contracts/agent-settings.mjs";
 
-type IconName="pick"|"image"|"role"|"model"|"provider"|"send"|"stop"|"close"|"refresh"|"brain";
+type IconName="pick"|"image"|"image-off"|"role"|"model"|"provider"|"send"|"stop"|"close"|"refresh"|"brain"|"permission-read"|"permission-proposal"|"permission-full";
+const permissionIcons:Record<AgentPermissionMode,IconName>={"read-only":"permission-read",proposal:"permission-proposal","full-access":"permission-full"};
 function Icon({name}:{name:IconName}) {
   const paths:Record<IconName,ReactNode>={
     pick:<><path d="m5 3 14 9-7 1-3 7Z"/><path d="m12 13 4 6"/></>,
     image:<><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 5-5 4 4 4-6 5 7"/></>,
+    "image-off":<><path d="m3 3 18 18M9 3h8a4 4 0 0 1 4 4v8M3 9v8a4 4 0 0 0 4 4h8M3 17l5-5m8-2 5 7"/></>,
     role:<><circle cx="12" cy="8" r="3.5"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/><path d="m18 3 1 1m-1 3h3"/></>,
     brain:<><path d="M12 5a4 4 0 0 0-7-1 4 4 0 0 0-2 7 4 4 0 0 0 2 7 4 4 0 0 0 7 2V5Zm0 0a4 4 0 0 1 7-1 4 4 0 0 1 2 7 4 4 0 0 1-2 7 4 4 0 0 1-7 2"/><path d="M7 7v3m10-3v3M7 15h2m6 0h2"/></>,
+    "permission-read":<><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></>,
+    "permission-proposal":<><path d="m12 3 8 3v6c0 4.5-4 7.5-8 9-4-1.5-8-4.5-8-9V6l8-3Z"/><path d="m8 12 3 3 5-6"/></>,
+    "permission-full":<><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M9 10V7a4 4 0 0 1 7.5-2M12 14v3"/></>,
     model:<><rect x="6" y="6" width="12" height="12" rx="3"/><path d="M9 2v4m6-4v4M9 18v4m6-4v4M2 9h4m-4 6h4m12-6h4m-4 6h4"/><path d="M10 10h4v4h-4Z"/></>,
     provider:<><path d="M8 2v5m8-5v5M6 7h12v3a6 6 0 0 1-12 0Zm6 9v6"/></>,
     send:<><path d="M12 20V4m-6 6 6-6 6 6"/></>,
@@ -51,14 +58,16 @@ export function AgentComposer({agent,enabled,blocked,selection,selectionStale,on
             <button type="button" className="composer-icon" aria-label="添加参考图" title="添加参考图" disabled={locked||agent.references.length>=3} onClick={()=>upload.current?.click()}><Icon name="image"/></button>
             <input className="sr-only" ref={upload} aria-label="参考图文件" type="file" accept="image/png,image/jpeg,image/webp" multiple disabled={locked||agent.references.length>=3} onChange={e=>{void agent.addReferences(e.target.files);e.target.value="";}}/>
             <Select label="设计身份" variant="toolbar" icon={<Icon name="role"/>} value={agent.identity??"interaction"} displayValue={agentRoles[agent.identity??"interaction"].label.replace("设计","")} disabled={locked||ready||agent.savingSettings||!agent.sessionReady} onValueChange={value=>agent.setIdentity(value as "interaction"|"visual")} options={Object.entries(agentRoles).map(([value,profile])=>({value,label:profile.label,icon:<Icon name="role"/>,description:value==="interaction"?"任务流程、页面状态与交互反馈":"布局、配色、组件细节与视觉表现"}))}/>
-            <Select label="模型" variant="toolbar" className="composer-model" icon={<Icon name="model"/>} value={agent.model} displayValue={modelLabel} title={"模型 · "+(agent.model?modelLabel:defaultModel?.name||connection?.defaultModel||"跟随本机配置")} searchable disabled={locked||agent.savingSettings||!agent.sessionReady||agent.checkingConnection||!connection?.available} onValueChange={agent.setModel} options={[{value:"",label:"跟随本机配置",description:defaultModel?.name||connection?.defaultModel||"使用本机默认模型"},...(agent.model&&!model?[{value:agent.model,label:agent.model,description:"已不在目录中，请刷新后重新选择",disabled:true}]:[]),...(connection?.models??[]).map(item=>({value:item.id,label:item.name,keywords:item.id,description:!item.images?"不支持图片，无法接收当前设计画面":item.isDefault?"本机默认 · 支持图片":"支持图片",disabled:!item.images}))]}/>
-            <Select label="思考深度" variant="toolbar" className="composer-effort" icon={<Icon name="brain"/>} value={agent.effort} displayValue={effortLabel(agent.effort)} title={"思考深度 · "+(agent.effort?effortLabel(agent.effort):"自动"+(automaticEffort?"（"+effortLabel(automaticEffort)+"）":""))} searchable={false} disabled={locked||agent.savingSettings||!agent.sessionReady||agent.checkingConnection||!activeModel?.efforts.length} onValueChange={agent.setEffort} options={[{value:"",label:"自动",description:automaticEffort?"当前默认："+effortLabel(automaticEffort):"跟随本机与模型默认设置"},...(activeModel?.efforts??[]).map(value=>({value,label:effortLabel(value)}))]}/>
+            <ModelSettings agent={agent} modelLabel={modelLabel} disabled={locked||!agent.sessionReady} modelDisabled={agent.checkingConnection||!connection?.available} effortDisabled={agent.checkingConnection||!activeModel?.efforts.length} icon={<Icon name="model"/>} fullAccessIcon={<Icon name="permission-full"/>}
+              modelOptions={[{value:"",label:"跟随本机配置",description:defaultModel?.name||connection?.defaultModel||"使用本机默认模型"},...(agent.model&&!model?[{value:agent.model,label:agent.model,description:"已不在目录中，请刷新后重新选择",disabled:true}]:[]),...(connection?.models??[]).map(item=>({value:item.id,label:item.name,keywords:item.id,description:!item.images?"不支持图片，无法接收当前设计画面":item.isDefault?"本机默认模型，支持图片，可接收当前画面和参考图":"支持图片，可接收当前画面和参考图",descriptionIcon:<Icon name={item.images?"image":"image-off"}/>,disabled:!item.images}))]}
+              effortOptions={[{value:"",label:"自动",description:automaticEffort?"当前默认："+effortLabel(automaticEffort):"跟随本机与模型默认设置"},...(activeModel?.efforts??[]).map(value=>({value,label:effortLabel(value)}))]}
+              permissionOptions={permissionModes.map(mode=>({...mode,icon:<Icon name={permissionIcons[mode.value]}/>}))}/>
             <button type="button" className="composer-icon provider-trigger" aria-label="Codex Provider 状态" title={agent.checkingConnection?"正在读取 Codex 状态":"Codex · "+auth} aria-expanded={showConnection} data-state={unavailable?"error":agent.checkingConnection?"checking":connection?.auth==="authenticated"?"authenticated":"unknown"} onClick={()=>{setShowConnection(!showConnection);if(!showConnection)void agent.refreshConnection();}}><Icon name="provider"/><span className="provider-dot" aria-hidden="true"/></button>
           </div>
           {agent.waiting&&agent.job?.state!=="accepting"?<button type="button" className="composer-submit composer-stop" aria-label="取消生成" title="停止生成" disabled={agent.submitting} onClick={()=>void agent.finish("cancel")}><Icon name="stop"/></button>:<button type="submit" className="composer-submit" aria-label="发送" title="发送" disabled={!canSend}>{locked?<span className="loading-spinner" aria-hidden="true"/>:<Icon name="send"/>}</button>}
         </div>
       </form>
-      <small className="composer-hint">{!agent.sessionReady?"正在恢复当前方案的会话…":agent.savingSettings?"正在记住选择…":ready?"接受或放弃提案后可切换身份":"当前画面随消息发送 · 接受后写入"}</small>
+      <small className="composer-hint">{!agent.sessionReady?"正在恢复当前方案的会话…":agent.savingSettings?"正在记住选择…":ready?"接受或放弃提案后可切换身份":agent.permissionMode==="full-access"?"当前画面随消息发送":"当前画面随消息发送 · 接受后写入"}</small>
       {agent.depthNotice&&<small className="settings-notice" role="status">{agent.depthNotice}</small>}
       {agent.settingsError&&<div className="settings-notice" role="alert"><span>{agent.settingsError}</span><button type="button" disabled={agent.savingSettings||locked} onClick={agent.retrySettings}>重试保存</button></div>}
     </>:<div className="agent-offline-compose"><button type="button" className="composer-icon" aria-label="点选元素" title="点选元素" onClick={onPick}><Icon name="pick"/></button><p className="muted">离线预览可阅读与点选；生成和聊天需要本地插件工作台。</p></div>}

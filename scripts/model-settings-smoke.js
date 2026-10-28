@@ -1,0 +1,41 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {chromium} from 'playwright';
+import {initialize} from '../workbench/src/backend/services/workspace.mjs';
+import {startServer} from '../workbench/src/backend/http/server.mjs';
+import {createCodexConnection} from '../workbench/src/backend/adapters/codex-connection.mjs';
+import {testStatus,memoryPreferences} from '../tests/helpers/codex-connection.mjs';
+import {openPanel,openModelSettings,waitForModelSettings,chooseOption} from './browser-ui.js';
+
+const base=fs.mkdtempSync(path.join(os.tmpdir(),'dh-model-settings-')),workspace=initialize(base,{example:true}).workspace,errors=[],patches=[];
+const status=testStatus();status.models[0].name='Vision Test · A Very Long Model Name With A Large Context Window';
+let release;const gate=new Promise(resolve=>release=resolve);
+const service=await startServer(workspace,{port:0,agentPreferences:memoryPreferences(),agentConnection:createCodexConnection({inspect:async()=>{await gate;return status;}}),agentRun:async()=>({summary:'设置讨论',files:[]})});
+let browser;
+try{
+ browser=await chromium.launch({channel:'chrome',headless:true});const page=await browser.newPage({viewport:{width:360,height:980}});page.setDefaultTimeout(25000);page.on('pageerror',error=>errors.push(error.message));page.on('request',request=>{if(request.url().endsWith('/__dh/live/settings'))patches.push(request.postDataJSON().patch);});await page.goto(service.origin);await openPanel(page,'Agent');
+ const trigger=page.getByRole('button',{name:'模型',exact:true}),sessions=page.getByRole('combobox',{name:'Agent 会话',exact:true});
+ async function oneLine(){const result=await page.locator('.composer-toolbar').evaluate(toolbar=>{const rect=toolbar.getBoundingClientRect(),buttons=[...toolbar.querySelectorAll('button')].map(button=>button.getBoundingClientRect()).filter(box=>box.width>0);return {centers:buttons.map(box=>box.y+box.height/2),fits:buttons.every(box=>box.x>=rect.x-.5&&box.right<=rect.right+.5),pageFits:document.documentElement.scrollWidth<=innerWidth};});assert.ok(Math.max(...result.centers)-Math.min(...result.centers)<1.5);assert.equal(result.fits,true);assert.equal(result.pageFits,true);}
+ await page.waitForFunction(()=>document.querySelector('[data-agent-model-settings]')?.getAttribute('aria-busy')==='true');await oneLine();release();await waitForModelSettings(page);await oneLine();assert.match(await trigger.getAttribute('title'),/A Very Long Model Name/);assert.equal(await trigger.locator('.wb-select-value').evaluate(element=>element.scrollWidth>element.clientWidth),true);console.log('PASS 长模型名延迟加载前后始终单行，名称省略且完整提示可读');
+ assert.equal(await page.getByRole('combobox',{name:'思考深度',exact:true}).count(),0);assert.equal(await page.getByRole('combobox',{name:'权限模式',exact:true}).count(),0);
+ let popup=await openModelSettings(page);const imageHint=popup.getByRole('img',{name:'支持图片，可接收当前画面和参考图',exact:true}).first();await imageHint.hover();assert.match(await imageHint.getAttribute('title'),/当前画面和参考图/);assert.doesNotMatch(await popup.getByRole('tabpanel',{name:'模型',exact:true}).innerText(),/支持图片/);const count=patches.length;for(const tab of ['推理强度','权限','模型'])await popup.getByRole('tab',{name:tab,exact:true}).click();assert.equal(patches.length,count);console.log('PASS 单一模型入口，切换三个Tab不修改设置');
+ const search=popup.getByRole('combobox',{name:'搜索模型',exact:true});await search.fill('Fast');await search.press('ArrowDown');assert.equal(await trigger.getAttribute('data-value'),'');await search.press('Enter');await waitForModelSettings(page);assert.equal(await trigger.getAttribute('data-value'),'test-fast');assert.equal(await popup.isVisible(),true);
+ await page.setViewportSize({width:1440,height:980});await oneLine();
+ const natural=await trigger.evaluate(button=>{const label=button.querySelector('.wb-select-value'),icon=button.querySelector('.wb-select-trigger-icon'),style=getComputedStyle(button),range=document.createRange();range.selectNodeContents(label);return {actual:button.getBoundingClientRect().width,expected:range.getBoundingClientRect().width+icon.getBoundingClientRect().width+parseFloat(style.paddingLeft)+parseFloat(style.paddingRight)+parseFloat(style.columnGap)+parseFloat(style.borderLeftWidth)+parseFloat(style.borderRightWidth),labelWidth:label.clientWidth,textWidth:label.scrollWidth};});
+ assert.ok(Math.abs(natural.actual-natural.expected)<2,JSON.stringify(natural));assert.ok(natural.textWidth<=natural.labelWidth+1);console.log('PASS 短模型名按文字与图标自然宽度显示，不填满剩余空间');
+ await page.setViewportSize({width:360,height:980});await oneLine();
+ await popup.getByRole('tab',{name:'推理强度',exact:true}).click();await popup.locator('[role="option"][data-value="low"]').click();await waitForModelSettings(page);assert.equal(await trigger.getAttribute('data-effort'),'low');assert.equal(await popup.getByRole('tab',{name:'推理强度',exact:true}).getAttribute('aria-selected'),'true');
+ await popup.getByRole('tab',{name:'权限',exact:true}).click();await popup.locator('[role="option"][data-value="full-access"]').click();await waitForModelSettings(page);assert.equal(await popup.isVisible(),true);assert.equal(await trigger.getAttribute('data-permission-mode'),'full-access');assert.equal(await trigger.locator('.model-full-access').count(),1);assert.match(await trigger.getAttribute('title'),/低.*完全访问/);const warning=popup.getByRole('tabpanel',{name:'权限',exact:true}).locator('.agent-permission-warning');assert.equal(await warning.isVisible(),true);assert.match(await warning.textContent(),/接受提案前修改源文件.*不会自动撤销/);assert.equal(await page.locator('.agent-compose-area .agent-permission-warning').count(),0);assert.doesNotMatch(await page.locator('.composer-hint').innerText(),/完全访问/);await oneLine();console.log('PASS 三项选择立即生效，面板和当前Tab保持，风险说明仅在权限Tab显示');
+ const permissionList=popup.getByRole('listbox',{name:'权限选项',exact:true});await permissionList.focus();await permissionList.press('Home');assert.equal(await trigger.getAttribute('data-permission-mode'),'full-access');await permissionList.press('Enter');await waitForModelSettings(page);assert.equal(await trigger.getAttribute('data-permission-mode'),'read-only');assert.equal(await popup.isVisible(),true);console.log('PASS 键盘只高亮，Enter确认权限且面板继续打开');
+ await page.keyboard.press('Escape');await popup.waitFor({state:'hidden'});assert.equal(await trigger.evaluate(element=>element===document.activeElement),true);assert.equal(await page.locator('#studio-inspector').isVisible(),true);console.log('PASS Esc只关闭设置并恢复模型入口焦点');
+ for(const width of [1440,360,320]){
+  await page.setViewportSize({width,height:980});await oneLine();const frame=page.locator('iframe[title="产品预览 · comfortable"]'),before=await frame.boundingBox();popup=await openModelSettings(page);const box=await popup.boundingBox();assert.ok(box.x>=0&&box.y>=0&&box.x+box.width<=width+.5&&box.y+box.height<=980+.5);assert.deepEqual(await frame.boundingBox(),before);
+  const output=process.env.DH_SETTINGS_SCREENSHOTS;if(output){fs.mkdirSync(output,{recursive:true});await page.screenshot({path:path.join(output,'settings-'+width+'.png')});}
+  await page.getByRole('heading',{name:'Agent',exact:true}).click();await popup.waitFor({state:'hidden'});
+ }
+ console.log('PASS 桌面、360和320px单行与浮层边界，打开设置不移动产品预览');
+ await page.setViewportSize({width:1440,height:980});const first=await sessions.getAttribute('data-value');await page.getByRole('button',{name:'新建会话',exact:true}).click();await page.waitForFunction(id=>document.querySelector('[aria-label="Agent 会话"]').getAttribute('data-value')!==id,first);await waitForModelSettings(page);assert.equal(await trigger.getAttribute('data-permission-mode'),'proposal');popup=await openModelSettings(page);await chooseOption(sessions,first);await popup.waitFor({state:'hidden'});assert.equal(await trigger.getAttribute('data-permission-mode'),'read-only');assert.equal(await trigger.getAttribute('data-effort'),'low');console.log('PASS 会话切换关闭设置面板，恢复所属会话的配置');
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({modelSettings:'pass',checks:8,pageErrors:errors}));
+}finally{release();await browser?.close();await service.close();fs.rmSync(base,{recursive:true,force:true});}

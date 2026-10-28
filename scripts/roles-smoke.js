@@ -32,7 +32,7 @@ try{
   await page.goto(service.origin+"/?id=example");const frame=page.locator('iframe[title="产品预览 · comfortable"]').contentFrame();await frame.getByRole("textbox",{name:"任务主题",exact:true}).fill("用户刚输入的会话主题");await openPanel(page,"Agent");
   const identity=page.getByRole("combobox",{name:"设计身份",exact:true}),prompt=page.getByRole("textbox",{name:"发给 Agent",exact:true}),send=page.getByRole("button",{name:"发送",exact:true});
   await check("首次默认交互身份，切换视觉使用真实Skill和当前画面",async()=>{
-    await prompt.fill("讨论审美");await page.waitForFunction(()=>!document.querySelector('[aria-label="模型"]').disabled);assert.equal(await identity.getAttribute("data-value"),"interaction");assert.equal(await send.isEnabled(),true);await chooseOption(identity,"visual");
+    await prompt.fill("讨论审美");await page.waitForFunction(()=>!document.querySelector('[aria-label="模型"]').disabled&&document.querySelector('[aria-label="模型"]').getAttribute("aria-busy")!=="true");assert.equal(await identity.getAttribute("data-value"),"interaction");assert.equal(await send.isEnabled(),true);await chooseOption(identity,"visual");
     await page.getByLabel("参考图文件",{exact:true}).setInputFiles({name:"审美参考.png",mimeType:"image/png",buffer:png});await page.getByAltText("审美参考.png",{exact:true}).waitFor();await send.click();
     await page.getByRole("log").getByText("先明确阅读偏好，再比较视觉方向。",{exact:true}).waitFor();assert.equal(await page.getByRole("log").getByText("视觉设计 Agent",{exact:true}).count(),1);assert.equal(calls[0].images,2);assert.match(calls[0].prompt,/design-harness-visual/);assert.match(requests[0].capture.html,/value="用户刚输入的会话主题"/);assert.doesNotMatch(requests[0].capture.html,/<script[\s>]/i);assert.deepEqual(fs.readFileSync(specFile),beforeSpec);
   });

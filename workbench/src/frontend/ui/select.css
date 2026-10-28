@@ -7,6 +7,8 @@
 .wb-select-chevron {flex-shrink:0;width:13px;height:13px;color:#99929f;}
 .wb-select-trigger-icon,.wb-select-option-icon {display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
 .wb-select-trigger-icon svg,.wb-select-option-icon svg {width:17px;height:17px;}
+.wb-select-option-info {display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:16px;height:16px;margin-left:auto;color:#9b91a5;}
+.wb-select-option-info svg {width:16px;height:16px;}
 .wb-select-toolbar {flex-shrink:0;width:auto;max-width:78px;min-height:32px;height:32px;padding:5px;gap:4px;border:0;border-radius:7px;background:transparent;color:#696373;font-size:11px;}
 .wb-select-toolbar:hover:not(:disabled),.wb-select-toolbar[data-popup-open] {background:#eee9f6;color:#654391;}
 .wb-select-toolbar .wb-select-chevron {width:10px;height:10px;}
