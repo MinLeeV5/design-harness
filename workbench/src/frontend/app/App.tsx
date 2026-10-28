@@ -13,9 +13,9 @@ import {Select} from "../ui/Select";
 import {Tooltip} from "@base-ui/react/tooltip";
 import {ToolIcon,CanvasToolIcon,CloseIcon,WorkspaceStatusIcon,type Panel} from "./icons";
 import harnessIcon from "../../../assets/harness-icon.png";
-function WorkspaceStatus({development,proposal}:{development:boolean;proposal:boolean}) {
+function WorkspaceStatus({development,proposal,fullAccess=false}:{development:boolean;proposal:boolean;fullAccess?:boolean}) {
   const [open,setOpen]=useState(false),descriptionId=useId();
-  const status=proposal?{kind:"proposal" as const,title:"提案预览 · 尚未写入",description:"正在预览待确认的设计提案，源文件尚未更新。请回到原工作台接受或放弃修改。"}:development?{kind:"local" as const,title:"本地草稿",description:"正在预览本机设计资源。可使用 Agent，生成的修改接受后才写入。"}:{kind:"offline" as const,title:"离线预览",description:"当前为导出的独立 HTML，可体验页面、阅读说明和点选元素。聊天、生成及本地写回需在本地工作台使用。"};
+  const status=proposal?{kind:"proposal" as const,title:fullAccess?"提案预览 · 完全访问":"提案预览 · 尚未写入",description:fullAccess?"本提案通过完全访问生成，源文件可能已被修改；放弃提案不会撤销这些修改。":"正在预览待确认的设计提案，源文件尚未更新。请回到原工作台接受或放弃修改。"}:development?{kind:"local" as const,title:"本地草稿",description:"正在预览本机设计资源。可在 Agent 中选择权限，提案工作区中的修改接受后写入。"}:{kind:"offline" as const,title:"离线预览",description:"当前为导出的独立 HTML，可体验页面、阅读说明和点选元素。聊天、生成及本地写回需在本地工作台使用。"};
   return <Tooltip.Root open={open} onOpenChange={(next,details)=>{if(details.reason==="escape-key")details.event.preventDefault();setOpen(next);}}>
     <Tooltip.Trigger type="button" className="workspace-status" data-kind={status.kind} aria-label={status.title} aria-describedby={open?descriptionId:undefined} delay={180} closeDelay={100} closeOnClick={false} onClick={()=>setOpen(value=>!value)}><WorkspaceStatusIcon kind={status.kind}/></Tooltip.Trigger>
     <Tooltip.Portal><Tooltip.Positioner className="workspace-status-positioner" side="bottom" sideOffset={8} align="start" collisionPadding={10}><Tooltip.Popup id={descriptionId} role="tooltip" className="workspace-status-popup" data-workbench-status-popup=""><strong>{status.title}</strong><p>{status.description}</p></Tooltip.Popup></Tooltip.Positioner></Tooltip.Portal>
@@ -168,7 +168,7 @@ export function App({data:initialData}:{data:BundleData}) {
     <header className="studio-header">
       <button ref={settingsTrigger} className="drawer-trigger" aria-label="预览设置" title="预览设置" aria-expanded={settingsOpen} aria-controls="studio-settings" onClick={()=>{if(settingsOpen)closeSettings();else{if(matchMedia("(max-width:700px)").matches)setPanel(null);setSettingsOpen(true);setPick(false);}}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M5.5 8h1M5.5 12h1"/></svg><span>预览</span></button>
       <a className="studio-brand" href="#" onClick={event=>event.preventDefault()}><img className="brand-mark" src={harnessIcon} alt=""/><span>Design Harness</span></a>
-      <div className="requirement-title"><h1 title={manifest.title}>{manifest.title}</h1><WorkspaceStatus development={data.development} proposal={Boolean(data.proposal)}/></div>
+      <div className="requirement-title"><h1 title={manifest.title}>{manifest.title}</h1><WorkspaceStatus development={data.development} proposal={Boolean(data.proposal)} fullAccess={data.proposalPermission==="full-access"}/></div>
       <nav className="preview-context" aria-label="页面与场景">
         <Select label="页面" variant="toolbar" className="context-choice" disabled={agent.submitting||exporting} value={page} onValueChange={navigate} options={manifest.pages.map(p=>({value:p.id,label:p.title}))}/>
         <span className="context-separator" aria-hidden="true">/</span>

@@ -21,7 +21,7 @@ export function createAgentPreferences({file=path.join(process.env.XDG_CONFIG_HO
     const temporary=file+"."+randomBytes(8).toString("hex")+".tmp";
     try{
       if(fs.existsSync(file)&&fs.lstatSync(file).isSymbolicLink())throw new Error("设计偏好文件不能使用软链接。");
-      const next=mergeAgentSettings(read(),changes);fs.writeFileSync(temporary,JSON.stringify({schemaVersion:1,...next},null,2)+"\n",{flag:"wx",mode:0o600});fs.renameSync(temporary,file);return next;
+      const next=mergeAgentSettings(read(),changes),{permissionMode,...persisted}=next;fs.writeFileSync(temporary,JSON.stringify({schemaVersion:1,...persisted},null,2)+"\n",{flag:"wx",mode:0o600});fs.renameSync(temporary,file);return next;
     }finally{fs.rmSync(temporary,{force:true});fs.closeSync(descriptor);fs.rmSync(lock,{force:true});}
   }
   return {read,patch};

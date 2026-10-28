@@ -49,6 +49,8 @@ export const WORKBENCH_FILES = [
   "src/contracts/agent-controls.mjs",
   "src/contracts/agent-output.mjs",
   "src/contracts/agent-provider.d.mts",
+  "src/contracts/agent-permissions.mjs",
+  "src/contracts/agent-permissions.d.mts",
   "src/contracts/agent-policy.mjs",
   "src/contracts/agent-roles.d.mts",
   "src/contracts/agent-roles.mjs",

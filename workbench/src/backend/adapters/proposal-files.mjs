@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import {createHash} from "node:crypto";
 import {assert} from "../../contracts/assertions.mjs";
 import {tuneProposal} from "../../contracts/agent-controls.mjs";
 import {allowAgentFile,designText} from "../../contracts/agent-policy.mjs";
@@ -34,6 +35,40 @@ export function createProposalDirectory() {
 }
 export const removeProposalDirectory = directory => fs.rmSync(directory,{recursive:true,force:true});
 export const snapshotFiles = folder => new Map(resourceFiles(folder).filter(file=>designText.test(file)).map(file=>[path.relative(folder,file).split(path.sep).join("/"),fs.readFileSync(file,"utf8")]));
+export function snapshotProposalFiles(directory){
+  const result=new Map();let total=0;
+  function walk(folder){for(const entry of fs.readdirSync(folder,{withFileTypes:true})){
+    const file=path.join(folder,entry.name),relative=path.relative(directory,file).split(path.sep).join("/");
+    assert(!entry.isSymbolicLink(),"提案副本不能包含软链接："+relative);
+    if(relative===".agent-scratch"){assert(entry.isDirectory(),"临时输出目录无效");continue;}
+    if(entry.isDirectory())walk(file);else{
+      assert(entry.isFile(),"提案副本只能包含普通文件："+relative);assert(result.size<10000,"提案副本文件过多");const size=fs.statSync(file).size;total+=size;assert(size<=64000000&&total<=128000000,"提案副本资源过大");
+      const digest=createHash("sha256"),buffer=Buffer.allocUnsafe(65536),descriptor=fs.openSync(file,"r");
+      try{let read,bytes=0;while((read=fs.readSync(descriptor,buffer,0,buffer.length,null))>0){bytes+=read;assert(bytes<=64000000,"提案副本资源过大");digest.update(buffer.subarray(0,read));}}finally{fs.closeSync(descriptor);}result.set(relative,digest.digest("hex"));
+    }
+  }}walk(directory);return result;
+}
+export function freezeProposalFiles(job){
+  const before=snapshotProposalFiles(job.directory),frozen=createProposalDirectory(),original=job.temp;
+  const signature=files=>JSON.stringify([...files].sort(([a],[b])=>a.localeCompare(b,"en")));
+  try{
+    for(const relative of before.keys()){const source=safeDestination(job.directory,relative),target=safeDestination(frozen.directory,relative);fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(source,target);}
+    assert(signature(snapshotProposalFiles(job.directory))===signature(before)&&signature(snapshotProposalFiles(frozen.directory))===signature(before),"提案副本在冻结期间发生变化，请重新生成");
+    job.temp=frozen.temp;job.directory=frozen.directory;removeProposalDirectory(original);
+  }catch(error){removeProposalDirectory(frozen.temp);throw error;}
+}
+export function checkProposalFiles(job,{readOnly=false}={}){
+  const after=snapshotProposalFiles(job.directory),prefix="requirements/"+job.requirement+"/";let count=0,total=0;
+  for(const relative of new Set([...job.stagedFiles.keys(),...after.keys()])){
+    if(job.stagedFiles.get(relative)===after.get(relative))continue;
+    assert(!readOnly,"只读分析模式不能直接修改提案文件，请通过最终提案返回修改");
+    assert(after.has(relative),"提案暂不支持删除文件："+relative);
+    const local=relative.startsWith(prefix)?relative.slice(prefix.length):"";
+    assert(local&&designText.test(local)&&allowAgentFile(local,job),"工具修改越过当前身份的设计范围："+relative);
+    total+=fs.statSync(safeDestination(job.directory,relative)).size;count++;
+    assert(count<=60&&total<=2000000,"Agent 修改过大");
+  }
+}
 export const authoredSources = root => filesIn(root).filter(file=>/\.(css|tsx?|jsx?)$/.test(file)).map(file=>fs.readFileSync(file,"utf8")).join("\n");
 
 export function stageModelFiles(job,result) {

@@ -239,3 +239,7 @@ button[aria-pressed=true],button[aria-expanded=true],button.active {color:#6640b
 .agent-sessions{display:flex;align-items:center;gap:8px;padding-bottom:10px;border-bottom:1px solid var(--line,#e5e7eb)}
 .agent-sessions .wb-select-trigger{min-width:0;flex:1}
 .agent-sessions>button{flex-shrink:0}
+
+.agent-permission-warning,.agent-approval{margin:0;padding:10px 12px;border:1px solid #dfc18a;border-radius:8px;background:#fff8e9;color:#74501e;font-size:12px;line-height:1.6;overflow-wrap:anywhere;min-width:0;}
+.agent-approval{margin-top:10px;display:grid;gap:6px;}.agent-approval p{margin:0;}.agent-approval .agent-actions{flex-wrap:wrap;}.agent-approval pre,.agent-command,.agent-output pre{max-width:100%;max-height:180px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;padding:8px;border-radius:6px;background:#ffffffb0;color:#343747;font:11px/1.6 ui-monospace,monospace;margin:5px 0;}.agent-process li>div{width:100%;}.agent-output>summary{cursor:pointer;margin-top:5px;}.message-permission{margin-top:5px;}
+.approval-field{display:grid;gap:4px;min-width:0;}.approval-field input:not([type=checkbox]){min-width:0;width:100%;box-sizing:border-box;padding:6px 8px;border:1px solid #d5c49e;border-radius:5px;font:inherit;}.approval-field input[type=checkbox]{justify-self:start;}

@@ -2,6 +2,7 @@ import {randomBytes} from "node:crypto";
 import {assert} from "../../contracts/assertions.mjs";
 import {outputSchema} from "../../contracts/agent-output.mjs";
 import {tuneProposal} from "../../contracts/agent-controls.mjs";
+import {validatePermissionMode} from "../../contracts/agent-permissions.mjs";
 import {canonicalDirectory} from "../adapters/filesystem.mjs";
 import {loadRequirement} from "../adapters/resource-store.mjs";
 import {createAgentProvider} from "./agent-providers.mjs";
@@ -9,7 +10,7 @@ import {promptFor} from "../adapters/agent-prompt.mjs";
 import {typecheck} from "../adapters/typecheck.mjs";
 import {loadAgentSkill} from "../adapters/agent-skills.mjs";
 import {captureDesignView,saveDesignReferences} from "../adapters/design-capture.mjs";
-import {copyResources,changesFor,stageValues,createProposalDirectory,removeProposalDirectory,snapshotFiles,stageModelFiles,snapshotTuningFiles,restoreTuningFiles,commitProposalFiles} from "../adapters/proposal-files.mjs";
+import {copyResources,changesFor,stageValues,createProposalDirectory,removeProposalDirectory,snapshotFiles,snapshotProposalFiles,checkProposalFiles,freezeProposalFiles,stageModelFiles,snapshotTuningFiles,restoreTuningFiles,commitProposalFiles} from "../adapters/proposal-files.mjs";
 import {buildRequirement} from "./preview.mjs";
 import {validateJob,checkControls} from "./proposals.mjs";
 import {checkAgentScope} from "./proposal-policy.mjs";
@@ -33,25 +34,37 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
     settings.current(session.id);sessions.set(session.id,session);return session;
   }
   const sessionForJob=job=>sessions.get(job.sessionId);
-  const message=(job,role,content,state)=>{const item={id:randomBytes(8).toString("hex"),role,identity:job.role,skill:job.skill.skill,model:job.model,content,page:job.page,selection:role==="user"?job.selection:null,state,startedAt:Date.now(),...(role==="assistant"?{activity:[]}: {})};sessionForJob(job).messages.push(item);return item;};
-  const view=job=>({id:job.id,sessionId:job.sessionId,providerId:provider.id,state:job.state,startedAt:job.startedAt,page:job.page,role:job.role,skill:job.skill.skill,model:job.model,error:job.error??"",candidate:job.candidate,revision:job.revision,summary:job.summary??"",messages:sessionForJob(job).messages,proposal:job.state==="ready"?job.proposal:undefined});
-  const summary=session=>({id:session.id,providerId:session.providerId,requirement:session.requirement,candidate:session.candidate,title:session.title,createdAt:session.createdAt,state:session.jobId?find(session.jobId).state:"idle"});
+  const message=(job,role,content,state)=>{const item={id:randomBytes(8).toString("hex"),role,identity:job.role,skill:job.skill.skill,model:job.model,permissionMode:job.permissionMode,content,page:job.page,selection:role==="user"?job.selection:null,state,startedAt:Date.now(),...(role==="assistant"?{activity:[],approvals:job.approvals}: {})};sessionForJob(job).messages.push(item);return item;};
+  const view=job=>({id:job.id,sessionId:job.sessionId,providerId:provider.id,state:job.state,permissionMode:job.permissionMode,sourceChanged:job.sourceChanged,approvals:job.approvals,startedAt:job.startedAt,page:job.page,role:job.role,skill:job.skill.skill,model:job.model,error:job.error??"",candidate:job.candidate,revision:job.revision,summary:job.summary??"",messages:sessionForJob(job).messages,proposal:job.state==="ready"?job.proposal:undefined});
+  const summary=session=>({id:session.id,providerId:session.providerId,requirement:session.requirement,candidate:session.candidate,title:session.title,createdAt:session.createdAt,state:session.jobId?(find(session.jobId).pendingApprovals.size?"awaiting_approval":find(session.jobId).state):"idle"});
   const snapshot=session=>({...summary(session),messages:session.messages,...settings.current(session.id),job:session.jobId?view(find(session.jobId)):null});
   function record(session,model,state){session.lastRequest={model:model.id,name:model.name,provider:model.provider,state,at:Date.now()};provider.record?.(model,state);}
   function ownedJob(id,sessionId){const job=find(id);assert(sessionId?job.sessionId===sessionId:defaults.get(job.requirement+":"+job.candidate)===job.sessionId,"任务不属于当前会话");return job;}
-  function activity(job,id,label,status="running",text){
+  function activity(job,id,label,status="running",text,details={}){
     const items=job.reply?.activity;if(!items)return;
     let item=items.find(item=>item.id===id);
-    if(!item){item={id,label,status,startedAt:Date.now()};items.push(item);}else {if(item.status!=="running"&&status==="running"){item.startedAt=Date.now();delete item.endedAt;}Object.assign(item,{label,status});}
-    if(text)item.text=text;
+    if(!item){if(items.length>=300)return;item={id,label,status,startedAt:Date.now()};items.push(item);}else {if(item.status!=="running"&&status==="running"){item.startedAt=Date.now();delete item.endedAt;}Object.assign(item,{label,status});}
+    if(text!==undefined)item.text=text;
+    for(const key of ["kind","command","cwd","output","exitCode","truncated"])if(details[key]!==undefined)item[key]=details[key];
     if(status!=="running")item.endedAt=Date.now();
   }
+  function requestApproval(job,request,{signal}={}){
+    if(!job.callActive||job.controller.signal.aborted||signal?.aborted)return Promise.resolve({decision:"cancel"});
+    const id=randomBytes(12).toString("hex"),approval={...request,id,state:"pending"};job.approvals.push(approval);
+    activity(job,"approval-"+id,approval.title,"running");
+    return new Promise(resolve=>{
+      const settle=(decision,content)=>{if(!job.pendingApprovals.delete(id))return;signal?.removeEventListener("abort",cancel);job.controller.signal.removeEventListener("abort",cancel);approval.state=decision==="accept"?"accepted":decision==="decline"?"declined":"cancelled";activity(job,"approval-"+id,approval.title,decision==="accept"?"done":"cancelled");resolve({decision,...(content?{content}:{})});};
+      const cancel=()=>settle("cancel");job.pendingApprovals.set(id,settle);signal?.addEventListener("abort",cancel,{once:true});job.controller.signal.addEventListener("abort",cancel,{once:true});
+    });
+  }
+  function clearApprovals(job){for(const settle of job.pendingApprovals.values())settle("cancel");}
+  function detectSourceChanges(job){try{job.sourceChanged=loadRequirement(workspace,job.requirement).revision!==job.revision;}catch{job.sourceChanged=true;}}
   function phase(job,id,label){if(closed||(!job.callActive&&job.state!=="accepting"))return;for(const item of job.reply?.activity??[])if(item.status==="running")activity(job,item.id,item.label,"done");activity(job,id,label);}
   const finishMessage=(job,state,content,activityState=state)=>{if(!job.reply)return;job.reply.state=state;if(content!==undefined)job.reply.content=content;job.reply.completedAt??=Date.now();for(const item of job.reply.activity)if(item.status==="running")activity(job,item.id,item.label,activityState==="failed"?"failed":activityState==="cancelled"||activityState==="discarded"?"cancelled":"done");};
   function armPreview(job){clearTimeout(job.timer);job.timer=setTimeout(()=>{if(job.state==="ready"){job.state="discarded";finishMessage(job,"discarded");job.proposal=undefined;activity(job,"expired","预览已过期","done");cleanup(job);}},30*60000);job.timer.unref?.();}
   function releaseBase(job){if(job.base){job.base.state="superseded";finishMessage(job.base,"superseded");cleanup(job.base);job.base=null;}}
   function failOrRecover(job,error,outcome="failed"){
-    job.callActive=false;const base=job.base;
+    job.callActive=false;clearApprovals(job);detectSourceChanges(job);const base=job.base;
     if(base?.temp&&!closed){
       cleanup(job);job.temp=base.temp;job.directory=base.directory;base.temp=null;
       job.summary=base.summary;job.proposal=base.proposal;job.changes=base.changes;job.controller=new AbortController();job.state="ready";job.error=error+"；上一版预览已保留，可继续调整或接受";
@@ -64,6 +77,7 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
     assert(!starting.has(session.id),"当前会话正在提交，请稍后重试");starting.add(session.id);
     try {
     const skill=loadAgentSkill(request.role);
+    const permissionMode=validatePermissionMode(request.permissionMode??settings.current(session.id).permissionMode);
     const model=await provider.selectModel(request.model??"",request.effort??"");
     assert(!closed,"Agent 已关闭");
     const data=loadRequirement(workspace,request.id);assert(request.expectedRevision===data.revision,"设计资源已变化，请刷新后再发送");
@@ -79,8 +93,8 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
     if(base){base.state="refining";clearTimeout(base.timer);try{await stageValues(base,request.values);base.proposal=tuneProposal(base.proposal,request.values??{});base.changes=changesFor(base);}catch(error){base.state="ready";armPreview(base);throw error;}}
     const source=base?loadRequirement(base.directory,request.id):data,sourceWorkspace=base?base.directory:workspace;
     const {temp,directory}=createProposalDirectory();
-    const job={id:randomBytes(16).toString("hex"),sessionId:session.id,state:"running",startedAt:Date.now(),selection,requirement:request.id,candidate:request.candidate,page:request.page,role:request.role,skill,model,revision:data.revision,originalRoot:data.folder,originalFiles:base?.originalFiles??snapshotFiles(data.folder),temp,directory,controller:new AbortController(),changes:[],base,callActive:true,baseControls:base?.proposal.controls??[]};
-    try{copyResources(sourceWorkspace,source,directory);assert(loadRequirement(workspace,request.id).revision===data.revision,"复制设计上下文期间源资源发生变化，请重试");settings.remember(session.id,{identity:request.role,model:model.choice??request.model??"",effort:{model:model.id||request.model||"default",value:model.effortChoice??request.effort??""}});}
+    const job={id:randomBytes(16).toString("hex"),sessionId:session.id,state:"running",permissionMode,approvals:[],pendingApprovals:new Map(),startedAt:Date.now(),selection,requirement:request.id,candidate:request.candidate,page:request.page,role:request.role,skill,model,revision:data.revision,originalRoot:data.folder,originalFiles:base?.originalFiles??snapshotFiles(data.folder),temp,directory,controller:new AbortController(),changes:[],base,callActive:true,baseControls:base?.proposal.controls??[]};
+    try{copyResources(sourceWorkspace,source,directory);job.stagedFiles=snapshotProposalFiles(directory);assert(loadRequirement(workspace,request.id).revision===data.revision,"复制设计上下文期间源资源发生变化，请重试");settings.remember(session.id,{identity:request.role,model:model.choice??request.model??"",permissionMode,effort:{model:model.id||request.model||"default",value:model.effortChoice??request.effort??""}});}
     catch(error){cleanup(job);if(base){base.state="ready";armPreview(base);}throw error;}
     const previous=session.jobId?find(session.jobId):null;
     const disposition={previousProposal:previous?.state??"none",baseProposal:base?.id??null,source:base?"pending proposal including tuned controls":"current accepted files",revision:data.revision};
@@ -90,21 +104,21 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
     job.done=(async()=>{
       try {
         const currentImage=await capture({capture:request.capture,directory:temp,signal:job.controller.signal});if(!job.callActive)return;
-        const imageFiles=[...(currentImage?[currentImage]:[]),...saveDesignReferences(request.references,temp)],prompt=promptFor(loadRequirement(directory,job.requirement),request,disposition,skill,imageFiles);
+        const imageFiles=[...(currentImage?[currentImage]:[]),...saveDesignReferences(request.references,temp)],prompt=promptFor(loadRequirement(directory,job.requirement),{...request,permissionMode,sourceRoot:job.originalRoot},disposition,skill,imageFiles);
         phase(job,"request","请求已提交至本机 Codex");
         const signal=job.controller.signal;record(session,model,"running");let result;
         try{
-          session.native??=provider.createSession({id:session.id,directory,model}).catch(error=>{session.native=null;throw error;});
+          session.native??=provider.createSession({id:session.id,directory,model,permissionMode}).catch(error=>{session.native=null;throw error;});
           const native=await session.native;if(!job.callActive){record(session,model,signal.reason==="timeout"?"failed":"cancelled");return;}
-          result=await provider.runTurn({session:native,sessionId:session.id,directory,prompt,schema:outputSchema,imageFiles,model,signal,onEvent:event=>{if(job.callActive)activity(job,event.id,event.label,event.status,event.text);}});record(session,model,signal.aborted?signal.reason==="timeout"?"failed":"cancelled":"succeeded");}
+          result=await provider.runTurn({session:native,sessionId:session.id,directory,prompt,schema:outputSchema,imageFiles,model,signal,permissionMode,onApproval:(request,options)=>requestApproval(job,request,options),onEvent:event=>{if(job.callActive)activity(job,event.id,event.label,event.status,event.text,event);}});record(session,model,signal.aborted?signal.reason==="timeout"?"failed":"cancelled":"succeeded");}
         catch(error){record(session,model,signal.aborted&&signal.reason!=="timeout"?"cancelled":"failed");throw error;}if(!job.callActive)return;
         assert(result&&typeof result.summary==="string"&&result.summary.trim()&&result.summary.length<=10000&&Array.isArray(result.files)&&result.files.length<=60,"Agent 未返回有效回答或修改");
-        stageModelFiles(job,result);
+        clearApprovals(job);detectSourceChanges(job);checkProposalFiles(job,{readOnly:permissionMode==="read-only"});freezeProposalFiles(job);stageModelFiles(job,result);checkProposalFiles(job);
         job.changes=changesFor(job);job.summary=result.summary;checkAgentScope(job);
         if(!job.changes.length){assert(!(result.controls?.length),"纯回答不能提供未生成的调整项");job.callActive=false;job.state="answered";finishMessage(job,"answered",result.summary);releaseBase(job);cleanup(job);return;}
-        job.state="validating";phase(job,"types","检查组件与类型");await typecheck(directory,{signal:job.controller.signal});phase(job,"build","构建隔离预览");const built=await buildRequirement(directory,job.requirement);if(!job.callActive||job.controller.signal.aborted)return;phase(job,"browser","检查浏览器中的页面与交互");const impact=await validateJob(job,built);if(!job.callActive)return;
+        job.state="validating";phase(job,"types","检查组件与类型");await typecheck(job.directory,{signal:job.controller.signal});phase(job,"build","构建隔离预览");const built=await buildRequirement(job.directory,job.requirement);if(!job.callActive||job.controller.signal.aborted)return;phase(job,"browser","检查浏览器中的页面与交互");const impact=await validateJob(job,built);if(!job.callActive)return;
         const controls=result.files.length===0&&job.baseControls.length?job.baseControls:(result.controls??[]);checkControls(job,built,controls);
-        const key=job.candidate+":"+job.page;job.proposal={summary:result.summary,html:built.payload.previews[job.page+":"+job.candidate],spec:built.data.specs[key],css:built.data.params[job.candidate].css,controls,changes:job.changes,interactions:built.data.interactions,documentation:built.payload.documentation,reviewHtml:built.html,candidate:job.candidate,page:job.page,impact};job.callActive=false;job.state="ready";releaseBase(job);finishMessage(job,"ready",result.summary);activity(job,"preview","预览已就绪，等待接受","done");armPreview(job);
+        const key=job.candidate+":"+job.page;job.proposal={permissionMode,summary:result.summary,html:built.payload.previews[job.page+":"+job.candidate],spec:built.data.specs[key],css:built.data.params[job.candidate].css,controls,changes:job.changes,interactions:built.data.interactions,documentation:built.payload.documentation,reviewHtml:built.html,candidate:job.candidate,page:job.page,impact};job.callActive=false;job.state="ready";releaseBase(job);finishMessage(job,"ready",result.summary);activity(job,"preview","预览已就绪，等待接受","done");armPreview(job);
       }catch(error){if(job.callActive)failOrRecover(job,error.message);}
     })();return view(job);
     } finally {starting.delete(session.id);}
@@ -113,8 +127,10 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
     const job=find(id);assert(job.state==="ready","生成结果尚不可接受");assert(loadRequirement(workspace,job.requirement).revision===job.revision,"源资源已被修改，生成结果仍保留；请放弃后基于最新资源重试");
     job.state="accepting";job.acceptAttempts=(job.acceptAttempts??0)+1;job.acceptActivity="accept-"+job.acceptAttempts;phase(job,job.acceptActivity,"校验本次调节与源文件版本");clearTimeout(job.timer);let stagedBefore=new Map();const changesBefore=job.changes;
     try{
+    checkProposalFiles(job);
     stagedBefore=snapshotTuningFiles(job);
     if(await stageValues(job,values)){const built=await buildRequirement(job.directory,job.requirement);job.changes=changesFor(job);await validateJob(job,built);}
+    checkProposalFiles(job);checkAgentScope(job);
     assert(job.state==="accepting"&&!job.controller.signal.aborted,"接受已中断，未写入设计资源");
     phase(job,"write-"+job.acceptAttempts,"写入当前候选资源");const data=loadRequirement(workspace,job.requirement);assert(data.revision===job.revision,"源资源已被修改，生成结果仍保留；请重新比较");commitProposalFiles(data,job);
     job.state="accepted";finishMessage(job,"accepted");job.proposal=undefined;cleanup(job);return {...view(job),revision:loadRequirement(workspace,job.requirement).revision};
@@ -122,10 +138,23 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
   }
   async function event(request) {
     if(["generate","message"].includes(request.type))return generate(request);
+    if(request.type==="approval"){
+      assert(typeof request.sessionId==="string"&&request.sessionId,"审批需要所属会话");const job=ownedJob(request.job,request.sessionId),approval=job.approvals.find(item=>item.id===request.approvalId);
+      assert(job.callActive&&approval?.state==="pending"&&job.pendingApprovals.has(request.approvalId),"审批已结束或不属于当前任务");assert(approval.choices.includes(request.decision),"审批选项无效");
+      if(request.decision==="accept"&&approval.fields){
+        const content=request.content??{};assert(content&&typeof content==="object"&&!Array.isArray(content)&&JSON.stringify(content).length<=16000,"工具输入无效");assert(Object.keys(content).every(key=>approval.fields.some(field=>field.id===key)),"工具输入包含未知字段");
+        for(const field of approval.fields){const value=content[field.id];assert(value!==undefined||!field.required,"请填写："+field.label);if(value===undefined)continue;
+          assert(field.type==="integer"?Number.isInteger(value):typeof value===field.type,"工具输入格式无效："+field.label);if(field.options)assert(field.options.some(option=>option.value===value),"工具输入选项无效："+field.label);
+          if(typeof value==="string")assert(value.length>=(field.minLength??0)&&value.length<=(field.maxLength??16000),"工具输入长度无效："+field.label);
+          if(typeof value==="number")assert(Number.isFinite(value)&&value>=(field.minimum??-Infinity)&&value<=(field.maximum??Infinity),"工具输入范围无效："+field.label);
+        }
+      }
+      job.pendingApprovals.get(request.approvalId)(request.decision,request.content);return view(job);
+    }
     if(request.type==="accept"){ownedJob(request.job,request.sessionId);return accept(request.job,request.values);}
     assert(["discard","cancel"].includes(request.type),"未知的 Agent 事件");const job=ownedJob(request.job,request.sessionId);assert(!terminal.has(job.state),"该生成已经结束");assert(!["accepting","refining"].includes(job.state),"预览正被接受或用于继续生成，请等待当前操作完成");
     if(job.base&&request.type==="cancel"){job.controller.abort();failOrRecover(job,"已取消本轮生成","cancelled");await job.done;return view(job);}
-    job.callActive=false;job.state=request.type==="cancel"?"cancelled":"discarded";finishMessage(job,job.state,request.type==="cancel"?"已取消本轮请求":job.reply?.content||"已放弃本轮修改");job.controller.abort();releaseBase(job);await job.done;job.proposal=undefined;cleanup(job);return view(job);
+    job.callActive=false;clearApprovals(job);job.state=request.type==="cancel"?"cancelled":"discarded";finishMessage(job,job.state,request.type==="cancel"?"已取消本轮请求":job.reply?.content||"已放弃本轮修改");job.controller.abort();releaseBase(job);await job.done;detectSourceChanges(job);job.proposal=undefined;cleanup(job);return view(job);
   }
   return {
     event,get:(id,sessionId)=>view(ownedJob(id,sessionId)),
