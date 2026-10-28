@@ -36,18 +36,30 @@ export function createRouter({workspace, token, agent, origin}) {
         return;
       }
       if (request.method === "GET" && url.pathname === "/__dh/live/session") {
-        if (authorized("会话需要当前工作台")) reply(200,agent.session(url.searchParams.get("id"),url.searchParams.get("candidate")));
+        if (authorized("会话需要当前工作台")) reply(200,agent.session(url.searchParams.get("id"),url.searchParams.get("candidate"),url.searchParams.get("sessionId")));
+        return;
+      }
+      if (request.method === "GET" && url.pathname === "/__dh/live/sessions") {
+        if (authorized("会话需要当前工作台")) reply(200,agent.sessions(url.searchParams.get("id"),url.searchParams.get("candidate")));
+        return;
+      }
+      if (request.method === "GET" && url.pathname === "/__dh/workspace") {
+        if (authorized("设计资源需要当前工作台")) {
+          const id=url.searchParams.get("id"),built=await buildRequirement(workspace,id,{development:true,token});
+          if(built.data.revision!==requirementRevision(workspace,id))throw new SourceConflict("构建期间设计资源已变化，请重试");
+          reply(200,built.payload);
+        }
         return;
       }
       if (request.method === "GET" && url.pathname === "/__dh/live/connection") {
-        if (authorized("连接状态需要当前工作台")) reply(200,await agent.connection({refresh:url.searchParams.get("refresh") === "1"}));
+        if (authorized("连接状态需要当前工作台")) reply(200,await agent.connection({refresh:url.searchParams.get("refresh") === "1",sessionId:url.searchParams.get("sessionId")}));
         return;
       }
       if (request.method === "GET" && /^\/__dh\/live\/jobs\/[a-f0-9]{32}$/.test(url.pathname)) {
-        if (authorized("生成记录需要当前工作台")) reply(200,agent.get(url.pathname.split("/").at(-1)));
+        if (authorized("生成记录需要当前工作台")) reply(200,agent.get(url.pathname.split("/").at(-1),url.searchParams.get("sessionId")));
         return;
       }
-      if (request.method !== "POST" || !["/__dh/spec","/__dh/export","/__dh/live/events","/__dh/live/settings"].includes(url.pathname)) {
+      if (request.method !== "POST" || !["/__dh/spec","/__dh/export","/__dh/live/events","/__dh/live/settings","/__dh/live/sessions"].includes(url.pathname)) {
         reply(404,{error:"入口不存在"});
         return;
       }
@@ -56,8 +68,11 @@ export function createRouter({workspace, token, agent, origin}) {
         return;
       }
       const body = await readJsonBody(request,url.pathname === "/__dh/live/events" ? 15000000 : 65536);
+      if (url.pathname === "/__dh/live/sessions") {
+        reply(200,agent.createSession(body.id,body.candidate));return;
+      }
       if (url.pathname === "/__dh/live/settings") {
-        reply(200,await agent.saveSettings(body.id,body.candidate,body.patch));
+        reply(200,await agent.saveSettings(body.id,body.candidate,body.patch,body.sessionId));
         return;
       }
       if (url.pathname === "/__dh/live/events") {

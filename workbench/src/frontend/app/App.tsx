@@ -21,7 +21,8 @@ function WorkspaceStatus({development,proposal}:{development:boolean;proposal:bo
     <Tooltip.Portal><Tooltip.Positioner className="workspace-status-positioner" side="bottom" sideOffset={8} align="start" collisionPadding={10}><Tooltip.Popup id={descriptionId} role="tooltip" className="workspace-status-popup" data-workbench-status-popup=""><strong>{status.title}</strong><p>{status.description}</p></Tooltip.Popup></Tooltip.Positioner></Tooltip.Portal>
   </Tooltip.Root>;
 }
-export function App({data}:{data:BundleData}) {
+export function App({data:initialData}:{data:BundleData}) {
+  const [data,setData]=useState(initialData);
   const initial=useMemo(()=>new URLSearchParams(location.hash.slice(1)),[]);
   const api=useMemo(()=>createWorkbenchClient(data.token),[data.token]);
   const manifest=data.manifest;
@@ -44,11 +45,25 @@ export function App({data}:{data:BundleData}) {
   const revisionRef=useRef(data.revision),pollGeneration=useRef(0);
   const [exporting,setExporting]=useState(false);
   const exportingRef=useRef(false);
-  const acceptedNavigationRef=useRef(false);
+  const refreshTask=useRef<Promise<void>|null>(null);
+  function refreshWorkspace(){
+    if(refreshTask.current)return refreshTask.current;
+    const task=api.workspace(manifest.id).then(next=>{
+      const current=workspaceSelection.current,nextPage=next.manifest.pages.some(p=>p.id===current.page)?current.page:next.manifest.pages[0].id;
+      const nextScenario=next.scenarios.find(s=>s.id===current.scenarioId)??next.scenarios.find(s=>s.page===nextPage)??next.scenarios[0];
+      const nextViewport=next.manifest.viewports.find(v=>v.id===current.viewportId)??next.manifest.viewports[0];
+      const candidates=next.manifest.candidates.map(c=>c.id),nextCandidate=candidates.includes(current.candidate)?current.candidate:candidates[0];
+      const comparison=[...current.comparisonIds.filter(id=>candidates.includes(id)),...candidates.filter(id=>!current.comparisonIds.includes(id))].slice(0,2);
+      const retained=Object.fromEntries(Object.entries(current.contexts).filter(([id,value])=>next.specs[id+":"+value.page]));
+      revisionRef.current=next.revision;setData(next);setPage(nextPage);setScenario(nextScenario.id);setViewport(nextViewport.id);setCandidate(nextCandidate);setComparisonIds(comparison);setCompare(enabled=>enabled&&candidates.length>1);setContexts(retained);cancelNavigation();
+    }).finally(()=>{refreshTask.current=null;});
+    refreshTask.current=task;return task;
+  }
   const [elements,setElements]=useState<string[]>([]),[duplicates,setDuplicates]=useState<string[]>([]);
   const [reset,setReset]=useState(0),[instance,setInstance]=useState("");
   const [contexts,setContexts]=useState<Record<string,PreviewContext>>({}),[selectedAnnotation,setSelectedAnnotation]=useState("");
   const contextInitial=useRef<Record<string,string>>({});
+  const workspaceSelection=useRef({page,scenarioId,viewportId,contexts,candidate,comparisonIds});workspaceSelection.current={page,scenarioId,viewportId,contexts,candidate,comparisonIds};
   const agentBusyRef=useRef(false);
   const {navigationCommands,waitingCandidates,navigationPending,navigate,prepared,cancelNavigation}=useNavigation({candidate,compare,comparisonIds,busy:()=>agentBusyRef.current,onStatus:setStatus});
   const [interacting,setInteracting]=useState(false);
@@ -78,11 +93,11 @@ export function App({data}:{data:BundleData}) {
     window.addEventListener("keydown",escape);
     return()=>window.removeEventListener("keydown",escape);
   },[panel,pick,settingsOpen]);
-  const scenario=data.scenarios.find(s=>s.id===scenarioId)!;
-  const viewport=manifest.viewports.find(v=>v.id===viewportId)!;
+  const scenario=data.scenarios.find(s=>s.id===scenarioId)??data.scenarios.find(s=>s.page===page)??data.scenarios[0];
+  const viewport=manifest.viewports.find(v=>v.id===viewportId)??manifest.viewports[0];
   const alternate=manifest.candidates.find(c=>c.id!==candidate);
-  const agent=useAgent({id:manifest.id,candidate,page,scenario:scenario.id,reset,selection,revision:()=>revisionRef.current,token:data.token,enabled:data.development,active:panel==="agent",blocked:exporting||navigationPending,capture:()=>{const frame=document.querySelector<HTMLIFrameElement>('.frame-column[data-candidate="'+candidate+'"] iframe');if(!frame)return Promise.reject(new Error("当前画面尚未加载"));return captureFrame(frame,page,contexts[candidate]?.state??{...data.specs[candidate+":"+page].state,...scenario.state});},onProposal:value=>{if(proposalDocument.current!==value?.html){if(selection)setSelectionStale(true);setInspectDomId("");}proposalDocument.current=value?.html;setProposal(value);setPick(false);},onAccepted:()=>{acceptedNavigationRef.current=true;location.reload();}});
-  agentBusyRef.current=agent.busy;
+  const agent=useAgent({id:manifest.id,candidate,page,scenario:scenario.id,reset,selection,revision:()=>revisionRef.current,token:data.token,enabled:data.development,active:panel==="agent",blocked:exporting||navigationPending,capture:()=>{const frame=document.querySelector<HTMLIFrameElement>('.frame-column[data-candidate="'+candidate+'"] iframe');if(!frame)return Promise.reject(new Error("当前画面尚未加载"));return captureFrame(frame,page,contexts[candidate]?.state??{...data.specs[candidate+":"+page].state,...scenario.state});},onProposal:value=>{if(proposalDocument.current!==value?.html){if(selection)setSelectionStale(true);setInspectDomId("");}proposalDocument.current=value?.html;setProposal(value);setPick(false);},onAccepted:refreshWorkspace});
+  agentBusyRef.current=agent.submitting;
   const previewError=(compare?comparisonIds:[candidate]).map(id=>id+":"+(contexts[id]?.page??page)).map(key=>previewErrors[key]).filter(Boolean).join("；");
   function reportError(key:string,error:string){setPreviewErrors(old=>old[key]===error?old:{...old,[key]:error});}
   useEffect(()=>{
@@ -97,7 +112,7 @@ export function App({data}:{data:BundleData}) {
       pending=true;const generation=pollGeneration.current;
       try {
         const revision=await api.revision(manifest.id);
-        if(revision!==undefined&&!cancelled&&generation===pollGeneration.current&&!exportingRef.current&&!agentBusyRef.current&&revision!==revisionRef.current)location.reload();
+        if(revision!==undefined&&!cancelled&&generation===pollGeneration.current&&!exportingRef.current&&!agentBusyRef.current&&revision!==revisionRef.current)await refreshWorkspace();
       } catch {/* 页面保留当前内容，服务恢复后再次读取。 */}
       finally {pending=false;}
     },1400);
@@ -111,12 +126,12 @@ export function App({data}:{data:BundleData}) {
     target?.classList.add("active-section");target?.scrollIntoView({block:"nearest"});
   },[selected,selectedAnnotation,page,panel]);
   useEffect(()=>{
-    const leave=(event:BeforeUnloadEvent)=>{if(!acceptedNavigationRef.current&&(exportingRef.current||agentBusyRef.current)){event.preventDefault();event.returnValue="";}};
+    const leave=(event:BeforeUnloadEvent)=>{if(exportingRef.current){event.preventDefault();event.returnValue="";}};
     window.addEventListener("beforeunload",leave);return()=>window.removeEventListener("beforeunload",leave);
   },[]);
   const select=(id:string,address:string,detail?:DomSelection,annotationId?:string)=>{setPick(false);setSelected(id);setInstance(address);setSelection(detail??null);setSelectionStale(false);setInspectDomId(detail?.domId??"");setSelectedAnnotation(annotationId??interactions.find(a=>(a.page===page||a.page==="*")&&a.target===id)?.id??"");if(annotationId)setLocateNonce(v=>v+1);showPanel(annotationId?"docs":"agent");if(annotationId)setAnnotationFocus(value=>value+1);};
   function locateAnnotation(a:Annotation){setSelectedAnnotation(a.id);setSelected(a.target);setInstance("");setSelection(null);setInspectDomId("");setLocateNonce(v=>v+1);}
-  useEffect(()=>{setProposal(undefined);if(pickedCandidate.current===candidate){pickedCandidate.current="";return;}setSelection(null);setSelectionStale(false);setInspectDomId("");},[page,scenarioId,candidate,reset]);
+  useEffect(()=>{if(pickedCandidate.current===candidate){pickedCandidate.current="";return;}setSelection(null);setSelectionStale(false);setInspectDomId("");},[page,scenarioId,candidate,reset]);
   const observe=(ids:string[],dupes:string[])=>{setElements(ids);setDuplicates(dupes);};
   function download(name:string,content:string|Blob) {
     const url=URL.createObjectURL(content instanceof Blob?content:new Blob([content],{type:"application/json"}));
@@ -155,7 +170,7 @@ export function App({data}:{data:BundleData}) {
       <a className="studio-brand" href="#" onClick={event=>event.preventDefault()}><img className="brand-mark" src={harnessIcon} alt=""/><span>Design Harness</span></a>
       <div className="requirement-title"><h1 title={manifest.title}>{manifest.title}</h1><WorkspaceStatus development={data.development} proposal={Boolean(data.proposal)}/></div>
       <nav className="preview-context" aria-label="页面与场景">
-        <Select label="页面" variant="toolbar" className="context-choice" disabled={agent.busy||exporting} value={page} onValueChange={navigate} options={manifest.pages.map(p=>({value:p.id,label:p.title}))}/>
+        <Select label="页面" variant="toolbar" className="context-choice" disabled={agent.submitting||exporting} value={page} onValueChange={navigate} options={manifest.pages.map(p=>({value:p.id,label:p.title}))}/>
         <span className="context-separator" aria-hidden="true">/</span>
         <Select label="场景" variant="toolbar" className="context-choice context-scenario" value={!interacting&&scenario.page===page?scenario.id:""} onValueChange={chooseScenario} options={[{value:"",label:"当前交互状态",disabled:true,description:"选择预设场景以重新开始体验"},...data.scenarios.filter(s=>s.page===page).map(s=>({value:s.id,label:s.title}))]}/>
       </nav>
@@ -167,7 +182,7 @@ export function App({data}:{data:BundleData}) {
       <section className={"preview-stage "+(compare?"comparing":"")} aria-label="设计预览">
         {manifest.candidates.map(item=>{
           const id=item.id,active=id===candidate,currentPage=contexts[id]?.page??scenario.page,state=contexts[id]?.state??{...data.specs[id+":"+currentPage].state,...scenario.state};
-          return <PreviewFrame data={data} key={id+":"+scenario.id+":"+reset} candidate={id} page={currentPage} scenario={scenario} viewport={viewport} values={values[id+":"+currentPage]} hidden={compare?!comparisonIds.includes(id):!active} active={active} order={compare?comparisonIds.indexOf(id):0} waiting={waitingCandidates.includes(id)} onActivate={()=>focusCandidate(id)} pick={pick} locate={locate} instance={instance} annotations={annotationsFor(interactions,currentPage,state)} showAnnotations={showAnnotations} inspectDomId={active?inspectDomId:""} locateNonce={locateNonce} proposal={active?proposal:undefined} runtimeState={state} navigationRequest={navigationCommands[id]} onIntent={next=>navigate(next,id)} onPrepared={(serial,allowed)=>prepared(id,serial,allowed)} onContext={context=>observeContext(id,context)} onSelect={(target,address,detail,annotationId)=>{if(!active){if(detail)pickedCandidate.current=id;focusCandidate(id);}select(target,address,detail,annotationId);}} onElements={active?observe:()=>{}} onEscape={exitTools} onError={error=>reportError(id+":"+currentPage,error)}/>;
+          return <PreviewFrame data={data} key={id+":"+scenario.id+":"+reset+":"+data.revision} candidate={id} page={currentPage} scenario={scenario} viewport={viewport} values={values[id+":"+currentPage]} hidden={compare?!comparisonIds.includes(id):!active} active={active} order={compare?comparisonIds.indexOf(id):0} waiting={waitingCandidates.includes(id)} onActivate={()=>focusCandidate(id)} pick={pick} locate={locate} instance={instance} annotations={annotationsFor(interactions,currentPage,state)} showAnnotations={showAnnotations} inspectDomId={active?inspectDomId:""} locateNonce={locateNonce} proposal={active?proposal:undefined} runtimeState={state} navigationRequest={navigationCommands[id]} onIntent={next=>navigate(next,id)} onPrepared={(serial,allowed)=>prepared(id,serial,allowed)} onContext={context=>observeContext(id,context)} onSelect={(target,address,detail,annotationId)=>{if(!active){if(detail)pickedCandidate.current=id;focusCandidate(id);}select(target,address,detail,annotationId);}} onElements={active?observe:()=>{}} onEscape={exitTools} onError={error=>reportError(id+":"+currentPage,error)}/>;
         })}
         {pick&&<div className="pick-notice" role="status"><span>点击一个元素以附加到 Agent，选中后自动结束</span><button onClick={()=>setPick(false)}>取消点选</button></div>}
         {status&&!previewError&&<p className="studio-announcement" role="status">{status}</p>}

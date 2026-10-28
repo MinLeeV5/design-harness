@@ -235,3 +235,7 @@ button[aria-pressed=true],button[aria-expanded=true],button.active {color:#6640b
 .settings-notice {display:flex;align-items:center;gap:8px;color:#8d7a63;font-size:11px;line-height:1.6;}
 .settings-notice span {min-width:0;flex:1;}
 .settings-notice button {flex-shrink:0;font-size:11px;min-height:26px;padding:3px 6px;}
+
+.agent-sessions{display:flex;align-items:center;gap:8px;padding-bottom:10px;border-bottom:1px solid var(--line,#e5e7eb)}
+.agent-sessions .wb-select-trigger{min-width:0;flex:1}
+.agent-sessions>button{flex-shrink:0}

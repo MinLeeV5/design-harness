@@ -35,11 +35,7 @@ export function createProposalDirectory() {
 export const removeProposalDirectory = directory => fs.rmSync(directory,{recursive:true,force:true});
 export const snapshotFiles = folder => new Map(resourceFiles(folder).filter(file=>designText.test(file)).map(file=>[path.relative(folder,file).split(path.sep).join("/"),fs.readFileSync(file,"utf8")]));
 export const authoredSources = root => filesIn(root).filter(file=>/\.(css|tsx?|jsx?)$/.test(file)).map(file=>fs.readFileSync(file,"utf8")).join("\n");
-export function prepareResultFiles(temp,schema) {
-  const schemaFile=path.join(temp,"output-schema.json"),resultFile=path.join(temp,"result.json");
-  fs.writeFileSync(schemaFile,JSON.stringify(schema));
-  return {schemaFile,resultFile};
-}
+
 export function stageModelFiles(job,result) {
   const directory=job.directory;
         const seen=new Set();let total=0;

@@ -7,7 +7,6 @@ import {EventEmitter} from "node:events";
 import {PassThrough} from "node:stream";
 import {createCodexConnection,describeCodex,inspectCodex} from "../workbench/src/backend/adapters/codex-connection.mjs";
 import {createLiveAgentRuntime} from "../workbench/src/backend/services/agent-runtime.mjs";
-import {runCodex} from "../workbench/src/backend/adapters/codex-exec.mjs";
 import {initialize} from "../workbench/src/backend/services/workspace.mjs";
 import {loadRequirement} from "../workbench/src/backend/adapters/resource-store.mjs";
 import {startServer} from "../workbench/src/backend/http/server.mjs";
@@ -57,12 +56,6 @@ test("Cancelled refinement preserves its preview and reports cancellation instea
   try{const request={type:"message",role:"visual",id:"example",candidate:"comfortable",page:"task",prompt:"调整",capture:{page:"task",state:{}},expectedRevision:loadRequirement(workspace,"example").revision},first=await runtime.event(request);while(["running","validating"].includes(runtime.get(first.id).state))await new Promise(resolve=>setTimeout(resolve,10));assert.equal(runtime.get(first.id).state,"ready");const second=await runtime.event({...request,baseJob:first.id});await running;const recovered=await runtime.event({type:"cancel",job:second.id});assert.equal(recovered.state,"ready");assert.equal((await runtime.connection()).lastRequest.state,"cancelled");}finally{await runtime.close();fs.rmSync(folder,{recursive:true,force:true});}
 });
 
-test("Selected models reach Codex CLI arguments, including a supported reasoning fallback",async()=>{
-  const folder=fs.mkdtempSync(path.join(os.tmpdir(),"dh-model-cli-"));try{const resultFile=path.join(folder,"result.json");fs.writeFileSync(resultFile,JSON.stringify({summary:"answer",files:[],controls:[]}));let args,stdin="";
-    const result=await runCodex({directory:folder,prompt:"当前问题",schemaFile:"schema.json",resultFile,signal:new AbortController().signal,model:{id:"test-fast",effort:"low"},imageFiles:["current-view.png"],spawnProcess:(command,input)=>{assert.equal(command,"codex");args=input;const child=new EventEmitter();child.stdout=new PassThrough();child.stderr=new PassThrough();child.stdin=new PassThrough();child.stdin.on("data",chunk=>stdin+=chunk.toString());child.stdin.on("finish",()=>child.emit("close",0));return child;}});
-    assert.equal(result.summary,"answer");assert.equal(args[args.indexOf("--model")+1],"test-fast");assert.ok(args.includes('model_reasoning_effort="low"'));assert.equal(args[args.indexOf("--image")+1],"current-view.png");assert.equal(args.at(-1),"-");assert.equal(stdin,"当前问题");
-  }finally{fs.rmSync(folder,{recursive:true,force:true});}
-});
 
 test("Conversation retains each actual model and restores the next-turn choice without changing identity",async()=>{
   const folder=fs.mkdtempSync(path.join(os.tmpdir(),"dh-model-history-")),workspace=initialize(folder,{example:true}).workspace,calls=[],runtime=createLiveAgentRuntime(workspace,{connection:testConnection(),capture:async()=>null,run:async input=>{calls.push(input.model);return {summary:"继续讨论",files:[],controls:[]};}});

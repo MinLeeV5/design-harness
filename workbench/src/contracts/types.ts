@@ -25,5 +25,6 @@ export type AgentProposal={summary:string;html:string;spec:Spec;css:Record<strin
 
 export type CanvasCapture={html:string;width:number;height:number;page:string;state:Record<string,unknown>};
 export type PreviewConfig={scenario:Scenario;candidate:string;page?:string;pages?:string[];session?:string;initialState?:Record<string,unknown>;navigation?:{pageStatePath:string};spec:Spec;css:Record<string,string>;pick:boolean;locate?:string;instance?:string;annotations?:Annotation[];showAnnotations?:boolean;inspectDomId?:string;locateNonce?:number};
-export type AgentJob={id:string;state:string;role?:AgentRole;skill?:string;identity?:AgentRole;page?:string;startedAt?:number;error?:string;summary?:string;messages?:AgentMessage[];proposal?:AgentProposal};
-export type AgentSession={messages:AgentMessage[];identity?:AgentRole;model?:string;efforts?:Record<string,string>;warning?:string};
+export type AgentJob={id:string;sessionId:string;providerId:string;candidate:string;revision:string;state:string;role?:AgentRole;skill?:string;identity?:AgentRole;page?:string;startedAt?:number;error?:string;summary?:string;messages?:AgentMessage[];proposal?:AgentProposal};
+export type AgentSessionSummary={id:string;providerId:string;requirement:string;candidate:string;title:string;createdAt:number;state:string};
+export type AgentSession=AgentSessionSummary&AgentSettings&{messages:AgentMessage[];job:AgentJob|null};

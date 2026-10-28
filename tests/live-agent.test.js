@@ -44,10 +44,10 @@ test("Cancel aborts generation, cleans the transient workspace and makes accepta
 const selected={domId:"node-1",target:"task-form",instance:"",label:"任务表单",tag:"section",selector:".product-surface",html:'<section class="product-surface"></section>',styles:{padding:"24px"},ancestors:[{domId:"node-1",label:"任务表单"}]};
 const gapControl={id:"density",label:"内容疏密",type:"range",binding:"prop",target:"task-form",property:"gap",min:12,max:36,step:4,unit:"px"};
 test("Chat answers without edits, carries element and conversation context, and isolates candidate threads",async()=>{
-  const prompts=[];await fixture(async input=>{prompts.push(input.prompt);return {summary:"先保持清晰的主次关系。",files:[],controls:[]};},async({workspace,runtime})=>{
+  const prompts=[],sessions=[];await fixture(async input=>{prompts.push(input.prompt);sessions.push(input.session);return {summary:"先保持清晰的主次关系。",files:[],controls:[]};},async({workspace,runtime})=>{
     const file=path.join(workspace,"requirements/example/candidates/comfortable/pages/task.json"),before=fs.readFileSync(file);
     let job=await settled(runtime,(await runtime.event({...request(workspace),type:"message",prompt:"这个表单如何改善？",selection:selected})).id);assert.equal(job.state,"answered");assert.equal(job.proposal,undefined);assert.equal(job.messages.length,2);assert.equal(job.messages[0].selection.target,"task-form");
-    job=await settled(runtime,(await runtime.event({...request(workspace),type:"message",prompt:"展开解释上一条建议"})).id);assert.equal(job.state,"answered");assert.equal(job.messages.length,4);assert.match(prompts[1],/这个表单如何改善/);assert.match(prompts[0],/product-surface/);assert.equal(runtime.session("example","compact").messages.length,0);assert.deepEqual(fs.readFileSync(file),before);
+    job=await settled(runtime,(await runtime.event({...request(workspace),type:"message",prompt:"展开解释上一条建议"})).id);assert.equal(job.state,"answered");assert.equal(job.messages.length,4);assert.equal(sessions[1],sessions[0]);assert.doesNotMatch(prompts[1],/这个表单如何改善/);assert.match(prompts[0],/product-surface/);assert.equal(runtime.session("example","compact").messages.length,0);assert.deepEqual(fs.readFileSync(file),before);
     const withoutSelection=await settled(runtime,(await runtime.event({...request(workspace),type:"message",prompt:"没有附件也可以讨论"})).id);assert.equal(withoutSelection.state,"answered");
   });
 });
@@ -93,7 +93,7 @@ test("Failed accept restores the staged snapshot so retrying the same invalid Ca
 test("Agent records real turn activity, final replies and failures in complete candidate history",async()=>{
  let rejectTurn,resolveTurn;const gate=new Promise((resolve,reject)=>{resolveTurn=resolve;rejectTurn=reject;});
  await fixture(async({onEvent})=>{onEvent({id:"codex-turn",label:"生成回复或设计修改",status:"running"});return gate;},async({workspace,runtime})=>{
-  const started=await runtime.event({...request(workspace),type:"message"});assert.equal(started.messages.length,2);const waiting=runtime.session("example","comfortable").messages.at(-1);assert.equal(waiting.state,"running");assert.ok(waiting.activity.some(item=>item.id==="codex-turn"&&item.status==="running"));
+  const started=await runtime.event({...request(workspace),type:"message"});assert.equal(started.messages.length,2);await waitFor(()=>runtime.get(started.id).messages.at(-1).activity.some(item=>item.id==="codex-turn"));const waiting=runtime.session("example","comfortable").messages.at(-1);assert.equal(waiting.state,"running");assert.ok(waiting.activity.some(item=>item.id==="codex-turn"&&item.status==="running"));
   resolveTurn({summary:"已核对布局。",files:[],controls:[]});const done=await settled(runtime,started.id);assert.equal(done.messages.at(-1).content,"已核对布局。");assert.ok(done.messages.at(-1).activity.every(item=>item.status!=="running"));assert.ok(done.messages.at(-1).completedAt>=done.messages.at(-1).startedAt);
  });
  await fixture(async()=>{throw new Error("可见失败");},async({workspace,runtime})=>{const failed=await settled(runtime,(await runtime.event(request(workspace))).id);assert.equal(failed.messages.at(-1).state,"failed");assert.equal(failed.messages.at(-1).content,"可见失败");assert.equal(failed.messages.at(-1).activity.at(-1).status,"failed");});
@@ -101,6 +101,8 @@ test("Agent records real turn activity, final replies and failures in complete c
 });
 
 // Cancel after the model has returned while the asynchronous build is still pending.
-test("Cancel during build cannot append running browser activity to a terminal turn",async()=>{
- await fixture(async input=>update(input.directory),async({workspace,runtime})=>{const started=await runtime.event(request(workspace));const pending=runtime.get(started.id);assert.ok(pending.messages.at(-1).activity.some(item=>item.id==="build"&&item.status==="running"));const stopped=await runtime.event({type:"cancel",job:started.id});assert.equal(stopped.state,"cancelled");assert.ok(stopped.messages.at(-1).activity.every(item=>item.status!=="running"));assert.equal(stopped.messages.at(-1).activity.some(item=>item.id==="browser"),false);});
+test("Cancel during asynchronous validation cannot append running browser activity to a terminal turn",async()=>{
+ await fixture(async input=>update(input.directory),async({workspace,runtime})=>{const started=await runtime.event(request(workspace));await waitFor(()=>runtime.get(started.id).messages.at(-1).activity.some(item=>item.id==="types"&&item.status==="running"));const stopped=await runtime.event({type:"cancel",job:started.id});assert.equal(stopped.state,"cancelled");assert.ok(stopped.messages.at(-1).activity.every(item=>item.status!=="running"));assert.equal(stopped.messages.at(-1).activity.some(item=>item.id==="browser"),false);});
 });
+
+async function waitFor(check){const end=Date.now()+10000;while(!check()){if(Date.now()>end)throw new Error("state did not arrive");await new Promise(resolve=>setTimeout(resolve,5));}}

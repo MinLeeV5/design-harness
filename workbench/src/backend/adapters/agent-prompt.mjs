@@ -4,7 +4,7 @@ import {assert} from "../../contracts/assertions.mjs";
 import {filesIn} from "./filesystem.mjs";
 import {designContext} from "./agent-skills.mjs";
 const textFile=/\.(?:json|tsx?|jsx?|css|svg)$/i;
-export function promptFor(data,request,messages,skill,imageFiles) {
+export function promptFor(data,request,disposition,skill,imageFiles) {
   const candidate=data.manifest.candidates.find(c=>c.id===request.candidate),root=data.candidateRoots[candidate.id];
   const sources=filesIn(root).filter(f=>textFile.test(f)).map(file=>({path:path.relative(data.folder,file).split(path.sep).join("/"),content:fs.readFileSync(file,"utf8")}));
   assert(JSON.stringify(sources).length<=900000,"当前候选源码过大，请缩小后再使用 Agent");
@@ -27,7 +27,8 @@ Current rendered state: ${JSON.stringify(request.capture?.state??{})}
 Current viewport: ${JSON.stringify({width:request.capture?.width,height:request.capture?.height})}
 Attached images: ${JSON.stringify(imageFiles.map((_,index)=>index===0?"Current rendered DOM snapshot of the user's active preview (static screenshot, not an initial scenario rebuild)":"User reference: "+request.references[index-1]?.name))}
 Selected element: ${JSON.stringify(request.selection??null)}
-Conversation: ${JSON.stringify(messages.slice(-12))}
+Authoritative proposal disposition: ${JSON.stringify(disposition)}
+Only the source supplied THIS turn is current. Earlier generated files in this native conversation may have been discarded, rejected, or superseded; do not treat them as accepted.
 Manifest source: ${JSON.stringify(JSON.parse(fs.readFileSync(path.join(data.folder,"manifest.json"),"utf8")))}
 Requirement documents and foundation notes: ${JSON.stringify(context)}
 Interaction contract: ${JSON.stringify(data.interactions.map(({id,page,target,when,summary})=>({id,page,target,when,summary})))}

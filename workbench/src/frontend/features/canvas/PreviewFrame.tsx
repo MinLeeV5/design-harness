@@ -33,7 +33,7 @@ export function PreviewFrame({data,candidate,page,scenario,viewport,values,pick,
     }
     window.addEventListener("message",receive);return()=>window.removeEventListener("message",receive);
   },[candidate,onContext,onSelect,onElements,onEscape,onError,onIntent,onPrepared]);
-  const initialPreview=useMemo(()=>data.previews[scenario.page+":"+candidate],[candidate,scenario.id]);
+  const initialPreview=useMemo(()=>data.previews[scenario.page+":"+candidate],[candidate,scenario.id,data.revision]);
   const scale=Math.min(1,Math.max(0.05,available.width/viewport.width),Math.max(0.05,(available.height-28)/viewport.height));
   return <div className="frame-column" data-candidate={candidate} data-active={active} hidden={hidden} style={{order}} ref={box}>
     <div className="frame-label"><button className="frame-focus" aria-pressed={active} aria-label={"编辑方案 · "+candidate} onClick={onActivate}>{data.manifest.candidates.find(c=>c.id===candidate)?.title}{active?" · 当前编辑":""}</button><span>{viewport.width} × {viewport.height} · {Math.round(scale*100)}%</span></div>

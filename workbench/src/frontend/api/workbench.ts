@@ -1,4 +1,4 @@
-import type {AgentJob,AgentSession,CodexConnection,AgentSettings,AgentSettingsPatch} from "../../contracts/types";
+import type {AgentJob,AgentSession,AgentSessionSummary,BundleData,CodexConnection,AgentSettings,AgentSettingsPatch} from "../../contracts/types";
 
 // All local HTTP access lives here. Offline exports use the same UI without invoking this client.
 export function createWorkbenchClient(token?:string) {
@@ -13,15 +13,18 @@ export function createWorkbenchClient(token?:string) {
   }
 
   return {
-    connection: (refresh = false) => json<CodexConnection>(
-      "/__dh/live/connection"+(refresh?"?refresh=1":""),{},"无法读取 Codex 状态，请重试。"
+    connection: (refresh = false,sessionId="") => json<CodexConnection>(
+      "/__dh/live/connection?refresh="+(refresh?"1":"0")+"&sessionId="+sessionId,{},"无法读取 Codex 状态，请重试。"
     ),
-    session: (id:string,candidate:string) => json<AgentSession>(
-      "/__dh/live/session?id="+encodeURIComponent(id)+"&candidate="+encodeURIComponent(candidate),{},"无法读取Agent会话"
+    session: (id:string,candidate:string,sessionId="") => json<AgentSession>(
+      "/__dh/live/session?id="+encodeURIComponent(id)+"&candidate="+encodeURIComponent(candidate)+"&sessionId="+sessionId,{},"无法读取Agent会话"
     ),
-    job: (id:string) => json<AgentJob>("/__dh/live/jobs/"+id),
-    saveSettings: (id:string,candidate:string,patch:AgentSettingsPatch) => json<AgentSettings>("/__dh/live/settings",{
-      method:"POST",keepalive:true,headers:{"Content-Type":"application/json"},body:JSON.stringify({id,candidate,patch})
+    sessions: (id:string,candidate:string) => json<AgentSessionSummary[]>("/__dh/live/sessions?id="+encodeURIComponent(id)+"&candidate="+encodeURIComponent(candidate)),
+    createSession: (id:string,candidate:string) => json<AgentSession>("/__dh/live/sessions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,candidate})}),
+    workspace: (id:string) => json<BundleData>("/__dh/workspace?id="+encodeURIComponent(id)),
+    job: (id:string,sessionId="") => json<AgentJob>("/__dh/live/jobs/"+id+"?sessionId="+sessionId),
+    saveSettings: (id:string,candidate:string,patch:AgentSettingsPatch,sessionId="") => json<AgentSettings>("/__dh/live/settings",{
+      method:"POST",keepalive:true,headers:{"Content-Type":"application/json"},body:JSON.stringify({id,candidate,patch,sessionId})
     }),
     event: (body:object,{keepalive=false}={}) => json<AgentJob>("/__dh/live/events",{
       method:"POST",keepalive,headers:{"Content-Type":"application/json"},body:JSON.stringify(body)

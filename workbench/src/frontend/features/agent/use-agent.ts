@@ -1,59 +1,101 @@
 import {createWorkbenchClient} from "../../api/workbench";
-import {useCallback,useEffect,useMemo,useRef,useState} from "react";
-import type {AgentMessage,AgentProposal,DomSelection,Value,AgentRole,AgentSettings,AgentSettingsPatch,DesignReference,CodexConnection,CanvasCapture,AgentJob as Job} from "../../../contracts/types";
+import {useEffect,useMemo,useRef,useState} from "react";
+import type {AgentMessage,AgentProposal,DomSelection,Value,AgentRole,AgentSettings,AgentSettingsPatch,DesignReference,CodexConnection,CanvasCapture,AgentJob,AgentSession,AgentSessionSummary} from "../../../contracts/types";
 import {controlValues,tuneProposal} from "../../../contracts/agent-controls.mjs";
 import {defaultAgentSettings,mergeAgentSettings} from "../../../contracts/agent-settings.mjs";
-type Context={id:string;candidate:string;page:string;scenario:string;reset:number;selection:DomSelection|null;revision:()=>string;token?:string;enabled:boolean;active:boolean;blocked:boolean;capture:()=>Promise<CanvasCapture>;onProposal:(value:AgentProposal|undefined)=>void;onAccepted:()=>void};
+type Context={id:string;candidate:string;page:string;scenario:string;reset:number;selection:DomSelection|null;revision:()=>string;token?:string;enabled:boolean;active:boolean;blocked:boolean;capture:()=>Promise<CanvasCapture>;onProposal:(value:AgentProposal|undefined)=>void;onAccepted:()=>Promise<void>};
+type SessionState={loaded:boolean;messages:AgentMessage[];job:AgentJob|null;prompt:string;references:DesignReference[];values:Record<string,Value>;settings:AgentSettings;error:string;submitting:boolean;readingReferences:boolean;savingSettings:boolean;settingsError:string;depthNotice:string;connection:CodexConnection|null;checkingConnection:boolean;connectionError:string;version:number};
+const fresh=():SessionState=>({loaded:false,messages:[],job:null,prompt:"",references:[],values:{},settings:defaultAgentSettings(),error:"",submitting:false,readingReferences:false,savingSettings:false,settingsError:"",depthNotice:"",connection:null,checkingConnection:false,connectionError:"",version:0});
+const empty=fresh();
+const running=(job:AgentJob|null)=>!!job&&["running","validating","accepting"].includes(job.state);
+
 export function useAgent(context:Context){
-  const api=useMemo(()=>createWorkbenchClient(context.token),[context.token]);
-  const [drafts,setDrafts]=useState<Record<string,string>>({}),[messages,setMessages]=useState<AgentMessage[]>([]),[job,setJob]=useState<Job|null>(null),[error,setError]=useState(""),[submitting,setSubmitting]=useState(false),[values,setValues]=useState<Record<string,Value>>({});
-  const [selections,setSelections]=useState<Record<string,AgentSettings>>({}),[attachments,setAttachments]=useState<Record<string,DesignReference[]>>({}),[readingReferences,setReadingReferences]=useState(false);
-  const [connection,setConnection]=useState<CodexConnection|null>(null),[checkingConnection,setCheckingConnection]=useState(false),[connectionError,setConnectionError]=useState("");
-  const connectionSerial=useRef(0),connectionTask=useRef<Promise<void>|null>(null),connectionJob=useRef("");
-  const [restoredThread,setRestoredThread]=useState(""),[savingSettings,setSavingSettings]=useState(false),[settingsErrors,setSettingsErrors]=useState<Record<string,string>>({}),[depthNotice,setDepthNotice]=useState("");
-  const selectionRef=useRef<Record<string,AgentSettings>>({}),unsavedSettings=useRef<Record<string,AgentSettingsPatch[]>>({}),saveTask=useRef<Promise<void>|null>(null);
-  const pendingAction=useRef<string|null>(null);
-  const current=useRef(context);current.current=context;const jobRef=useRef(job);jobRef.current=job;const generation=useRef(0),thread=context.id+":"+context.candidate,scope=thread+":"+context.page+":"+context.scenario+":"+context.reset;
-  const preferences=selections[thread]??defaultAgentSettings(),prompt=drafts[thread]??"",identity=preferences.identity,references=attachments[thread]??[];
-  const model=preferences.model,sessionReady=restoredThread===thread,modelId=model||connection?.defaultModel||"",modelInfo=connection?.models.find(item=>item.id===modelId);
-  const rememberedEffort=preferences.efforts[modelId]??"",effort=modelInfo?.efforts.includes(rememberedEffort)?rememberedEffort:"";
-  const putSelection=(key:string,value:AgentSettings)=>{selectionRef.current={...selectionRef.current,[key]:value};setSelections(old=>({...old,[key]:value}));};
-  function chooseSettings(patch:AgentSettingsPatch){
-    if(!sessionReady||saveTask.current||submitting||jobRef.current&&["running","validating","accepting"].includes(jobRef.current.state))return;
-    const key=thread,id=context.id,candidate=context.candidate,next=mergeAgentSettings(selectionRef.current[key]??preferences,patch);putSelection(key,next);setSavingSettings(true);setSettingsErrors(old=>({...old,[key]:""}));
-    const pending=unsavedSettings.current[key]??=[];pending.push(patch);
-    const task=(async()=>{let result:AgentSettings|undefined;while(pending.length){result=await api.saveSettings(id,candidate,pending[0]);pending.shift();}if(result)putSelection(key,result);})().catch(()=>{setSettingsErrors(old=>({...old,[key]:"本次选择仍可使用，但未能保存偏好。请重试。"}));}).finally(()=>{saveTask.current=null;setSavingSettings(false);});saveTask.current=task;
+  const api=useMemo(()=>createWorkbenchClient(context.token),[context.token]),current=useRef(context);current.current=context;
+  const cache=useRef<Record<string,SessionState>>({}),active=useRef(""),mounted=useRef(true),connectionTasks=useRef(new Set<string>()),unboundDrafts=useRef<Record<string,string>>({}),selectionEpoch=useRef<Record<string,number>>({}),unsavedSettings=useRef<Record<string,AgentSettingsPatch[]>>({}),snapshotSerial=useRef<Record<string,number>>({});
+  const [,render]=useState(0),[lists,setLists]=useState<Record<string,AgentSessionSummary[]>>({}),[selected,setSelected]=useState<Record<string,string>>({}),[scopeErrors,setScopeErrors]=useState<Record<string,string>>({}),[creating,setCreating]=useState(false);
+  const scope=context.id+":"+context.candidate,sessionId=selected[scope]??"",state=cache.current[sessionId]??empty;active.current=sessionId;
+  const update=(id:string,patch:Partial<SessionState>)=>{cache.current[id]={...(cache.current[id]??fresh()),...patch};if(mounted.current)render(n=>n+1);};
+  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
+  const remember=(key:string,id:string)=>{selectionEpoch.current[key]=(selectionEpoch.current[key]??0)+1;setSelected(old=>({...old,[key]:id}));try{sessionStorage.setItem("dh-agent:"+key,id);}catch{/* Optional local UI state. */}};
+  function receive(id:string,job:AgentJob|null,messages?:AgentMessage[]){
+    const previous=cache.current[id]??fresh(),sameReady=job?.state==="ready"&&previous.job?.id===job.id&&previous.job.state==="ready";
+    if(!job&&!previous.job&&JSON.stringify(messages??[])===JSON.stringify(previous.messages))return;
+    const values=sameReady?previous.values:job?.proposal?controlValues(job.proposal.controls??[],job.proposal.spec,job.proposal.css):previous.job?.proposal?{}:previous.values;
+    update(id,{job:sameReady?{...job,proposal:previous.job!.proposal}:job,values,messages:messages??job?.messages??previous.messages});
   }
-  const setModel=(value:string)=>{setDepthNotice("");chooseSettings({model:value});};
-  const setEffort=(value:string)=>{if(!modelId)return;setDepthNotice("");chooseSettings({effort:{model:modelId,value}});};
-  const setIdentity=(role:AgentRole)=>{if(jobRef.current?.state==="ready")return;chooseSettings({identity:role});};
-  function retrySettings(){const value=selectionRef.current[thread]??preferences;chooseSettings({identity:value.identity,model:value.model,...(modelId?{effort:{model:modelId,value:effort}}:{})});}
-  useEffect(()=>{if(sessionReady&&modelInfo&&rememberedEffort&&!modelInfo.efforts.includes(rememberedEffort)&&!saveTask.current){setDepthNotice("当前模型不再支持上次的思考深度，已恢复自动。");chooseSettings({effort:{model:modelId,value:""}});}},[sessionReady,modelId,modelInfo,rememberedEffort,savingSettings]);
-  const refreshConnection=useCallback((refresh=false)=>{
-    if(connectionTask.current)return connectionTask.current;const serial=++connectionSerial.current;setCheckingConnection(true);
-    const task=api.connection(refresh).then(result=>{if(serial===connectionSerial.current){setConnection(result);setConnectionError("");}}).catch(error=>{if(serial===connectionSerial.current)setConnectionError(error.message);}).finally(()=>{if(serial===connectionSerial.current)setCheckingConnection(false);connectionTask.current=null;});connectionTask.current=task;return task;
-  },[]);
-  useEffect(()=>{if(context.enabled&&context.active)void refreshConnection();},[context.enabled,context.active,refreshConnection]);
-  useEffect(()=>()=>{connectionSerial.current++;},[]);
-  const removeReference=(id:string)=>setAttachments(old=>({...old,[thread]:(old[thread]??[]).filter(item=>item.id!==id)}));
-  async function addReferences(files:FileList|null){if(!files?.length)return;setError("");setReadingReferences(true);try{if(references.length+files.length>3)throw new Error("最多附加3张参考图");const added=await Promise.all([...files].map(file=>new Promise<DesignReference>((resolve,reject)=>{if(!["image/png","image/jpeg","image/webp"].includes(file.type)||file.size>3000000){reject(new Error("参考图支持PNG、JPEG、WebP，每张最大3MB"));return;}const reader=new FileReader();reader.onerror=()=>reject(new Error("无法读取参考图"));reader.onload=()=>resolve({id:crypto.randomUUID(),name:file.name.slice(0,160),data:String(reader.result)});reader.readAsDataURL(file);})));setAttachments(old=>({...old,[thread]:[...(old[thread]??[]),...added].slice(0,3)}));}catch(error){setError((error as Error).message);}finally{setReadingReferences(false);}}
-  const setPrompt=(value:string)=>setDrafts(old=>({...old,[thread]:value}));
-  const request=(body:object)=>api.event(body);
-  function receive(result:Job){setJob(result);jobRef.current=result;if(result.messages)setMessages(result.messages);if(!["running","accepting"].includes(result.state)&&connectionJob.current!==result.id+":"+result.state){connectionJob.current=result.id+":"+result.state;void refreshConnection();}if(result.state==="ready"&&result.proposal){setValues(controlValues(result.proposal.controls??[],result.proposal.spec,result.proposal.css));current.current.onProposal(result.proposal);}else if(result.state==="answered")current.current.onProposal(undefined);}
-  useEffect(()=>{if(!context.enabled)return;let cancelled=false;setMessages([]);setDepthNotice("");(saveTask.current??Promise.resolve()).then(()=>api.session(context.id,context.candidate)).then(result=>{if(!cancelled){setMessages(result.messages??[]);setRestoredThread(thread);if(!selectionRef.current[thread])putSelection(thread,{identity:result.identity??"interaction",model:result.model??"",efforts:result.efforts??{},...(result.warning?{warning:result.warning}:{})});}}).catch(e=>{if(!cancelled)setError(e.message);});return()=>{cancelled=true;};},[thread,context.enabled]);
-  useEffect(()=>{let cancelled=false,pendingPoll=false;const timer=setInterval(async()=>{const pending=jobRef.current;if(pendingPoll||!pending||!["running","validating","accepting"].includes(pending.state))return;pendingPoll=true;const serial=generation.current,accepting=pendingAction.current==="accept";try{const result=await api.job(pending.id);if(!cancelled&&serial===generation.current){if(accepting){if(result.messages)setMessages(result.messages);}else receive(result);}}catch(e){if(!cancelled&&serial===generation.current)setError((e as Error).message);}finally{pendingPoll=false;}},800);return()=>{cancelled=true;clearInterval(timer);};},[]);
-  useEffect(()=>()=>{generation.current++;pendingAction.current=null;const pending=jobRef.current;if(pending&&["running","validating","ready"].includes(pending.state)){const serial=generation.current;void request({type:"discard",job:pending.id}).then(result=>{if(serial===generation.current&&current.current.id+":"+current.current.candidate===thread&&result.messages)setMessages(result.messages);}).catch(()=>{});}jobRef.current=null;setJob(null);setValues({});setError("");current.current.onProposal(undefined);},[scope]);
-  useEffect(()=>{const leave=()=>{generation.current++;pendingAction.current=null;const pending=jobRef.current;if(pending&&["running","validating","ready"].includes(pending.state))void api.event({type:"discard",job:pending.id},{keepalive:true}).catch(()=>{});jobRef.current=null;setJob(null);current.current.onProposal(undefined);};window.addEventListener("pagehide",leave);return()=>window.removeEventListener("pagehide",leave);},[]);
-  const waiting=!!job&&["running","validating","accepting"].includes(job.state),busy=submitting||waiting||job?.state==="ready"||readingReferences;
+  const beginSnapshot=(id:string)=>{const serial=(snapshotSerial.current[id]??0)+1;snapshotSerial.current[id]=serial;return {serial,version:cache.current[id]?.version??0};};
+  const currentSnapshot=(id:string,read:{serial:number;version:number})=>snapshotSerial.current[id]===read.serial&&(cache.current[id]?.version??0)===read.version&&!cache.current[id]?.submitting;
+  function restore(snapshot:AgentSession){
+    if(!cache.current[snapshot.id]?.loaded)update(snapshot.id,{loaded:true,settings:{identity:snapshot.identity,model:snapshot.model,efforts:snapshot.efforts,...(snapshot.warning?{warning:snapshot.warning}:{})}});
+    receive(snapshot.id,snapshot.job,snapshot.messages);
+  }
+  useEffect(()=>{
+    if(!context.enabled)return;let cancelled=false;const epoch=selectionEpoch.current[scope]??0;
+    void api.sessions(context.id,context.candidate).then(async list=>{
+      if(cancelled)return;setLists(old=>JSON.stringify(old[scope])===JSON.stringify(list)?old:{...old,[scope]:list});let saved="";try{saved=sessionStorage.getItem("dh-agent:"+scope)??"";}catch{}
+      const id=list.find(s=>s.id===(selected[scope]||saved))?.id??list[0]?.id;if(!id)return;
+      const read=beginSnapshot(id),snapshot=await api.session(context.id,context.candidate,id);if(cancelled)return;if(currentSnapshot(id,read))restore(snapshot);if(unboundDrafts.current[scope]){update(id,{prompt:unboundDrafts.current[scope]});delete unboundDrafts.current[scope];}if((selectionEpoch.current[scope]??0)===epoch)remember(scope,id);setScopeErrors(old=>({...old,[scope]:""}));
+    }).catch(error=>{if(!cancelled)setScopeErrors(old=>({...old,[scope]:error.message}));});
+    return()=>{cancelled=true;};
+  },[scope,context.enabled]);
+  async function refreshConnection(refresh=false,id=active.current){
+    if(!id||connectionTasks.current.has(id))return;connectionTasks.current.add(id);update(id,{checkingConnection:true});
+    try{update(id,{connection:await api.connection(refresh,id),connectionError:""});}catch(error){update(id,{connectionError:(error as Error).message});}
+    finally{connectionTasks.current.delete(id);update(id,{checkingConnection:false});}
+  }
+  useEffect(()=>{if(context.enabled&&context.active&&sessionId)void refreshConnection();},[sessionId,context.enabled,context.active]);
+  useEffect(()=>{
+    if(!context.enabled)return;let cancelled=false,pending=false;
+    const timer=setInterval(async()=>{
+      if(pending)return;pending=true;const id=active.current,previous=cache.current[id],read=id&&!previous?.submitting?beginSnapshot(id):null;
+      try{
+        const [list,snapshot]=await Promise.all([api.sessions(context.id,context.candidate),id&&!previous?.submitting?api.session(context.id,context.candidate,id):Promise.resolve(null)]);
+        if(cancelled)return;setLists(old=>JSON.stringify(old[scope])===JSON.stringify(list)?old:{...old,[scope]:list});
+        if(snapshot&&read&&currentSnapshot(id,read)){const changed=cache.current[id]?.job?.state!==snapshot.job?.state;restore(snapshot);if(changed)void refreshConnection(false,id);}
+      }catch(error){if(!cancelled&&id)update(id,{error:(error as Error).message});}finally{pending=false;}
+    },800);return()=>{cancelled=true;clearInterval(timer);};
+  },[scope,context.enabled]);
+  async function selectSession(id:string){
+    if(!(lists[scope]??[]).some(item=>item.id===id))return;remember(scope,id);
+    try{const read=beginSnapshot(id),snapshot=await api.session(context.id,context.candidate,id);if(currentSnapshot(id,read))restore(snapshot);}catch(error){update(id,{error:(error as Error).message});}
+  }
+  async function newSession(){
+    if(creating)return;setCreating(true);const epoch=(selectionEpoch.current[scope]??0)+1;selectionEpoch.current[scope]=epoch;
+    try{const snapshot=await api.createSession(context.id,context.candidate);restore(snapshot);setLists(old=>({...old,[scope]:[...(old[scope]??[]),snapshot]}));if((selectionEpoch.current[scope]??0)===epoch)remember(scope,snapshot.id);setScopeErrors(old=>({...old,[scope]:""}));}
+    catch(error){setScopeErrors(old=>({...old,[scope]:(error as Error).message}));}finally{setCreating(false);}
+  }
+  const preferences=state.settings,connection=state.connection,modelId=preferences.model||connection?.defaultModel||"",modelInfo=connection?.models.find(item=>item.id===modelId),rememberedEffort=preferences.efforts[modelId]??"",effort=modelInfo?.efforts.includes(rememberedEffort)?rememberedEffort:"";
+  async function chooseSettings(patch:AgentSettingsPatch){
+    const id=sessionId,previous=cache.current[id];if(!previous||previous.submitting||previous.savingSettings||running(previous.job))return;
+    const next=mergeAgentSettings(previous.settings,patch);update(id,{settings:next,savingSettings:true,settingsError:"",depthNotice:"",version:previous.version+1});
+    const pending=unsavedSettings.current[id]??=[];pending.push(patch);
+    try{let saved:AgentSettings|undefined;while(pending.length){saved=await api.saveSettings(context.id,context.candidate,pending[0],id);pending.shift();}if(saved)update(id,{settings:saved});}
+    catch{update(id,{settingsError:"本次选择仍可使用，但未能保存偏好。请重试。"});}finally{update(id,{savingSettings:false});}
+  }
+  useEffect(()=>{if(sessionId&&modelInfo&&rememberedEffort&&!modelInfo.efforts.includes(rememberedEffort)&&!state.savingSettings&&!state.submitting&&!running(state.job)){void chooseSettings({effort:{model:modelId,value:""}});update(sessionId,{depthNotice:"当前模型不再支持上次的思考深度，已恢复自动。"});}},[sessionId,modelId,modelInfo,rememberedEffort,state.savingSettings]);
+  function retrySettings(){void chooseSettings({identity:preferences.identity,model:preferences.model,...(modelId?{effort:{model:modelId,value:effort}}:{})});}
+  async function addReferences(files:FileList|null){
+    const id=sessionId;if(!files?.length||!id)return;update(id,{error:"",readingReferences:true});
+    try{if(state.references.length+files.length>3)throw new Error("最多附加3张参考图");const added=await Promise.all([...files].map(file=>new Promise<DesignReference>((resolve,reject)=>{if(!["image/png","image/jpeg","image/webp"].includes(file.type)||file.size>3000000){reject(new Error("参考图支持PNG、JPEG、WebP，每张最大3MB"));return;}const reader=new FileReader();reader.onerror=()=>reject(new Error("无法读取参考图"));reader.onload=()=>resolve({id:crypto.randomUUID(),name:file.name.slice(0,160),data:String(reader.result)});reader.readAsDataURL(file);})));update(id,{references:[...cache.current[id].references,...added].slice(0,3)});}
+    catch(error){update(id,{error:(error as Error).message});}finally{update(id,{readingReferences:false});}
+  }
+  const waiting=running(state.job),sessionReady=state.loaded,proposalMatches=state.job?.candidate===context.candidate&&state.job?.page===context.page;
+  // Background results stay in their session. Only the selected, matching proposal reaches the canvas.
+  useEffect(()=>{current.current.onProposal(state.job?.state==="ready"&&proposalMatches&&state.job.proposal?tuneProposal(state.job.proposal,state.values):undefined);},[sessionId,state.job?.proposal,state.job?.state,state.values,context.candidate,context.page,context.scenario,context.reset]);
   async function generate(){
-    if(!context.enabled||!sessionReady||savingSettings||context.blocked||submitting||waiting||readingReferences||!identity||!prompt.trim()||!connection?.available||connection.auth==="required"||checkingConnection||connectionError)return;
-    setError("");setSubmitting(true);const serial=++generation.current,text=prompt,selection=context.selection?structuredClone(context.selection):null;
-    try{const capture=await context.capture();if(serial!==generation.current)return;const result=await request({type:"message",role:identity,model,effort,capture,references:references.map(({name,data})=>({name,data})),id:context.id,candidate:context.candidate,page:context.page,scenario:context.scenario,prompt:text,selection,expectedRevision:context.revision(),...(job?.state==="ready"?{baseJob:job.id,values}: {})});if(serial===generation.current){receive(result);setPrompt("");}else if(["running","validating","ready"].includes(result.state))void request({type:"discard",job:result.id}).catch(()=>{});}catch(e){if(serial===generation.current)setError((e as Error).message);}finally{setSubmitting(false);}
+    const id=sessionId,local=cache.current[id];
+    if(!context.enabled||!local?.loaded||local.savingSettings||context.blocked||local.submitting||running(local.job)||local.readingReferences||!local.prompt.trim()||!connection?.available||connection.auth==="required"||state.checkingConnection||state.connectionError)return;
+    if(local.job?.state==="ready"&&!proposalMatches){update(id,{error:"请回到提案页面继续调整，或先接受、放弃当前提案。"});return;}
+    update(id,{error:"",submitting:true,version:local.version+1});const requestContext=context,selection=context.selection?structuredClone(context.selection):null;
+    try{const revision=context.revision(),capture=await requestContext.capture();const result=await api.event({type:"message",sessionId:id,role:local.settings.identity,model:local.settings.model,effort,capture,references:local.references.map(({name,data})=>({name,data})),id:requestContext.id,candidate:requestContext.candidate,page:requestContext.page,scenario:requestContext.scenario,prompt:local.prompt,selection,expectedRevision:revision,...(local.job?.state==="ready"?{baseJob:local.job.id,values:local.values}:{})});receive(id,result);update(id,{prompt:""});void refreshConnection(false,id);}
+    catch(error){update(id,{error:(error as Error).message});}finally{update(id,{submitting:false});}
   }
   async function finish(type:"accept"|"discard"|"cancel"){
-    if(!job||submitting||(type==="accept"&&context.blocked))return;setSubmitting(true);setError("");const serial=++generation.current;pendingAction.current=type;if(type==="accept"){const next={...job,state:"accepting",startedAt:Date.now()};setJob(next);jobRef.current=next;}
-    try{const result=await request({type,job:job.id,...(type==="accept"?{values}: {})});if(serial!==generation.current)return;receive(result);if(result.state!=="ready"){context.onProposal(undefined);setValues({});}if(result.state==="accepted")context.onAccepted();}catch(e){if(serial===generation.current){setError((e as Error).message);if(type==="accept"){setJob(job);jobRef.current=job;try{const updated=await api.job(job.id);if(serial===generation.current){setJob(updated);jobRef.current=updated;if(updated.messages)setMessages(updated.messages);}}catch{/* Keep the existing preview and its values when status recovery is unavailable. */}}}}finally{if(serial===generation.current)pendingAction.current=null;setSubmitting(false);}
+    const id=sessionId,local=cache.current[id],job=local?.job;if(!job||local.submitting||(type==="accept"&&context.blocked))return;
+    update(id,{submitting:true,error:"",version:local.version+1,...(type==="accept"?{job:{...job,state:"accepting"}}:{})});
+    try{const result=await api.event({type,sessionId:id,job:job.id,...(type==="accept"?{values:local.values}:{})});receive(id,result);if(result.state==="accepted")await current.current.onAccepted();void refreshConnection(false,id);}
+    catch(error){update(id,{error:(error as Error).message});try{receive(id,await api.job(job.id,id));update(id,{values:local.values});}catch{update(id,{job});}}finally{update(id,{submitting:false});}
   }
-  function tune(id:string,value:Value){if(!job?.proposal||waiting||submitting)return;try{const next={...values,[id]:value};const preview=tuneProposal(job.proposal,next);setValues(next);context.onProposal(preview);setError("");}catch(e){setError((e as Error).message);}}
-  return {prompt,setPrompt,sessionReady,savingSettings,settingsError:settingsErrors[thread]||preferences.warning||"",retrySettings,effort,setEffort,depthNotice,identity,setIdentity,model,setModel,connection,checkingConnection,connectionError,refreshConnection,references,addReferences,removeReference,readingReferences,messages,job,error,busy,waiting,submitting,values,generate,finish,tune};
+  function tune(id:string,value:Value){if(!state.job?.proposal||waiting||state.submitting)return;try{const values={...state.values,[id]:value};tuneProposal(state.job.proposal,values);update(sessionId,{values,error:""});}catch(error){update(sessionId,{error:(error as Error).message});}}
+  return {sessionId,sessions:lists[scope]??[],selectSession,newSession,creating,proposalMatches,prompt:sessionId?state.prompt:unboundDrafts.current[scope]??"",setPrompt:(prompt:string)=>{if(sessionId)update(sessionId,{prompt});else{unboundDrafts.current[scope]=prompt;render(n=>n+1);}},sessionReady,savingSettings:state.savingSettings,settingsError:state.settingsError||preferences.warning||"",retrySettings,effort,setEffort:(value:string)=>{if(modelId)void chooseSettings({effort:{model:modelId,value}});},depthNotice:state.depthNotice,identity:preferences.identity,setIdentity:(identity:AgentRole)=>{if(state.job?.state!=="ready")void chooseSettings({identity});},model:preferences.model,setModel:(model:string)=>void chooseSettings({model}),connection,checkingConnection:state.checkingConnection,connectionError:state.connectionError,refreshConnection,references:state.references,addReferences,removeReference:(id:string)=>update(sessionId,{references:state.references.filter(item=>item.id!==id)}),readingReferences:state.readingReferences,messages:state.messages,job:state.job,error:state.error||scopeErrors[scope]||"",busy:state.submitting||waiting||state.job?.state==="ready"||state.readingReferences,waiting,submitting:state.submitting,values:state.values,generate,finish,tune};
 }

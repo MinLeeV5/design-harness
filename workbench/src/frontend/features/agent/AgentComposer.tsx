@@ -31,7 +31,7 @@ export function AgentComposer({agent,enabled,blocked,selection,selectionStale,on
   const auth=connection?authLabels[connection.auth]:"尚未检查",last=connection?.lastRequest;
   const outcomes={running:"请求中",succeeded:"成功",failed:"失败",cancelled:"已取消"};
   const unavailable=!!agent.connectionError||connection?.available===false||connection?.auth==="required";
-  const canSend=agent.sessionReady&&!agent.savingSettings&&!blocked&&!locked&&!!agent.identity&&!!agent.prompt.trim()&&!!connection?.available&&connection.auth!=="required"&&!agent.checkingConnection&&!agent.connectionError;
+  const canSend=(!ready||agent.proposalMatches)&&agent.sessionReady&&!agent.savingSettings&&!blocked&&!locked&&!!agent.identity&&!!agent.prompt.trim()&&!!connection?.available&&connection.auth!=="required"&&!agent.checkingConnection&&!agent.connectionError;
   return <div className="agent-compose-area">
     {showConnection&&enabled&&<section className="codex-connection" aria-label="Codex 连接详情">
       <header><strong>Codex Provider</strong><button type="button" className="composer-icon" aria-label="关闭连接详情" title="关闭连接详情" onClick={()=>setShowConnection(false)}><Icon name="close"/></button></header>
