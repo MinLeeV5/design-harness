@@ -1,0 +1,59 @@
+scripts/roles-smoke.js
+  6166d6637ed456a6 35
+workbench/src/frontend/features/agent/AgentComposer.tsx
+  6166d6637ed456a6 3-4,7,10-11,16,19-21,61-64,70
+scripts/permissions-smoke.js
+  6166d6637ed456a6 1-47
+workbench/src/frontend/ui/select.css
+  6166d6637ed456a6 10-11
+workbench/src/frontend/app/studio.css
+  6166d6637ed456a6 193-194,246-252
+scripts/browser-ui.js
+  6166d6637ed456a6 3-9
+workbench/src/frontend/ui/Select.tsx
+  6166d6637ed456a6 7-8,11,14,16,25-31
+workbench/src/frontend/features/agent/ModelSettings.tsx
+  6166d6637ed456a6 1-36
+scripts/select-smoke.js
+  6166d6637ed456a6 12,21,27-31
+scripts/composer-smoke.js
+  6166d6637ed456a6 10,25-26,30-33,38,41,47
+scripts/browser-smoke.js
+  6166d6637ed456a6 80
+package.json
+  6166d6637ed456a6 16
+scripts/preferences-smoke.js
+  6166d6637ed456a6 11,19-20,24-30
+scripts/model-settings-smoke.js
+  6166d6637ed456a6 1-41
+scripts/validate.js
+  6166d6637ed456a6 73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.8.2",
+  "base_commit_sha": "7d662ae39e34327a663e3be23b8f69f04eb1452d",
+  "prompts": {
+    "6166d6637ed456a6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18148-861c-7061-b52d-f788086e6a1f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 258,
+      "total_deletions": 60,
+      "accepted_lines": 262,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/b9ecd34765c6e9950a9a8715a4a45c379303b553b0888f8e283d2980bfed1c0a",
+      "token_usage": {
+        "input_tokens": 1064022,
+        "output_tokens": 164121,
+        "cache_read_tokens": 38028032,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    }
+  }
+}
