@@ -1,0 +1,43 @@
+docs/html-design.md
+  ccee6898e237bb9a 72,76,86,88,90-102,106,116,124
+skills/design-harness-visual/references/workflow.md
+  ccee6898e237bb9a 6,11-12
+shared/references/preview-export.md
+  ccee6898e237bb9a 23,29-31,35,37,39
+README.md
+  ccee6898e237bb9a 98,104,106
+skills/design-harness-interaction/references/workflow.md
+  ccee6898e237bb9a 11-12
+shared/references/agent.md
+  ccee6898e237bb9a 3,21-28
+docs/validation.md
+  ccee6898e237bb9a 68-69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.8.2",
+  "base_commit_sha": "48904ab9c265767f1e0b7a2e883ff9106f27f0bc",
+  "prompts": {
+    "ccee6898e237bb9a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18087-6e55-74e0-a359-7a59e0f1d570",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 77,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/425b33124f9c18a7276634e2f2f76ec9462fc9bfd22adb94cbac54faf62f5ee7",
+      "token_usage": {
+        "input_tokens": 710620,
+        "output_tokens": 106612,
+        "cache_read_tokens": 25087104,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    }
+  }
+}
