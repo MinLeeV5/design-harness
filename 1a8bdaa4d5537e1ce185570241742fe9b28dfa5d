@@ -1,0 +1,76 @@
+workbench/src/frontend/features/agent/AgentHeader.tsx
+  648477c26ceac9d0 6,8-10,14
+scripts/validate.js
+  648477c26ceac9d0 83
+scripts/agent-scroll-smoke.js
+  63333559e3216e08 1-55,59-96,98-100
+scripts/permissions-smoke.js
+  648477c26ceac9d0 61,70,73-74
+package.json
+  63333559e3216e08 16
+workbench/src/frontend/features/agent/AgentPanel.tsx
+  63333559e3216e08 88,101
+  648477c26ceac9d0 10-11,43-44,46-47,51,65-83,87,89,95,97,99-100,103,105
+scripts/agent-smoke.js
+  63333559e3216e08 111
+workbench/src/frontend/features/agent/use-agent.ts
+  648477c26ceac9d0 106-107
+workbench/src/frontend/features/agent/AgentStatus.tsx
+  648477c26ceac9d0 1-28
+workbench/src/frontend/app/studio.css
+  648477c26ceac9d0 166,170-171,178
+  63333559e3216e08 164-165,167,172-173,285
+workbench/src/frontend/features/agent/AgentIcon.tsx
+  648477c26ceac9d0 3,16-22
+workbench/src/frontend/app/App.tsx
+  648477c26ceac9d0 7,179
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.8.2",
+  "base_commit_sha": "1a8bdaa4d5537e1ce185570241742fe9b28dfa5d",
+  "prompts": {
+    "63333559e3216e08": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a186db-9a3d-71e0-9af1-e09d4edf776a",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 132,
+      "total_deletions": 11,
+      "accepted_lines": 124,
+      "overriden_lines": 4,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/e83061ca0c9304833a45e5639e5ea929657c08460ba687c6756d6e2f49bce696",
+      "token_usage": {
+        "input_tokens": 682996,
+        "output_tokens": 103263,
+        "cache_read_tokens": 22451712,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "648477c26ceac9d0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18708-c264-7800-a455-0ed970756b45",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 95,
+      "total_deletions": 31,
+      "accepted_lines": 88,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/9c9a44309d890a223fe7b634d70673802ab6603c8e1f19032eeff4810a4a8c9b",
+      "token_usage": {
+        "input_tokens": 134523,
+        "output_tokens": 34670,
+        "cache_read_tokens": 4151040,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    }
+  }
+}
