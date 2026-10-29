@@ -9,15 +9,16 @@ import {agentRoles} from "../../../contracts/agent-roles.mjs";
 import {AgentIcon} from "./AgentIcon";
 import type {useAgent} from "./use-agent";
 
-type Props={agent:ReturnType<typeof useAgent>;modelLabel:string;modelOptions:SelectOption[];effortOptions:SelectOption[];permissionOptions:SelectOption[];disabled:boolean;modelDisabled:boolean;effortDisabled:boolean;icon:ReactNode;fullAccessIcon:ReactNode};
-export function ModelSettings({agent,modelLabel,modelOptions,effortOptions,permissionOptions,disabled,modelDisabled,effortDisabled,icon,fullAccessIcon}:Props){
+type Props={agent:ReturnType<typeof useAgent>;modelLabel:string;modelOptions:SelectOption[];effortOptions:SelectOption[];permissionOptions:SelectOption[];disabled:boolean;modelDisabled:boolean;effortDisabled:boolean;fullAccessIcon:ReactNode};
+export function ModelSettings({agent,modelLabel,modelOptions,effortOptions,permissionOptions,disabled,modelDisabled,effortDisabled,fullAccessIcon}:Props){
   const [open,setOpen]=useState(false),[tab,setTab]=useState("model"),popup=useRef<HTMLDivElement>(null);
   useEffect(()=>setOpen(false),[agent.sessionId]);
   useEffect(()=>{if(disabled)setOpen(false);},[disabled]);
-  const summary="设计身份 · "+agentRoles[agent.identity??"interaction"].label+"；模型 · "+modelLabel+"；推理强度 · "+effortLabel(agent.effort)+"；权限 · "+permissionLabel(agent.permissionMode);
+  const identity=agent.identity??"interaction",identityLabel=agentRoles[identity].label;
+  const summary="设计身份 · "+identityLabel+"；模型 · "+modelLabel+"；推理强度 · "+effortLabel(agent.effort)+"；权限 · "+permissionLabel(agent.permissionMode);
   return <Popover.Root open={open} onOpenChange={next=>{setOpen(next);if(next)setTab("model");}} modal={false}>
     <Popover.Trigger type="button" aria-label="模型" title={summary} aria-description={summary} aria-busy={agent.savingSettings||agent.checkingConnection} disabled={disabled} className="wb-select-trigger wb-select-toolbar composer-model" data-workbench-select="" data-agent-model-settings="" data-value={agent.model} data-identity={agent.identity} data-effort={agent.effort} data-permission-mode={agent.permissionMode}>
-      <span className="wb-select-trigger-icon" aria-hidden="true">{icon}</span><span className="wb-select-value">{modelLabel}</span>
+      <span className="wb-select-trigger-icon model-identity" role="img" aria-label={identityLabel} title={identityLabel}><AgentIcon name={identity}/></span><span className="wb-select-value">{modelLabel}</span>
       {agent.permissionMode==="full-access"&&<span className="model-full-access" aria-label="完全访问" title="完全访问">{fullAccessIcon}</span>}
     </Popover.Trigger>
     <Popover.Portal><Popover.Positioner className="agent-model-positioner" side="top" sideOffset={8} align="end" collisionPadding={10}>
@@ -30,7 +31,7 @@ export function ModelSettings({agent,modelLabel,modelOptions,effortOptions,permi
           <Tabs.Panel className="agent-model-tab-panel" value="model"><Select inline label="模型" value={agent.model} options={modelOptions} searchable onValueChange={agent.setModel} disabled={modelDisabled||agent.savingSettings}/></Tabs.Panel>
           <Tabs.Panel className="agent-model-tab-panel" value="effort"><p className="agent-model-description">{modelLabel} 支持的推理强度</p><Select inline label="推理强度" value={agent.effort} options={effortOptions} searchable={false} onValueChange={agent.setEffort} disabled={effortDisabled||agent.savingSettings}/>{effortDisabled&&<p className="agent-model-description">当前模型暂未提供可选的推理强度。</p>}</Tabs.Panel>
           <Tabs.Panel className="agent-model-tab-panel" value="permission"><Select inline label="权限" value={agent.permissionMode} options={permissionOptions} searchable={false} onValueChange={value=>agent.setPermissionMode(value as AgentPermissionMode)} disabled={agent.savingSettings}/>{agent.permissionMode==="full-access"&&<p className="agent-permission-warning">{fullAccessWarning}</p>}</Tabs.Panel>
-          <Tabs.Panel className="agent-model-tab-panel" value="identity"><Select inline label="设计身份" value={agent.identity??"interaction"} options={Object.entries(agentRoles).map(([value,profile])=>({value,label:profile.label,icon:<AgentIcon name="role"/>,description:value==="interaction"?"任务流程、页面状态与交互反馈":"布局、配色、组件细节与视觉表现"}))} searchable={false} onValueChange={value=>agent.setIdentity(value as AgentRole)} disabled={agent.job?.state==="ready"||agent.savingSettings}/>{agent.job?.state==="ready"&&<p className="agent-model-description">接受或放弃提案后可切换身份。</p>}</Tabs.Panel>
+          <Tabs.Panel className="agent-model-tab-panel" value="identity"><Select inline label="设计身份" value={identity} options={Object.entries(agentRoles).map(([value,profile])=>({value,label:profile.label,icon:<AgentIcon name={value as AgentRole}/>,description:value==="interaction"?"任务流程、页面状态与交互反馈":"布局、配色、组件细节与视觉表现"}))} searchable={false} onValueChange={value=>agent.setIdentity(value as AgentRole)} disabled={agent.job?.state==="ready"||agent.savingSettings}/>{agent.job?.state==="ready"&&<p className="agent-model-description">接受或放弃提案后可切换身份。</p>}</Tabs.Panel>
         </Tabs.Root>
         <p className="agent-model-save-state" role="status">{agent.savingSettings?"正在保存选择…":agent.settingsError||"选择立即生效，可继续切换设置"}</p>
       </Popover.Popup>
