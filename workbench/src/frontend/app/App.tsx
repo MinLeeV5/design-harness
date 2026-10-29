@@ -4,7 +4,7 @@ import "./studio.css";
 import {InteractionReader,annotationsFor} from "../features/interactions/InteractionReader";
 import {useAgent} from "../features/agent/use-agent";
 import {AgentPanel} from "../features/agent/AgentPanel";
-import {AgentSessionControls,ProviderStatus} from "../features/agent/AgentHeader";
+import {AgentSessionControls,ProviderStatus,ApprovalIndicator} from "../features/agent/AgentHeader";
 import {PreviewFrame} from "../features/canvas/PreviewFrame";
 import {useNavigation} from "../features/navigation/use-navigation";
 import {captureFrame} from "../api/preview";
@@ -176,7 +176,7 @@ export function App({data:initialData}:{data:BundleData}) {
         <Select label="场景" variant="toolbar" className="context-choice context-scenario" value={!interacting&&scenario.page===page?scenario.id:""} onValueChange={chooseScenario} options={[{value:"",label:"当前交互状态",disabled:true,description:"选择预设场景以重新开始体验"},...data.scenarios.filter(s=>s.page===page).map(s=>({value:s.id,label:s.title}))]}/>
       </nav>
       <nav className="header-panels" aria-label="辅助面板">
-        {(["docs","agent","tools"] as Panel[]).map(view=><button key={view} ref={element=>{panelTriggers.current[view]=element;}} className="drawer-trigger" aria-label={panelNames[view]} title={panelNames[view]} aria-expanded={panel===view} aria-controls="studio-inspector" onClick={()=>panel===view?closePanel():showPanel(view)}><ToolIcon view={view}/><span>{view==="docs"?"说明":panelNames[view]}</span>{view==="agent"&&(agent.waiting?<span className="loading-spinner" aria-label="Agent 正在处理"/>:agent.job?.state==="ready"&&<span className="unsaved-dot" aria-hidden="true"/>)}</button>)}
+        {(["docs","agent","tools"] as Panel[]).map(view=><button key={view} ref={element=>{panelTriggers.current[view]=element;}} className="drawer-trigger" aria-label={panelNames[view]} title={view==="agent"&&agent.approvalSessions.length?"Agent · "+agent.approvalSessions.length+" 个会话等待审批":panelNames[view]} aria-expanded={panel===view} aria-controls="studio-inspector" onClick={()=>panel===view?closePanel():showPanel(view)}><ToolIcon view={view}/><span>{view==="docs"?"说明":panelNames[view]}</span>{view==="agent"&&(agent.approvalSessions.length?<ApprovalIndicator count={agent.approvalSessions.length}/>:agent.waiting?<span className="loading-spinner" aria-label="Agent 正在处理"/>:agent.job?.state==="ready"&&<span className="unsaved-dot" aria-hidden="true"/>)}</button>)}
       </nav>
     </header>
     <main className="studio-main">

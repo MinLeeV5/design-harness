@@ -108,7 +108,7 @@ try{
   await page.reload();await openPanel(page,"Agent");await page.getByRole("log").getByRole("heading",{name:"会话 格式",exact:true}).waitFor();
   const restored=page.locator(".agent-message.assistant").last();assert.equal(await restored.locator("code.language-tsx").count(),1);
   await restored.locator(".agent-process > summary").click();assert.equal(await restored.locator(".markdown-content strong").filter({hasText:"已完成分析"}).count(),1);
-  assert.equal(await restored.locator("script,img,svg").count(),0);
+  assert.equal(await restored.locator(".markdown-content").locator("script,img,svg").count(),0);
  });
  await check("提案摘要解析Markdown，文件前后内容继续按代码展示",async()=>{
   await page.setViewportSize({width:1680,height:1250});await send("Markdown提案");await page.getByRole("button",{name:"接受修改",exact:true}).waitFor();

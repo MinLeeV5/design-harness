@@ -13,7 +13,7 @@
     "check": "npm run validate && npm test",
     "package": "node scripts/package-plugin.js",
     "demo": "node scripts/demo.js",
-    "test:browser": "node scripts/select-smoke.js && node scripts/browser-smoke.js && node scripts/navigation-smoke.js && node scripts/agent-smoke.js && node scripts/sessions-smoke.js && node scripts/permissions-smoke.js && node scripts/roles-smoke.js && node scripts/composer-smoke.js && node scripts/model-settings-smoke.js && node scripts/preferences-smoke.js && node scripts/context-smoke.js",
+    "test:browser": "node scripts/select-smoke.js && node scripts/browser-smoke.js && node scripts/navigation-smoke.js && node scripts/agent-smoke.js && node scripts/agent-scroll-smoke.js && node scripts/sessions-smoke.js && node scripts/permissions-smoke.js && node scripts/roles-smoke.js && node scripts/composer-smoke.js && node scripts/model-settings-smoke.js && node scripts/preferences-smoke.js && node scripts/context-smoke.js",
     "workbench": "node workbench/cli.mjs",
     "typecheck": "node workbench/cli.mjs typecheck"
   },

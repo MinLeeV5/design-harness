@@ -3,12 +3,15 @@ import {Popover} from "@base-ui/react/popover";
 import type {useAgent} from "./use-agent";
 import {Select} from "../../ui/Select";
 import {AgentIcon} from "./AgentIcon";
+import {AgentStatus,agentStatusLabel} from "./AgentStatus";
 
-const sessionStates:Record<string,string>={running:"正在处理",awaiting_approval:"等待批准",validating:"正在校验",accepting:"正在接受修改",ready:"预览待确认",accepted:"已接受",discarded:"已放弃",superseded:"已继续调整",cancelled:"已取消",failed:"处理失败",answered:"已回复"};
+export function ApprovalIndicator({count}:{count:number}){
+  return <span className="agent-approval-badge" role="status" aria-label={count+" 个会话等待审批"}><AgentStatus state="awaiting_approval" iconOnly decorative/><span>待审批</span></span>;
+}
 export function AgentSessionControls({agent}:{agent:ReturnType<typeof useAgent>}){
   const current=agent.sessions.find(session=>session.id===agent.sessionId);
   return <>
-    <h2 id="inspector-title" aria-label="Agent"><Select className="agent-session-switch" label="Agent 会话" displayValue="Agent" title={current?"当前会话："+current.title:"切换 Agent 会话"} value={agent.sessionId} onValueChange={id=>void agent.selectSession(id)} options={agent.sessions.map((session,index)=>({value:session.id,label:(index+1)+" · "+session.title,description:sessionStates[session.state]??"尚未发送"}))}/></h2>
+    <h2 id="inspector-title" aria-label="Agent"><Select className="agent-session-switch" label="Agent 会话" displayValue="Agent" title={current?"当前会话："+current.title:"切换 Agent 会话"} value={agent.sessionId} onValueChange={id=>void agent.selectSession(id)} options={agent.sessions.map((session,index)=>({value:session.id,label:(index+1)+" · "+session.title,description:agentStatusLabel(session.state),descriptionIcon:<AgentStatus state={session.state} iconOnly decorative/>}))}/></h2>
     <button type="button" className="composer-icon" aria-label="新建会话" title="新建会话" onClick={()=>void agent.newSession()} disabled={agent.creating||!agent.sessionReady}><AgentIcon name="plus"/></button>
   </>;
 }

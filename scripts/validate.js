@@ -80,6 +80,7 @@ export const WORKBENCH_FILES = [
   "src/frontend/features/agent/AgentComposer.tsx",
   "src/frontend/features/agent/AgentHeader.tsx",
   "src/frontend/features/agent/AgentIcon.tsx",
+  "src/frontend/features/agent/AgentStatus.tsx",
   "src/frontend/features/agent/ModelSettings.tsx",
   "src/frontend/features/agent/AgentPanel.tsx",
   "src/frontend/features/agent/use-agent.ts",

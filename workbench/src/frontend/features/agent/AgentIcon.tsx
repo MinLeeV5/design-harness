@@ -1,6 +1,6 @@
 import type {ReactNode} from "react";
 
-export type IconName="pick"|"image"|"image-off"|"interaction"|"visual"|"provider"|"send"|"stop"|"close"|"refresh"|"copy"|"plus"|"permission-read"|"permission-proposal"|"permission-full";
+export type IconName="pick"|"image"|"image-off"|"interaction"|"visual"|"provider"|"send"|"stop"|"close"|"refresh"|"copy"|"plus"|"bottom"|"approval"|"status-idle"|"status-success"|"status-cancelled"|"status-failed"|"status-reply"|"permission-read"|"permission-proposal"|"permission-full";
 export function AgentIcon({name}:{name:IconName}){
   const paths:Record<IconName,ReactNode>={
     pick:<><path d="m5 3 14 9-7 1-3 7Z"/><path d="m12 13 4 6"/></>,
@@ -13,6 +13,13 @@ export function AgentIcon({name}:{name:IconName}){
     "permission-full":<><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M9 10V7a4 4 0 0 1 7.5-2M12 14v3"/></>,
     provider:<><path d="M8 2v5m8-5v5M6 7h12v3a6 6 0 0 1-12 0Zm6 9v6"/></>,
     send:<path d="M12 20V4m-6 6 6-6 6 6"/>,
+    bottom:<path d="M12 3v14m-5-5 5 5 5-5M5 21h14"/>,
+    approval:<><circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 4h.01"/></>,
+    "status-idle":<><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></>,
+    "status-success":<><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></>,
+    "status-cancelled":<><circle cx="12" cy="12" r="9"/><path d="m6 6 12 12"/></>,
+    "status-failed":<><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6m-6 0 6-6"/></>,
+    "status-reply":<path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6 3V6a2 2 0 0 1 2-2Z"/>,
     stop:<rect x="6" y="6" width="12" height="12" rx="2"/>,
     close:<path d="m6 6 12 12M6 18 18 6"/>,
     copy:<><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></>,
