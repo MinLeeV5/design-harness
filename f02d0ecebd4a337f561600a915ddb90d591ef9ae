@@ -1,0 +1,39 @@
+shared/references/agent.md
+  63333559e3216e08 23-26
+docs/validation.md
+  63333559e3216e08 96-97
+docs/html-design.md
+  63333559e3216e08 96-99
+shared/references/preview-export.md
+  63333559e3216e08 46-47
+README.md
+  63333559e3216e08 116-117
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.8.2",
+  "base_commit_sha": "f02d0ecebd4a337f561600a915ddb90d591ef9ae",
+  "prompts": {
+    "63333559e3216e08": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a186db-9a3d-71e0-9af1-e09d4edf776a",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 30,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/33451a059098f08375e906079833082e51619290ef8df4a264835f997c73b598",
+      "token_usage": {
+        "input_tokens": 201122,
+        "output_tokens": 43073,
+        "cache_read_tokens": 6273408,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    }
+  }
+}
