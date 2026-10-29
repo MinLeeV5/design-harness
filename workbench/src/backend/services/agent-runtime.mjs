@@ -18,6 +18,7 @@ import {validateJob,checkControls} from "./proposals.mjs";
 import {checkAgentScope} from "./proposal-policy.mjs";
 import {createAgentSettings} from "./agent-settings.mjs";
 const terminal=new Set(["accepted","answered","discarded","cancelled","failed","superseded"]);
+const idleTimeoutMessage="Agent 长时间无进展，已超时停止，可重试";
 export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,connection,provider=createAgentProvider({run,connection}),preferences,projectRoot,timeoutMs=600000}={}) {
   workspace=canonicalDirectory(workspace);const jobs=new Map(),sessions=new Map(),defaults=new Map(),starting=new Set(),settings=createAgentSettings(preferences);let closed=false;
   const hostProject=hostProjectRoot(workspace,projectRoot);
@@ -43,18 +44,33 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
   const snapshot=session=>({...summary(session),messages:session.messages,...settings.current(session.id),job:session.jobId?view(find(session.jobId)):null});
   function record(session,model,state){session.lastRequest={model:model.id,name:model.name,provider:model.provider,state,at:Date.now()};provider.record?.(model,state);}
   function observe(session,event){
-    if(event.kind==="usage")session.observation={...session.observation,usage:event.usage};
+    if(event.kind==="usage"){
+      const previous=session.observation.usage;session.observation={...session.observation,usage:event.usage};
+      return ["last","total"].some(scope=>Object.entries(event.usage?.[scope]??{}).some(([key,value])=>value>(previous?.[scope]?.[key]??0)));
+    }
     if(event.kind==="compaction"&&!session.compactionIds.has(event.id)){
       session.compactionIds.add(event.id);session.observation={...session.observation,compactions:session.compactionIds.size,lastCompactionAt:event.at};
+      return true;
     }
+    return false;
   }
   function ownedJob(id,sessionId){const job=find(id);assert(sessionId?job.sessionId===sessionId:defaults.get(job.requirement+":"+job.candidate)===job.sessionId,"任务不属于当前会话");return job;}
+  function refreshIdleTimeout(job){
+    if(closed||!job.callActive)return;
+    clearTimeout(job.timer);
+    if(job.controller.signal.aborted||job.pendingApprovals.size)return;
+    job.timer=setTimeout(()=>{
+      if(job.callActive&&!job.controller.signal.aborted&&!job.pendingApprovals.size)job.controller.abort("timeout");
+    },timeoutMs);job.timer.unref?.();
+  }
   function activity(job,id,label,status="running",text,details={}){
     const items=job.reply?.activity;if(!items)return;
     let item=items.find(item=>item.id===id);
+    const keys=["kind","command","cwd","output","exitCode","truncated"];
+    if(!item||item.label!==label||item.status!==status||(text!==undefined&&item.text!==text)||keys.some(key=>details[key]!==undefined&&item[key]!==details[key]))refreshIdleTimeout(job);
     if(!item){if(items.length>=300)return;item={id,label,status,startedAt:Date.now()};items.push(item);}else {if(item.status!=="running"&&status==="running"){item.startedAt=Date.now();delete item.endedAt;}Object.assign(item,{label,status});}
     if(text!==undefined)item.text=text;
-    for(const key of ["kind","command","cwd","output","exitCode","truncated"])if(details[key]!==undefined)item[key]=details[key];
+    for(const key of keys)if(details[key]!==undefined)item[key]=details[key];
     if(status!=="running")item.endedAt=Date.now();
   }
   function requestApproval(job,request,{signal}={}){
@@ -62,8 +78,8 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
     const id=randomBytes(12).toString("hex"),approval={...request,id,state:"pending"};job.approvals.push(approval);
     activity(job,"approval-"+id,approval.title,"running");
     return new Promise(resolve=>{
-      const settle=(decision,content)=>{if(!job.pendingApprovals.delete(id))return;signal?.removeEventListener("abort",cancel);job.controller.signal.removeEventListener("abort",cancel);approval.state=decision==="accept"?"accepted":decision==="decline"?"declined":"cancelled";activity(job,"approval-"+id,approval.title,decision==="accept"?"done":"cancelled");resolve({decision,...(content?{content}:{})});};
-      const cancel=()=>settle("cancel");job.pendingApprovals.set(id,settle);signal?.addEventListener("abort",cancel,{once:true});job.controller.signal.addEventListener("abort",cancel,{once:true});
+      const settle=(decision,content)=>{if(!job.pendingApprovals.delete(id))return;signal?.removeEventListener("abort",cancel);job.controller.signal.removeEventListener("abort",cancel);approval.state=decision==="accept"?"accepted":decision==="decline"?"declined":"cancelled";activity(job,"approval-"+id,approval.title,decision==="accept"?"done":"cancelled");refreshIdleTimeout(job);resolve({decision,...(content?{content}:{})});};
+      const cancel=()=>settle("cancel");job.pendingApprovals.set(id,settle);clearTimeout(job.timer);signal?.addEventListener("abort",cancel,{once:true});job.controller.signal.addEventListener("abort",cancel,{once:true});
     });
   }
   function clearApprovals(job){for(const settle of job.pendingApprovals.values())settle("cancel");}
@@ -97,7 +113,7 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
     const base=request.baseJob?find(request.baseJob):null;
     if(base)assert(base.sessionId===session.id&&base.state==="ready"&&base.requirement===request.id&&base.candidate===request.candidate&&base.page===request.page&&base.revision===data.revision,"只能继续当前方案、页面中尚未接受的预览");
     if(base)assert(base.role===request.role,"切换设计身份前，请先接受或放弃当前提案");
-    assert(![...jobs.values()].some(j=>j.sessionId===session.id&&j!==base&&!terminal.has(j.state)),"当前会话已有待处理的生成，请先接受、放弃或取消");
+    assert(![...jobs.values()].some(j=>j.sessionId===session.id&&j!==base&&(j.stopping||!terminal.has(j.state))),"当前会话已有待处理的生成，请先接受、放弃或取消");
     if(selection){const selectedData=base?loadRequirement(base.directory,request.id):data;assert(selectedData.specs[request.candidate+":"+request.page].elements[selection.target.split("/")[0]],"点选目标不在当前预览中，请重新点选");}
     if(base){base.state="refining";clearTimeout(base.timer);try{await stageValues(base,request.values);base.proposal=tuneProposal(base.proposal,request.values??{});base.changes=changesFor(base);}catch(error){base.state="ready";armPreview(base);throw error;}}
     const source=base?loadRequirement(base.directory,request.id):data,sourceWorkspace=base?base.directory:workspace;
@@ -109,29 +125,29 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
     const disposition={previousProposal:previous?.state??"none",baseProposal:base?.id??null,source:base?"pending proposal including tuned controls":"current accepted files",revision:data.revision};
     session.jobId=job.id;if(!session.messages.length)session.title=request.prompt.trim().slice(0,36);
     jobs.set(job.id,job);message(job,"user",request.prompt,"sent");job.reply=message(job,"assistant","","running");phase(job,"context","准备当前画面与专业设计上下文");
-    job.timer=setTimeout(()=>{if(job.callActive){job.controller.abort("timeout");failOrRecover(job,"Agent 处理超时，可缩小要求后重试");}},timeoutMs);job.timer.unref?.();
     job.done=(async()=>{
+      const signal=job.controller.signal;
       try {
-        const currentImage=await capture({capture:request.capture,directory:temp,signal:job.controller.signal});if(!job.callActive)return;
+        const currentImage=await capture({capture:request.capture,directory:temp,signal});if(!job.callActive)return;signal.throwIfAborted();
         const imageFiles=saveDesignReferences(request.references,temp),data=loadRequirement(directory,job.requirement);
         const resources=prepareAgentContext({data,request,disposition,identity:skill,temp,currentImage,referenceFiles:imageFiles,hostProject,sourceResources:workspace,sourceRequirement:job.originalRoot});
         const {text:prompt,metrics}=promptFor(data,{...request,permissionMode,sourceRoot:job.originalRoot},disposition,skill,imageFiles,resources);
         session.observation={...session.observation,context:metrics};
         phase(job,"request","请求已提交至本机 Codex");
-        const signal=job.controller.signal;record(session,model,"running");let result;
+        record(session,model,"running");let result;
         try{
           session.native??=provider.createSession({id:session.id,directory,model,permissionMode}).catch(error=>{session.native=null;throw error;});
-          const native=await session.native;if(!job.callActive){record(session,model,signal.reason==="timeout"?"failed":"cancelled");return;}
-          result=await provider.runTurn({session:native,sessionId:session.id,directory,prompt,schema:outputSchema,imageFiles,model,signal,permissionMode,onObservation:event=>{if(!closed&&(job.callActive||event.kind==="usage"))observe(session,event);},onApproval:(request,options)=>requestApproval(job,request,options),onEvent:event=>{if(job.callActive)activity(job,event.id,event.label,event.status,event.text,event);}});record(session,model,signal.aborted?signal.reason==="timeout"?"failed":"cancelled":"succeeded");}
-        catch(error){record(session,model,signal.aborted&&signal.reason!=="timeout"?"cancelled":"failed");throw error;}if(!job.callActive)return;
+          const native=await session.native;if(!job.callActive||signal.aborted){record(session,model,signal.reason==="timeout"?"failed":"cancelled");signal.throwIfAborted();return;}
+          result=await provider.runTurn({session:native,sessionId:session.id,directory,prompt,schema:outputSchema,imageFiles,model,signal,permissionMode,onProgress:()=>refreshIdleTimeout(job),onObservation:event=>{if(!closed&&(job.callActive||event.kind==="usage")&&observe(session,event))refreshIdleTimeout(job);},onApproval:(request,options)=>requestApproval(job,request,options),onEvent:event=>{if(job.callActive&&!signal.aborted)activity(job,event.id,event.label,event.status,event.text,event);}});record(session,model,signal.aborted?signal.reason==="timeout"?"failed":"cancelled":"succeeded");}
+        catch(error){record(session,model,signal.aborted&&signal.reason!=="timeout"?"cancelled":"failed");throw error;}if(!job.callActive)return;signal.throwIfAborted();
         assert(result&&typeof result.summary==="string"&&result.summary.trim()&&result.summary.length<=10000&&Array.isArray(result.files)&&result.files.length<=60,"Agent 未返回有效回答或修改");
         clearApprovals(job);detectSourceChanges(job);checkProposalFiles(job,{readOnly:permissionMode==="read-only"});freezeProposalFiles(job);stageModelFiles(job,result);checkProposalFiles(job);
         job.changes=changesFor(job);job.summary=result.summary;checkAgentScope(job);
         if(!job.changes.length){assert(!(result.controls?.length),"纯回答不能提供未生成的调整项");job.callActive=false;job.state="answered";finishMessage(job,"answered",result.summary);releaseBase(job);cleanup(job);return;}
-        job.state="validating";phase(job,"types","检查组件与类型");await typecheck(job.directory,{signal:job.controller.signal});phase(job,"build","构建隔离预览");const built=await buildRequirement(job.directory,job.requirement);if(!job.callActive||job.controller.signal.aborted)return;phase(job,"browser","检查浏览器中的页面与交互");const impact=await validateJob(job,built);if(!job.callActive)return;
+        job.state="validating";phase(job,"types","检查组件与类型");await typecheck(job.directory,{signal});if(!job.callActive)return;signal.throwIfAborted();phase(job,"build","构建隔离预览");const built=await buildRequirement(job.directory,job.requirement);if(!job.callActive)return;signal.throwIfAborted();phase(job,"browser","检查浏览器中的页面与交互");const impact=await validateJob(job,built);if(!job.callActive)return;signal.throwIfAborted();
         const controls=result.files.length===0&&job.baseControls.length?job.baseControls:(result.controls??[]);checkControls(job,built,controls);
         const key=job.candidate+":"+job.page;job.proposal={permissionMode,summary:result.summary,html:built.payload.previews[job.page+":"+job.candidate],spec:built.data.specs[key],css:built.data.params[job.candidate].css,controls,changes:job.changes,interactions:built.data.interactions,documentation:built.payload.documentation,reviewHtml:built.html,candidate:job.candidate,page:job.page,impact};job.callActive=false;job.state="ready";releaseBase(job);finishMessage(job,"ready",result.summary);activity(job,"preview","预览已就绪，等待接受","done");armPreview(job);
-      }catch(error){if(job.callActive)failOrRecover(job,error.message);}
+      }catch(error){if(job.callActive)failOrRecover(job,signal.reason==="timeout"?idleTimeoutMessage:error.message);}
     })();return view(job);
     } finally {starting.delete(session.id);}
   }
@@ -164,16 +180,17 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
       job.pendingApprovals.get(request.approvalId)(request.decision,request.content);return view(job);
     }
     if(request.type==="accept"){ownedJob(request.job,request.sessionId);return accept(request.job,request.values);}
-    assert(["discard","cancel"].includes(request.type),"未知的 Agent 事件");const job=ownedJob(request.job,request.sessionId);assert(!terminal.has(job.state),"该生成已经结束");assert(!["accepting","refining"].includes(job.state),"预览正被接受或用于继续生成，请等待当前操作完成");
-    if(job.base&&request.type==="cancel"){job.controller.abort();failOrRecover(job,"已取消本轮生成","cancelled");await job.done;return view(job);}
-    job.callActive=false;clearApprovals(job);job.state=request.type==="cancel"?"cancelled":"discarded";finishMessage(job,job.state,request.type==="cancel"?"已取消本轮请求":job.reply?.content||"已放弃本轮修改");job.controller.abort();releaseBase(job);await job.done;detectSourceChanges(job);job.proposal=undefined;cleanup(job);return view(job);
+    assert(["discard","cancel"].includes(request.type),"未知的 Agent 事件");const job=ownedJob(request.job,request.sessionId);assert(!terminal.has(job.state),"该生成已经结束");assert(!job.stopping&&!job.controller.signal.aborted,"生成正在停止，请等待当前操作完成");assert(!["accepting","refining"].includes(job.state),"预览正被接受或用于继续生成，请等待当前操作完成");
+    job.stopping=true;job.callActive=false;clearTimeout(job.timer);clearApprovals(job);job.controller.abort();
+    if(job.base&&request.type==="cancel"){await job.done;failOrRecover(job,"已取消本轮生成","cancelled");job.stopping=false;return view(job);}
+    job.state=request.type==="cancel"?"cancelled":"discarded";finishMessage(job,job.state,request.type==="cancel"?"已取消本轮请求":job.reply?.content||"已放弃本轮修改");releaseBase(job);await job.done;detectSourceChanges(job);job.proposal=undefined;cleanup(job);job.stopping=false;return view(job);
   }
   return {
     event,get:(id,sessionId)=>view(ownedJob(id,sessionId)),
     async connection(options={}){const status=await provider.inspect(options);if(!options.sessionId)return {...status,agentProvider:{id:provider.id,capabilities:provider.capabilities}};const session=sessions.get(options.sessionId);assert(session,"会话不存在");return {...status,lastRequest:session.lastRequest,observation:session.observation,agentProvider:{id:provider.id,capabilities:provider.capabilities}};},
     createSession:(id,candidate)=>snapshot(createSession(id,candidate)),
     sessions(id,candidate){sessionFor(id,candidate);return [...sessions.values()].filter(s=>s.requirement===id&&s.candidate===candidate).map(summary);},
-    async saveSettings(id,candidate,patch,sessionId){const session=sessionFor(id,candidate,sessionId),job=session.jobId?find(session.jobId):null;assert(!starting.has(session.id)&&(!job||!["running","validating","accepting","refining"].includes(job.state)),"当前会话正在处理，请稍后调整设置");if(job?.state==="ready"&&patch.identity)assert(patch.identity===job.role,"请先接受或放弃当前身份的提案");return settings.update(session.id,patch);},
+    async saveSettings(id,candidate,patch,sessionId){const session=sessionFor(id,candidate,sessionId),job=session.jobId?find(session.jobId):null;assert(!starting.has(session.id)&&(!job||!job.stopping&&!["running","validating","accepting","refining"].includes(job.state)),"当前会话正在处理，请稍后调整设置");if(job?.state==="ready"&&patch.identity)assert(patch.identity===job.role,"请先接受或放弃当前身份的提案");return settings.update(session.id,patch);},
     session(id,candidate,sessionId){return snapshot(sessionFor(id,candidate,sessionId));},
     async close(){closed=true;for(const job of jobs.values()){job.callActive=false;job.controller.abort();if(!terminal.has(job.state))job.state="cancelled";}await provider.dispose();await Promise.allSettled([...jobs.values()].map(j=>j.done));for(const job of jobs.values())cleanup(job);jobs.clear();sessions.clear();defaults.clear();settings.clear();}
   };

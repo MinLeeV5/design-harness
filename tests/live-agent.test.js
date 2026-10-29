@@ -28,6 +28,20 @@ test("Live Agent previews independently, discards without writes and accepts onl
     generated=await runtime.event(request(workspace));job=await settled(runtime,generated.id);assert.equal(job.state,"ready",job.error);const completedAt=job.messages.at(-1).completedAt;await new Promise(resolve=>setTimeout(resolve,60));await runtime.event({type:"accept",job:job.id});assert.equal(runtime.get(job.id).messages.at(-1).completedAt,completedAt,"接受不应改变首次生成完成时间");assert.equal(readJson(source).elements["task-page"].props.title,"隔离生成标题");assert.deepEqual(fs.readFileSync(path.join(workspace,"requirements/example/candidates/compact/pages/task.json")),other);assert.equal(fs.existsSync(directory),false);assert.equal(fs.existsSync(path.join(workspace,"evidence")),false);
   });
 });
+test("Late usage and native progress cannot remove the ready preview's expiration timer",async t=>{
+  let input;
+  await fixture(async value=>{input=value;return update(value.directory);},async({workspace,runtime})=>{
+    const job=await settled(runtime,(await runtime.event(request(workspace))).id);assert.equal(job.state,"ready",job.error);
+    t.mock.timers.enable({apis:["setTimeout"]});
+    try{
+      // A failed accept rearms the preserved preview, under the controlled clock.
+      await assert.rejects(runtime.event({type:"accept",job:job.id,values:{unknown:1}}),/未生成/);
+      input.onProgress();input.onObservation({kind:"usage",usage:{total:{inputTokens:20,outputTokens:5,totalTokens:25}}});
+      t.mock.timers.tick(30*60000);assert.equal(runtime.get(job.id).state,"discarded");
+    }finally{t.mock.timers.reset();}
+  });
+});
+
 test("Accept refuses external resource edits and retains the generated proposal",async()=>{
   await fixture(async({directory})=>update(directory),async({workspace,runtime})=>{const generated=await runtime.event(request(workspace)),job=await settled(runtime,generated.id);assert.equal(job.state,"ready",job.error);const file=path.join(workspace,"foundation/tokens.css");fs.appendFileSync(file,"\n:root{--external-change:1}");await assert.rejects(runtime.event({type:"accept",job:job.id}),/源资源已被修改/);assert.equal(runtime.get(job.id).state,"ready");assert.match(fs.readFileSync(file,"utf8"),/external-change/);});
 });

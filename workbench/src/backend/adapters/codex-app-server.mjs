@@ -82,7 +82,7 @@ export function createCodexProvider({connection=createCodexConnection(),spawnPro
     if(!result?.thread?.id)throw new Error("Codex 未返回原生会话标识");
     const session={threadId:result.thread.id,unavailable:false};sessions.add(session);return session;
   }
-  async function runTurn({session,directory,prompt,schema,imageFiles=[],model,signal,permissionMode="proposal",onEvent=()=>{},onObservation=()=>{},onApproval=async()=>({decision:"decline"})}) {
+  async function runTurn({session,directory,prompt,schema,imageFiles=[],model,signal,permissionMode="proposal",onEvent=()=>{},onProgress=()=>{},onObservation=()=>{},onApproval=async()=>({decision:"decline"})}) {
     const policy=permissions(permissionMode,directory);
     if(closed||!sessions.has(session)||session.unavailable)throw new Error("Codex 会话已失效，请新建会话");
     if(signal.aborted)throw new Error("生成已取消");
@@ -148,6 +148,9 @@ export function createCodexProvider({connection=createCodexConnection(),spawnPro
         }
         if(id!==turn.id&&!(message.id!==undefined&&message.method==="mcpServer/elicitation/request"&&p.turnId==null)){if(message.id!==undefined)child?.stdin.write(JSON.stringify({id:message.id,error:{code:-32601,message:"Request does not belong to the active turn"}})+"\n");return;}
         if(message.id!==undefined){approval(message);return;}
+        // Progress is payload-free: private/final deltas and output beyond the display cap
+        // still keep the active turn alive without exposing their contents to the UI.
+        if(["item/agentMessage/delta","item/reasoning/textDelta","item/reasoning/summaryTextDelta","item/commandExecution/outputDelta"].includes(message.method)&&typeof p.delta==="string"&&p.delta.length)try{onProgress();}catch{/* Observation cannot affect execution. */}
         if(message.method==="item/completed"&&p.item?.type==="contextCompaction"&&typeof p.item.id==="string")try{onObservation({kind:"compaction",id:p.item.id,at:Date.now()});}catch{/* Observation cannot affect execution. */}
         if(p.item?.id&&nativeItems.size<256)nativeItems.set(p.item.id,p.item);
         if(message.method==="item/completed"&&p.item?.type==="agentMessage"&&p.item.phase!=="commentary")resultText=p.item.text;

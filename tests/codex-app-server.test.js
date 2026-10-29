@@ -17,6 +17,27 @@ function harness({early=false,deferStarts=false,deferCleanup=false,cancelTimeout
  return {provider,child,requests,send,notify,complete,input,spawned:()=>spawned};
 }
 async function until(check){for(let i=0;i<100;i++){if(check())return;await new Promise(r=>setTimeout(r,5));}throw new Error('missing protocol event');}
+test('Nonempty native deltas signal progress independently of public display limits and stay with their active turn',async()=>{
+ const h=harness(),events=[],progress=[];try{
+  const session=await h.provider.createSession(h.input),call=h.provider.runTurn({...h.input,session,onEvent:event=>events.push(event),onProgress:(...args)=>{progress.push(args);}});
+  await until(()=>h.requests.some(r=>r.method==='turn/start'));
+  const send=(method,extra={})=>h.notify(method,{threadId:session.threadId,turnId:'turn-1',itemId:'item',...extra});
+  send('item/reasoning/textDelta',{delta:'PRIVATE_REASONING'});
+  send('item/started',{item:{id:'final-stream',type:'agentMessage',phase:'final_answer',text:''}});
+  send('item/agentMessage/delta',{itemId:'final-stream',delta:'PRIVATE_FINAL_SOURCE'});
+  send('item/commandExecution/outputDelta',{delta:'x'.repeat(24000)});
+  const count=events.length;send('item/commandExecution/outputDelta',{delta:'beyond display cap'});
+  await until(()=>progress.length===4);assert.equal(events.length,count+1);assert.equal(events.at(-1).output.length,24000);
+  send('item/reasoning/summaryTextDelta',{delta:'公开摘要'});
+  send('item/reasoning/textDelta',{delta:''});send('item/agentMessage/delta',{turnId:'stale',delta:'STALE'});
+  h.notify('item/reasoning/textDelta',{threadId:'other-thread',turnId:'turn-1',delta:'OTHER_THREAD'});
+  await until(()=>progress.length===5);assert.ok(progress.every(args=>args.length===0));
+  assert.doesNotMatch(JSON.stringify(events),/PRIVATE_REASONING|PRIVATE_FINAL_SOURCE|STALE|OTHER_THREAD/);
+  h.complete(session.threadId,'turn-1','完成');await call;
+  send('item/reasoning/textDelta',{delta:'late output'});assert.equal(progress.length,5);
+ }finally{await h.provider.dispose();}
+});
+
 test('Native usage without turnId and compaction events are isolated by thread and preserve missing data',async()=>{
  const h=harness(),observationsA=[],observationsB=[];
  try{
