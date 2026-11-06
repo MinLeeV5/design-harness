@@ -70,6 +70,11 @@ test("Dimension content uses the same safe Markdown rendering and fenced heading
   const [item]=parse(dimensionDocument('### 异常\n失败保留输入。\n\n```markdown\n### 未知维度\n```\n<script>alert(1)</script>\n[链接](javascript:alert(1))'));
   assert.equal(item.blocks.length,1);assert.match(item.blocks[0].html,/未知维度/);assert.doesNotMatch(item.blocks[0].html,/<script>|href="javascript:/);
 });
+test("The shared authoring example is a valid compact note without a required introduction",()=>{
+  const guide=fs.readFileSync(new URL("../shared/references/interactions.md",import.meta.url),"utf8"),source=guide.match(/```markdown\n([\s\S]*?)\n```/)[1]+"\n";
+  const [item]=parseInteractionDocument(source,{file:"interactions/catalog.md",pages:new Set(["catalog"])});
+  assert.equal(item.view,"dimensions");assert.equal(item.intro,"");assert.deepEqual(item.blocks.map(block=>block.dimension),["condition","operation","recovery"]);
+});
 test("New workspace notes demonstrate short optional dimensions while retaining source and annotation targets",()=>{
   const base=fs.mkdtempSync(path.join(os.tmpdir(),"dh-dimension-template-"));try{
     const workspace=initialize(base,{example:true}).workspace,data=loadRequirement(workspace,"example");

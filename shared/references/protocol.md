@@ -37,7 +37,7 @@ Spec 保存页面组合与实例属性，React 保存组件内部实现。工具
 
 scenarios.json 为 [{id,page,title,state}]，只保存预置场景。state 与 Spec.state 合成体验初始状态；只有选择预置场景或显式重置才初始化。普通导航、打开面板和 Agent 调整不重置体验状态。
 
-交互正文与标注配置统一保存到需求自己的 interactions/*.md，采用 YAML 配置＋Markdown 正文。页面归属、稳定 ID、目标、条件与展示模式遵循[交互说明协议](interactions.md)，不写在组件中，不在场景中重复维护。工作台内置卡片、步骤、规则表和状态对照，当前说明及标注跟随真实页面与运行状态变化。
+交互正文与标注配置统一保存到需求自己的 interactions/*.md，采用 YAML 配置＋Markdown 正文。页面归属、稳定 ID、目标、条件与展示模式遵循[交互说明协议](interactions.md)，不写在组件中，不在场景中重复维护。新说明优先使用 dimensions，以固定三级标题按需组合操作、条件、状态、异常与流程；工作台统一展示，同时兼容原有卡片、步骤、规则表和状态对照。当前说明及标注跟随真实页面与运行状态变化。
 
 自定义路由通过 usePreviewNavigation 接入实际导航与离开保护，usePreviewState 发布条件说明需要的可观察状态。简单 store 路由可声明 manifest.navigation.pageStatePath。产品入口使用 hook 返回的导航请求，beforeNavigate 只确认离开保护，navigate 在通过后提交。对比时双方通过才切页，任一取消都保留原页和草稿；切换编辑方案保持两侧位置与会话。场景、重置、视口与标注定位联动，业务状态和源文件写回独立。完整接入、状态保留边界和验证方法见[交互说明协议](interactions.md)。
 
