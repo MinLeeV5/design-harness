@@ -86,6 +86,7 @@ export const WORKBENCH_FILES = [
   "src/frontend/features/agent/use-agent.ts",
   "src/frontend/features/canvas/PreviewFrame.tsx",
   "src/frontend/features/interactions/InteractionReader.tsx",
+  "src/frontend/features/interactions/interactions.css",
   "src/frontend/features/navigation/use-navigation.ts",
   "src/frontend/index.tsx",
   "src/frontend/ui/Select.tsx",

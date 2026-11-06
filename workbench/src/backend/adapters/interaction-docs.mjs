@@ -7,6 +7,7 @@ const record=value=>value&&typeof value==="object"&&!Array.isArray(value);
 const scalar=value=>value===null||typeof value==="boolean"||typeof value==="string"||typeof value==="number"&&Number.isFinite(value);
 const check=(valid,message)=>{if(!valid)throw new Error(message);};
 const keys=(object,allowed,label)=>{check(record(object),label+"必须是对象");for(const key of Object.keys(object))check(allowed.includes(key),label+"不支持字段："+key);};
+const dimensions=new Map([["操作","operation"],["条件","condition"],["状态","state"],["异常","recovery"],["流程","flow"]]);
 export function parseInteractionDocument(source,{file,pages}) {
   check(source.length<=500000,"交互文档过大："+file);
   const match=/^---\r?\n([\s\S]*?)\r?\n---\r?\n/.exec(source);
@@ -30,14 +31,24 @@ export function parseInteractionDocument(source,{file,pages}) {
     check(id(annotation.id)&&typeof annotation.target==="string"&&/^[a-z][a-z0-9-]*(?:\/[a-z][a-z0-9-]*)?$/.test(annotation.target),"交互说明标识或目标无效："+file);
     const section=sections.get(annotation.id);check(section,"交互说明缺少正文："+annotation.id+" / "+file);
     const view=annotation.view??"card",placement=annotation.placement??"auto",when=annotation.when??{};
-    check(["card","steps","rules","states"].includes(view),"交互说明展示模式无效："+annotation.id);
+    check(["dimensions","card","steps","rules","states"].includes(view),"交互说明展示模式无效："+annotation.id);
     check(["auto","top","right","bottom","left"].includes(placement),"标注位置无效："+annotation.id);
     check(record(when)&&Object.keys(when).every(path=>/^\/(?:[^~\/]|~[01])+(?:\/(?:[^~\/]|~[01])+)*$/.test(path)),"标注状态条件需要 JSON Pointer："+annotation.id);
     for(const value of Object.values(when))check(scalar(value)||Array.isArray(value)&&value.length>0&&value.every(scalar),"标注状态条件只支持值或值数组："+annotation.id);
     let lead="";const blocks=[];let block;
     for(const token of section.tokens){if(token.type==="heading"&&token.depth===3){block={title:token.text,source:""};blocks.push(block);}else if(block)block.source+=token.raw;else lead+=token.raw;}
+    const renderedBlocks=blocks.map(({title,source})=>({title,html:renderMarkdown(source),...(view==="dimensions"?{dimension:dimensions.get(title)}:{})}));
+    if(view==="dimensions"){
+      check(blocks.length>0,"维度组合说明至少需要一个维度："+annotation.id);
+      const seen=new Set();
+      for(const {title,html} of renderedBlocks){
+        check(dimensions.has(title),"交互说明维度应为操作、条件、状态、异常或流程："+annotation.id+" / "+title);
+        check(!seen.has(title),"交互说明维度重复："+annotation.id+" / "+title);seen.add(title);
+        check(html.replace(/<[^>]*>/g,"").replace(/&(?:nbsp|#0*160|#x0*a0);/gi," ").trim().length>0,"交互说明维度内容不能为空："+annotation.id+" / "+title);
+      }
+    }
     const summaryToken=section.tokens.find(token=>token.type==="paragraph");
-    return {id:annotation.id,page:meta.page,target:annotation.target,label:section.label,view,placement,when,file,sources,summary:summaryToken?.text??section.label,intro:renderMarkdown(lead),blocks:blocks.map(({title,source})=>({title,html:renderMarkdown(source)})),html:renderMarkdown(section.tokens.map(token=>token.raw).join(""))};
+    return {id:annotation.id,page:meta.page,target:annotation.target,label:section.label,view,placement,when,file,sources,summary:summaryToken?.text??section.label,intro:renderMarkdown(lead),blocks:renderedBlocks,html:renderMarkdown(section.tokens.map(token=>token.raw).join(""))};
   });
   check(new Set(result.map(item=>item.id)).size===result.length&&sections.size===result.length,"说明正文与标注必须一一对应："+file);
   return result;

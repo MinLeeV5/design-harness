@@ -4,27 +4,27 @@ page: task
 annotations:
   - id: input
     target: task-form
-    view: card
+    view: dimensions
     when:
       /phase: new
   - id: submit
     target: task-form/submit
-    view: steps
+    view: dimensions
     when:
       /phase: new
   - id: progress
     target: task-progress
-    view: states
+    view: dimensions
     when:
       /phase: running
   - id: result
     target: task-result
-    view: rules
+    view: dimensions
     when:
       /phase: complete
   - id: recovery
     target: task-error
-    view: card
+    view: dimensions
     when:
       /phase: error
 sources:
@@ -34,59 +34,30 @@ sources:
 
 ## 输入与校验 {#input}
 
-填写需要整理的主题，输入会随本次体验保留。
+### 条件
+主题必填；空白提交在字段下显示错误，修正后可重试。
 
-### 触发
-在“任务主题”中输入对象与目标。
-
-### 异常与边界
-主题必填；空白提交显示字段错误，修正后可以再次提交。
+### 操作
+输入随本次体验保留。
 
 ## 提交规则 {#submit}
 
-点击开始后创建本地演示任务。
-
-### 交代主题
-保留用户填写的完整主题。
-
-### 开始整理
-只在显式点击后运行；运行中禁止重复提交。
-
-### 查看结果
-完成后显示摘要和可下载材料。
+### 流程
+1. 填写主题。
+2. 点击“开始整理”创建本地任务；运行中禁止重复提交。
+3. 完成后查看摘要与可下载材料。
 
 ## 运行反馈 {#progress}
 
-示例显示三个阶段，不代表真实 Agent 执行。
-
-### 接收任务
-保持输入，进入运行状态。
-
-### 归纳资料
-展示当前进展，禁止重复创建任务。
-
-### 生成结果
-完成后切换到结果与材料。
+### 状态
+本地模拟接收、归纳、生成三个阶段，完成后切换到结果区；进度不代表真实 Agent 执行。
 
 ## 结果与材料 {#result}
 
-可预览并下载本地示例材料。
-
-### 可用操作
-| 条件 | 操作 | 结果 |
-| --- | --- | --- |
-| 整理完成 | 预览材料 | 展开同一份文本 |
-| 需要保存 | 下载材料 | 下载实际文本文件 |
-
-### 边界
-材料采用合成数据，不作为真实分析结果。
+### 操作
+预览展开当前文本，下载保存同一份合成材料；内容仅供设计体验。
 
 ## 失败与恢复 {#recovery}
 
-失败时保留主题，可以恢复原任务。
-
-### 触发
-点击“重新整理”。
-
-### 行为与反馈
-沿用相同输入重新进入运行过程。
+### 异常
+失败保留主题；点击“重新整理”沿用原输入重试。

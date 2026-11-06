@@ -53,6 +53,21 @@ annotations:
     target: body/secret
     when:
       /phase: new
+  - id: input-dimensions
+    target: body
+    view: dimensions
+    when:
+      /phase: new
+  - id: input-flow
+    target: body
+    view: dimensions
+    when:
+      /phase: new
+  - id: input-minimal
+    target: body
+    view: dimensions
+    when:
+      /phase: new
 ---
 
 ## 填写内容 {#input-note}
@@ -82,6 +97,33 @@ annotations:
 
 ### 已完成
 可以继续查看摘要。
+
+## 保存与恢复 {#input-dimensions}
+
+### 条件
+修改内容后，未保存离开需确认。
+
+### 状态
+- 未保存：继续编辑保留输入。
+- 已保存：可直接查看摘要。
+
+### 异常
+取消离开时保留原页与输入，可继续编辑后再次保存。
+
+## 查看摘要 {#input-flow}
+
+### 操作
+保存后进入摘要页，返回时保留本次会话。
+
+### 流程
+1. 填写内容。
+2. 保存输入。
+3. 打开摘要。
+
+## 离开条件 {#input-minimal}
+
+### 条件
+仅有未保存输入时需要离开确认。
 `;
 try{
   const workspace=initialize(base,{example:true}).workspace,folder=path.join(workspace,"requirements/example"),manifest=JSON.parse(fs.readFileSync(path.join(folder,"manifest.json")));
@@ -91,11 +133,32 @@ try{
   fs.rmSync(path.join(folder,"interactions"),{recursive:true});fs.mkdirSync(path.join(folder,"interactions"));fs.writeFileSync(path.join(folder,"interactions/form.md"),docs);fs.writeFileSync(path.join(folder,"interactions/summary.md"),'---\nschemaVersion: 1\npage: summary\nannotations:\n  - id: read-summary\n    target: body\n    view: rules\n---\n\n## 阅读摘要 {#read-summary}\n\n查看本次输入。\n\n### 保留规则\n返回输入页仍保留内容。\n');
   service=await startServer(workspace,{agentPreferences:memoryPreferences(),agentConnection:testConnection(),port:0});browser=await chromium.launch({channel:"chrome",headless:true});
   let page=await browser.newPage({viewport:{width:1680,height:1200}}),errors=[];page.setDefaultTimeout(10000);page.on("pageerror",error=>errors.push(error.message));
+  async function checkDimensions(){
+    const combined=page.locator("#input-dimensions"),flow=page.locator("#input-flow"),minimal=page.locator("#input-minimal");
+    await combined.waitFor();
+    assert.deepEqual(await combined.locator("dt").allTextContents(),["条件","状态","异常"]);
+    assert.equal(await combined.locator(":scope > .interaction-rich").count(),0,"没有导语时不增加摘要区域");
+    assert.equal(await combined.locator('details:not(.interaction-sources)').count(),0,"所选维度直接显示");
+    assert.equal(await combined.locator('[data-interaction-dimension="state"] li').count(),2);
+    assert.deepEqual(await flow.locator("dt").allTextContents(),["操作","流程"]);
+    assert.equal(await flow.locator('[data-interaction-dimension="flow"] ol > li').count(),3);
+    assert.deepEqual(await minimal.locator("dt").allTextContents(),["条件"],"单维度说明没有空项");
+    const viewport=page.viewportSize(),screenshots=process.env.DH_INTERACTION_SCREENSHOTS;
+    try{
+      for(const width of [1680,360,320]){
+        await page.setViewportSize({width,height:1200});await combined.scrollIntoViewIfNeeded();
+        const bounds=await combined.boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=width+1,"维度卡片位于视口内："+width);
+        const rows=await page.locator(".interaction-dimension").evaluateAll(nodes=>nodes.map(node=>({layout:getComputedStyle(node).display,width:node.clientWidth,contentWidth:node.scrollWidth,label:node.querySelector("dt").getBoundingClientRect().width,body:node.querySelector("dd").getBoundingClientRect().width})));
+        assert.ok(rows.every(row=>row.layout==="grid"&&row.label>0&&row.body>0&&row.contentWidth<=row.width+1),"维度样式已加载且内容无溢出："+width);
+        if(screenshots){fs.mkdirSync(screenshots,{recursive:true});await combined.screenshot({path:path.join(screenshots,(page.url().startsWith("file:")?"offline":"local")+"-"+width+".png")});}
+      }
+    }finally{await page.setViewportSize(viewport);}
+  }
   async function exercise(url){
     await page.goto(url);const owner=page.locator('iframe[title="产品预览 · comfortable"]'),frame=owner.contentFrame();await frame.getByRole("textbox",{name:"输入内容",exact:true}).waitFor();
     const header=page.locator('.studio-header');assert.equal(await header.locator('[aria-label="页面"]').getAttribute('data-value'),'form');assert.equal(await header.locator('[aria-label="场景"]').getAttribute('data-value'),'form');assert.equal(await page.locator('#studio-settings').isVisible(),false);
     async function click(target){await target.scrollIntoViewIfNeeded();const local=await target.evaluate(el=>{const r=el.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,w:innerWidth,h:innerHeight};}),b=await owner.boundingBox();await page.mouse.click(b.x+local.x*b.width/local.w,b.y+local.y*b.height/local.h);}
-    await openPanel(page,"交互说明");await page.locator("#input-note").waitFor();assert.equal(await page.locator("#input-hidden button").isDisabled(),true);assert.equal(await frame.getByRole("button",{name:/隐藏的操作/}).count(),0);assert.equal(await page.locator(".interaction-steps>li").count(),2);await page.getByRole("button",{name:"关闭辅助面板",exact:true}).click();
+    await openPanel(page,"交互说明");await page.locator("#input-note").waitFor();assert.equal(await page.locator("#input-hidden button").isDisabled(),true);assert.equal(await frame.getByRole("button",{name:/隐藏的操作/}).count(),0);assert.equal(await page.locator(".interaction-steps>li").count(),2);await checkDimensions();await page.getByRole("button",{name:"关闭辅助面板",exact:true}).click();
     await frame.getByRole("textbox",{name:"输入内容",exact:true}).fill("跨页保留内容");await selectPreview(page,"页面","summary");await frame.getByRole("dialog",{name:"离开保护"}).waitFor();assert.equal(await previewField(page,"页面").getAttribute("data-value"),"form");await click(frame.getByRole("button",{name:"继续编辑",exact:true}));
     await click(frame.getByRole("button",{name:"保存输入",exact:true}));await click(frame.getByRole("button",{name:"打开摘要",exact:true}));await page.waitForFunction(()=>document.querySelector('[aria-label="页面"]').getAttribute("data-value")==="summary");await frame.getByRole("heading",{name:"已保存摘要",exact:true}).waitFor();await frame.getByText("跨页保留内容",{exact:true}).waitFor();
     assert.equal(await header.locator('[aria-label="页面"]').innerText(),'摘要页');assert.equal(await header.locator('[aria-label="场景"]').innerText(),'当前交互状态');assert.deepEqual((await choiceOptions(previewField(page,'场景'))).map(option=>option.value),['','summary']);assert.equal(await page.locator('#studio-settings').isVisible(),false,'切换页面和检查场景均无需打开设置');
@@ -161,5 +224,5 @@ try{
   await page.close();const plainFolder=path.join(workspace,"requirements/store-routes");fs.cpSync(folder,plainFolder,{recursive:true});const plainManifest={...manifest,id:"store-routes",navigation:{pageStatePath:"/route"}};fs.writeFileSync(path.join(plainFolder,"manifest.json"),JSON.stringify(plainManifest));
   for(const candidate of plainManifest.candidates)fs.writeFileSync(path.join(plainFolder,candidate.registry),source.replace(/const navigate=usePreviewNavigation\(.*?;\n/,'const navigate=next=>set("/route",next);usePreviewState({dirty});\n'));
   page=await browser.newPage({viewport:{width:1680,height:1200}});page.setDefaultTimeout(10000);await page.goto(service.origin+"/?id=store-routes");const storeFrame=page.locator('iframe[title="产品预览 · comfortable"]').contentFrame();await storeFrame.getByRole("textbox",{name:"输入内容",exact:true}).waitFor();await storeFrame.getByRole("button",{name:"打开摘要",exact:true}).click();await page.waitForFunction(()=>document.querySelector('[aria-label="页面"]').getAttribute("data-value")==="summary");await selectPreview(page,"页面","form");await page.waitForFunction(()=>document.querySelector('[aria-label="页面"]').getAttribute("data-value")==="form");await storeFrame.getByRole("textbox",{name:"输入内容",exact:true}).waitFor();
-  console.log(JSON.stringify({navigation:"pass",guard:"pass",retainedSession:"pass",conditionalAnnotations:"pass",readerModes:4,explicitReset:"pass",compareAnnotationOwnership:"pass",linkedPages:"pass",twoSideGuard:"pass",confirmedSideLocked:"pass",thirdCandidateSlots:"pass",stableComparisonSlots:"pass",independentBusinessState:"pass",linkedAnnotation:"pass",linkedSceneAndViewport:"pass",storeRouter:"pass",crossPageProposal:"pass",cancelledNavigationIsolation:"pass",hiddenTarget:"pass",offlineHttpRequests:0}));
+  console.log(JSON.stringify({navigation:"pass",guard:"pass",retainedSession:"pass",conditionalAnnotations:"pass",readerModes:5,dimensionTemplates:5,minimalDimension:"pass",dimensionWidths:[1680,360,320],explicitReset:"pass",compareAnnotationOwnership:"pass",linkedPages:"pass",twoSideGuard:"pass",confirmedSideLocked:"pass",thirdCandidateSlots:"pass",stableComparisonSlots:"pass",independentBusinessState:"pass",linkedAnnotation:"pass",linkedSceneAndViewport:"pass",storeRouter:"pass",crossPageProposal:"pass",cancelledNavigationIsolation:"pass",hiddenTarget:"pass",offlineHttpRequests:0}));
 }finally{await browser?.close();await service?.close();fs.rmSync(base,{recursive:true,force:true});}

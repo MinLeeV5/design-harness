@@ -1,12 +1,14 @@
 import {useState} from "react";
 import {matchesWhen} from "../../../contracts/conditions.mjs";
 import type {Annotation,Interaction} from "../../../contracts/types";
+import "./interactions.css";
 
 export function annotationsFor(interactions:Interaction[],page:string,state:Record<string,unknown>,all=false):Annotation[] {
   return interactions.filter(item=>item.page==="*"||item.page===page).map((item,index)=>({id:item.id,target:item.target,section:item.id,label:item.label,placement:item.placement,number:index<20?String.fromCodePoint(0x2460+index):String(index+1)})).filter(item=>all||matchesWhen(interactions.find(entry=>entry.id===item.id)!.when,state));
 }
 const Rich=({html}:{html:string})=><div className="interaction-rich" dangerouslySetInnerHTML={{__html:html}}/>;
 function Content({item}:{item:Interaction}) {
+  if(item.view==="dimensions")return <>{item.intro&&<Rich html={item.intro}/>}<dl className="interaction-dimensions">{item.blocks.map(block=><div key={block.dimension} className={"interaction-dimension interaction-dimension-"+block.dimension} data-interaction-dimension={block.dimension}><dt>{block.title}</dt><dd><Rich html={block.html}/></dd></div>)}</dl></>;
   if(item.view==="card")return <><Rich html={item.intro}/>{item.blocks.length>0&&<details><summary>操作与边界</summary>{item.blocks.map((block,index)=><div key={index}><h4>{block.title}</h4><Rich html={block.html}/></div>)}</details>}</>;
   if(item.view==="steps")return <><Rich html={item.intro}/><ol className="interaction-steps">{item.blocks.map((block,index)=><li key={index}><h4>{block.title}</h4><Rich html={block.html}/></li>)}</ol></>;
   if(item.view==="rules")return <><Rich html={item.intro}/><div className="interaction-table"><table><thead><tr><th scope="col">规则</th><th scope="col">行为与边界</th></tr></thead><tbody>{item.blocks.map((block,index)=><tr key={index}><th scope="row">{block.title}</th><td><Rich html={block.html}/></td></tr>)}</tbody></table></div></>;

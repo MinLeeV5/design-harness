@@ -1,0 +1,16 @@
+.interaction-dimensions {margin:0;}
+.interaction-dimension {display:grid;grid-template-columns:40px minmax(0,1fr);gap:10px;padding:10px 0;border-bottom:1px solid #eef0f5;}
+.interaction-dimension:first-child {padding-top:0;}
+.interaction-dimension:last-child {padding-bottom:0;border-bottom:0;}
+.interaction-dimension dt {align-self:start;padding:3px 6px;border-radius:5px;background:#f1f3f7;color:#596179;font-size:12px;font-weight:500;line-height:1.5;text-align:center;}
+.interaction-dimension dd {min-width:0;margin:0;}
+.interaction-dimension .interaction-rich {font-size:12px;line-height:1.7;}
+.interaction-dimension .interaction-rich p {margin:6px 0;}
+.interaction-dimension .interaction-rich>:first-child {margin-top:0;}
+.interaction-dimension .interaction-rich>:last-child {margin-bottom:0;}
+.interaction-dimension .interaction-rich ul,.interaction-dimension .interaction-rich ol {margin:0;padding-left:18px;}
+.interaction-dimension .interaction-rich li+li {margin-top:4px;}
+.interaction-dimension-state .interaction-rich ul {list-style:none;padding-left:0;}
+.interaction-dimension-recovery dt {background:#fff4df;color:#86601a;}
+.interaction-dimension-flow .interaction-rich li::marker {color:#796098;font-weight:500;}
+@media(max-width:480px) {.interaction-dimension {grid-template-columns:36px minmax(0,1fr);gap:8px;padding:8px 0;}}

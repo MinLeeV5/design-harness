@@ -33,6 +33,50 @@ sources:
 点击后才开始。
 `;
 const parse=source=>parseInteractionDocument(source,{file:"interactions/tasks.md",pages:new Set(["tasks"])});
+const dimensionDocument=body=>`---
+schemaVersion: 1
+page: tasks
+annotations:
+  - id: submit
+    target: form/submit
+    view: dimensions
+---
+
+## 提交任务 {#submit}
+
+${body}
+`;
+test("A dimension note can contain just one relevant dimension without a summary or empty sections",()=>{
+  const [item]=parse(dimensionDocument("### 异常\n失败保留输入，可重试。"));
+  assert.equal(item.view,"dimensions");assert.equal(item.intro,"");assert.equal(item.blocks.length,1);assert.equal(item.blocks[0].dimension,"recovery");assert.match(item.blocks[0].html,/失败保留输入/);
+});
+test("Dimension notes combine typed blocks in authored order and preserve state lists and ordered steps",()=>{
+  const [item]=parse(dimensionDocument("### 条件\n主题完整时可提交。\n\n### 操作\n点击提交后创建任务。\n\n### 状态\n- 处理中：禁止重复提交。\n- 完成：显示结果。\n\n### 异常\n失败保留输入，可重试。\n\n### 流程\n1. 填写主题。\n2. 提交任务。\n3. 查看结果。"));
+  assert.deepEqual(item.blocks.map(block=>block.dimension),["condition","operation","state","recovery","flow"]);assert.equal(item.intro,"");assert.match(item.blocks[2].html,/<ul>/);assert.match(item.blocks[4].html,/<ol>/);
+  const [context]=parse(dimensionDocument("必要的独立背景。\n\n### 条件\n仅管理员可操作。"));assert.match(context.intro,/必要的独立背景/);
+});
+test("Dimension notes reject unknown, duplicate, empty and absent dimensions with actionable errors",()=>{
+  for(const [body,error] of [["### 恢复方式\n可重试。",/维度应为操作、条件、状态、异常或流程/],["### 异常\n可重试。\n\n### 异常\n保留输入。",/维度重复/],["### 条件\n\n### 操作\n提交任务。",/维度内容不能为空/],["### 异常\n\n",/维度内容不能为空/],["只有一段正文。",/至少需要一个维度/]])assert.throws(()=>parse(dimensionDocument(body)),error);
+});
+test("Dimension notes reject content that renders empty, including reference definitions and images without alt text",()=>{
+  for(const content of ["[ref]: https://example.com","![](example.png)","&nbsp;","---"])assert.throws(()=>parse(dimensionDocument("### 条件\n"+content)),/维度内容不能为空/);
+  assert.match(parse(dimensionDocument("### 操作\n![参考图说明](example.png)"))[0].blocks[0].html,/参考图说明/);
+});
+test("Existing views retain their custom sections and omitted view still defaults to card",()=>{
+  for(const view of ["card","steps","rules","states"]){const [item]=parse(example.replace("view: steps","view: "+view));assert.equal(item.view,view);assert.deepEqual(item.blocks.map(block=>block.title),["校验","执行"]);assert.ok(item.blocks.every(block=>!Object.hasOwn(block,"dimension")));}
+  assert.equal(parse(example.replace("    view: steps\n",""))[0].view,"card");
+});
+test("Dimension content uses the same safe Markdown rendering and fenced headings remain content",()=>{
+  const [item]=parse(dimensionDocument('### 异常\n失败保留输入。\n\n```markdown\n### 未知维度\n```\n<script>alert(1)</script>\n[链接](javascript:alert(1))'));
+  assert.equal(item.blocks.length,1);assert.match(item.blocks[0].html,/未知维度/);assert.doesNotMatch(item.blocks[0].html,/<script>|href="javascript:/);
+});
+test("New workspace notes demonstrate short optional dimensions while retaining source and annotation targets",()=>{
+  const base=fs.mkdtempSync(path.join(os.tmpdir(),"dh-dimension-template-"));try{
+    const workspace=initialize(base,{example:true}).workspace,data=loadRequirement(workspace,"example");
+    assert.equal(data.interactions.length,5);assert.ok(data.interactions.every(item=>item.view==="dimensions"&&item.intro===""&&item.blocks.length>=1&&item.blocks.length<=3&&item.sources.length>0));
+    assert.deepEqual(new Set(data.interactions.flatMap(item=>item.blocks.map(block=>block.dimension))),new Set(["condition","operation","state","recovery","flow"]));
+  }finally{fs.rmSync(base,{recursive:true,force:true});}
+});
 test("Independent Markdown provides source, state conditions and readable blocks without component documentation",()=>{
   const [item]=parse(example);assert.equal(item.id,"submit");assert.equal(item.page,"tasks");assert.equal(item.view,"steps");assert.equal(item.placement,"right");assert.equal(item.label,"开始任务");assert.deepEqual(item.blocks.map(b=>b.title),["校验","执行"]);assert.equal(item.sources[0].ref,"requirement.md");assert.match(item.html,/输入必须完整/);assert.match(item.intro,/提交后保留/);
 });

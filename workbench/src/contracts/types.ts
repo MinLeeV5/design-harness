@@ -10,7 +10,8 @@ export type Manifest = {schemaVersion:1;renderer:"json-render/react";id:string;t
 export type BundleData = {manifest:Manifest;scenarios:Scenario[];interactions:Interaction[];documentation:string;previews:Record<string,string>;specs:Record<string,Spec>;params:Record<string,{css:Record<string,string>}>;hashes:Record<string,string>;revision:string;requirements:{id:string;title:string}[];development:boolean;proposal?:boolean;proposalPermission?:AgentPermissionMode;token?:string};
 
 export type Annotation={id:string;target:string;section:string;label:string;number:string;placement?:"auto"|"top"|"right"|"bottom"|"left"};
-export type Interaction={id:string;page:string;target:string;label:string;view:"card"|"steps"|"rules"|"states";placement:NonNullable<Annotation["placement"]>;when:Record<string,unknown>;file:string;sources:{kind:string;ref:string}[];summary:string;intro:string;blocks:{title:string;html:string}[];html:string};
+export type InteractionDimension="operation"|"condition"|"state"|"recovery"|"flow";
+export type Interaction={id:string;page:string;target:string;label:string;view:"dimensions"|"card"|"steps"|"rules"|"states";placement:NonNullable<Annotation["placement"]>;when:Record<string,unknown>;file:string;sources:{kind:string;ref:string}[];summary:string;intro:string;blocks:{title:string;html:string;dimension?:InteractionDimension}[];html:string};
 export type PreviewContext={page:string;state:Record<string,unknown>};
 export type NavigationCommand={page:string;serial:number;phase:"prepare"|"commit"|"abort"};
 export type DomSelection={domId:string;target:string;instance:string;label:string;tag:string;selector:string;html:string;styles:Record<string,string>;ancestors:{domId:string;label:string}[]};
