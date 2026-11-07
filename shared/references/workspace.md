@@ -13,6 +13,10 @@ requirements/<需求>/
   interactions/*.md                独立交互正文、页面归属、条件与标注
   scenarios.json
   handoff.md
+  explorations/<候选>/
+    state.json                    方案轮次、版本、来源与设计结论
+    snapshots/<hash>.json         需求设计源清单
+    objects/<hash>                去重设计文件与引用画面
   candidates/<候选>/
     catalog.ts
     registry.tsx
@@ -23,7 +27,9 @@ requirements/<需求>/
 reviews/
 ```
 
-运行、构建和 Agent 属于插件；项目不保留 releases、源码副本、runtime 或 evidence。临时截图、模型结果和检查输出用后清理，只把必要结论记入交接。
+运行、构建和 Agent 属于插件；项目不保留 releases、业务工程源码副本、runtime 或 evidence。临时截图、模型结果和检查输出用后清理，只把必要结论记入交接。
+
+explorations/ 是随需求保存的独立方案历史，不参与正式设计 revision，不复制公共基础或运行器；重启后按当前基础恢复。保存历史与接受当前设计分开，用户显式删除才清理无引用内容，见[设计探索历史](protocol.md#设计探索历史)。
 
 requirements 是本地设计产物的唯一维护来源；用户指定正式业务 PRD 时按[来源与承接](product-source.md)记录设计摘要与来源。工作台按需导出单文件 HTML；CLI 通过 --out 选择资源目录外的文件，历史用 Git 记录。
 
