@@ -110,6 +110,7 @@ export function mount(project:Project) {
   function Preview() {
     const [config,setConfig]=useState<Config|null>(null),[error,setError]=useState("");
     useEffect(()=>markDevtoolsActive(),[]);
+    useEffect(()=>{const activate=()=>send({type:"dh:activate"});document.addEventListener("pointerdown",activate,true);return()=>document.removeEventListener("pointerdown",activate,true);},[]);
     useEffect(()=>{const receive=(event:MessageEvent)=>{if(event.source!==window.parent||event.data?.type!=="dh:capture"||typeof event.data.serial!=="string")return;try{send({type:"dh:capture-result",serial:event.data.serial,html:captureDocument()});}catch(error){send({type:"dh:capture-result",serial:event.data.serial,error:(error as Error).message});}};window.addEventListener("message",receive);return()=>window.removeEventListener("message",receive);},[]);
     useEffect(()=>{
       const receive=(event:MessageEvent)=>{

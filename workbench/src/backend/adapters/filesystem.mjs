@@ -13,18 +13,18 @@ export function resolveFile(base,relative) {
   assert(real===file && inside(root,real) && fs.statSync(real).isFile(),"资源越界、软链接或不是文件: "+relative);
   return real;
 }
-export function filesIn(base) {
+export function filesIn(base,{exclude=[]}={}) {
   const result=[];
   function walk(dir) {
     for(const item of fs.readdirSync(dir,{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name,"en"))) {
-      if(["node_modules",".cache",".git"].includes(item.name))continue;
+      if(["node_modules",".cache",".git"].includes(item.name)||dir===base&&exclude.includes(item.name))continue;
       const file=path.join(dir,item.name);assert(!item.isSymbolicLink(),"不允许软链接资源: "+file);
       if(item.isDirectory())walk(file);else if(item.isFile())result.push(file);
     }
   }
   walk(base);return result;
 }
-export const resourceFiles = folder => filesIn(folder).filter(file=>!["foundation","evidence","verification","reviews"].includes(path.relative(folder,file).split(path.sep)[0])&&!/\.(log|tmp)$/.test(file));
+export const resourceFiles = folder => filesIn(folder,{exclude:["foundation","evidence","verification","reviews","explorations"]}).filter(file=>!/\.(log|tmp)$/.test(file));
 
 export const canonicalDirectory = directory => fs.realpathSync(directory);
 export const fileHash = file => hash(fs.readFileSync(file));

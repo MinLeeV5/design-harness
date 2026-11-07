@@ -1,9 +1,10 @@
-import {useEffect,useId,useLayoutEffect,useMemo,useRef,useState} from "react";
+import {useCallback,useEffect,useId,useLayoutEffect,useMemo,useRef,useState} from "react";
 import type {BundleData,PreviewContext,Annotation,DomSelection,AgentProposal} from "../../contracts/types";
 import "./studio.css";
 import {InteractionReader,annotationsFor} from "../features/interactions/InteractionReader";
 import {useAgent} from "../features/agent/use-agent";
 import {AgentPanel} from "../features/agent/AgentPanel";
+import {ExplorationCanvas,type ExplorationView} from "../features/agent/ExplorationCanvas";
 import {AgentSessionControls,ProviderStatus,ApprovalIndicator} from "../features/agent/AgentHeader";
 import {PreviewFrame} from "../features/canvas/PreviewFrame";
 import {useNavigation} from "../features/navigation/use-navigation";
@@ -24,6 +25,8 @@ function WorkspaceStatus({development,proposal,fullAccess=false}:{development:bo
 }
 export function App({data:initialData}:{data:BundleData}) {
   const [data,setData]=useState(initialData);
+  const [explorationView,setExplorationView]=useState<ExplorationView|null>(null);
+  const observeExploration=useCallback((view:ExplorationView|null)=>setExplorationView(view),[]);
   const initial=useMemo(()=>new URLSearchParams(location.hash.slice(1)),[]);
   const api=useMemo(()=>createWorkbenchClient(data.token),[data.token]);
   const manifest=data.manifest;
@@ -97,7 +100,13 @@ export function App({data:initialData}:{data:BundleData}) {
   const scenario=data.scenarios.find(s=>s.id===scenarioId)??data.scenarios.find(s=>s.page===page)??data.scenarios[0];
   const viewport=manifest.viewports.find(v=>v.id===viewportId)??manifest.viewports[0];
   const alternate=manifest.candidates.find(c=>c.id!==candidate);
-  const agent=useAgent({id:manifest.id,candidate,page,scenario:scenario.id,reset,selection,revision:()=>revisionRef.current,token:data.token,enabled:data.development,active:panel==="agent",blocked:exporting||navigationPending,capture:()=>{const frame=document.querySelector<HTMLIFrameElement>('.frame-column[data-candidate="'+candidate+'"] iframe');if(!frame)return Promise.reject(new Error("当前画面尚未加载"));return captureFrame(frame,page,contexts[candidate]?.state??{...data.specs[candidate+":"+page].state,...scenario.state});},onProposal:value=>{if(proposalDocument.current!==value?.html){if(selection)setSelectionStale(true);setInspectDomId("");}proposalDocument.current=value?.html;setProposal(value);setPick(false);},onAccepted:refreshWorkspace});
+  const agent=useAgent({id:manifest.id,candidate,page,pages:manifest.pages,scenario:scenario.id,reset,selection,revision:()=>revisionRef.current,token:data.token,enabled:data.development,active:panel==="agent",blocked:exporting||navigationPending,capture:()=>{if(explorationActive&&explorationView&&explorationView.group===agent.job?.exploration?.id)return explorationView.capture();const frame=document.querySelector<HTMLIFrameElement>('.preview-stage>.frame-column[data-candidate="'+candidate+'"] iframe');if(!frame)return Promise.reject(new Error("当前画面尚未加载"));return captureFrame(frame,page,contexts[candidate]?.state??{...data.specs[candidate+":"+page].state,...scenario.state});},onProposal:value=>{if(proposalDocument.current!==value?.html){if(selection)setSelectionStale(true);setInspectDomId("");setPick(false);}proposalDocument.current=value?.html;setProposal(value);},onAccepted:refreshWorkspace});
+  const explorationActive=Boolean(agent.job?.exploration&&!["accepted","discarded","cancelled","failed","superseded"].includes(agent.job.state)&&(agent.job.exploration.options.length||agent.job.exploration.baseProposal));
+  const currentExploration=explorationActive&&explorationView?.group===agent.job?.exploration?.id?explorationView:null;
+  const visibleManifest=currentExploration?.data.manifest??manifest,visiblePage=currentExploration?.context.page??page,visibleScenario=currentExploration?.scenario??scenario,visibleScenarios=currentExploration?.data.scenarios??data.scenarios;
+  const visibleInteractions=currentExploration?.data.interactions??interactions,visibleInteracting=currentExploration?.interacting??interacting,visibleElements=currentExploration?.elements??elements;
+  function navigateVisible(next:string){if(currentExploration)currentExploration.navigate(next);else navigate(next);}
+  function scenarioVisible(next:string){if(currentExploration)currentExploration.chooseScenario(next);else chooseScenario(next);}
   agentBusyRef.current=agent.submitting;
   const previewError=(compare?comparisonIds:[candidate]).map(id=>id+":"+(contexts[id]?.page??page)).map(key=>previewErrors[key]).filter(Boolean).join("；");
   function reportError(key:string,error:string){setPreviewErrors(old=>old[key]===error?old:{...old,[key]:error});}
@@ -147,15 +156,16 @@ export function App({data:initialData}:{data:BundleData}) {
     finally{exportingRef.current=false;setExporting(false);}
   }
 
-  const runtimeState=contexts[candidate]?.state??{...data.specs[candidate+":"+page].state,...scenario.state};
-  const annotations=annotationsFor(interactions,page,runtimeState);
-  const missing=annotations.filter(a=>!elements.includes(a.target));
+  const runtimeState=currentExploration?.context.state??contexts[candidate]?.state??{...data.specs[candidate+":"+page].state,...scenario.state};
+  const annotations=annotationsFor(visibleInteractions,visiblePage,runtimeState);
+  const missing=annotations.filter(a=>!visibleElements.includes(a.target));
   function observeContext(id:string,context:PreviewContext){
     const signature=JSON.stringify(context);if(!contextInitial.current[id])contextInitial.current[id]=signature;
     setContexts(old=>JSON.stringify(old[id])===signature?old:{...old,[id]:context});
     if(id===candidate){if(context.page!==page){setPage(context.page);setSelected("");setSelectedAnnotation("");setInstance("");setElements([]);}if(signature!==contextInitial.current[id])setInteracting(true);}
   }
   function focusCandidate(id:string){
+    if(explorationActive){setStatus("请先结束本轮探索，再切换正式方案；探索历史会保留");return;}
     if(compare&&!comparisonIds.includes(id)){const ids=comparisonIds.map(old=>old===candidate?id:old);setComparisonIds(ids);navigate(page,id,ids);}
     setCandidate(id);setPage(contexts[id]?.page??scenario.page);setLocateNonce(value=>value+1);setElements([]);setSelection(null);setInspectDomId("");
   }
@@ -171,21 +181,22 @@ export function App({data:initialData}:{data:BundleData}) {
       <a className="studio-brand" href="#" onClick={event=>event.preventDefault()}><img className="brand-mark" src={harnessIcon} alt=""/><span>Design Harness</span></a>
       <div className="requirement-title"><h1 title={manifest.title}>{manifest.title}</h1><WorkspaceStatus development={data.development} proposal={Boolean(data.proposal)} fullAccess={data.proposalPermission==="full-access"}/></div>
       <nav className="preview-context" aria-label="页面与场景">
-        <Select label="页面" variant="toolbar" className="context-choice" disabled={agent.submitting||exporting} value={page} onValueChange={navigate} options={manifest.pages.map(p=>({value:p.id,label:p.title}))}/>
+        <Select label="页面" variant="toolbar" className="context-choice" disabled={agent.submitting||exporting} value={visiblePage} onValueChange={navigateVisible} options={visibleManifest.pages.map(p=>({value:p.id,label:p.title}))}/>
         <span className="context-separator" aria-hidden="true">/</span>
-        <Select label="场景" variant="toolbar" className="context-choice context-scenario" value={!interacting&&scenario.page===page?scenario.id:""} onValueChange={chooseScenario} options={[{value:"",label:"当前交互状态",disabled:true,description:"选择预设场景以重新开始体验"},...data.scenarios.filter(s=>s.page===page).map(s=>({value:s.id,label:s.title}))]}/>
+        <Select label="场景" variant="toolbar" className="context-choice context-scenario" value={!visibleInteracting&&visibleScenario.page===visiblePage?visibleScenario.id:""} onValueChange={scenarioVisible} options={[{value:"",label:"当前交互状态",disabled:true,description:"选择预设场景以重新开始体验"},...visibleScenarios.filter(s=>s.page===visiblePage).map(s=>({value:s.id,label:s.title}))]}/>
       </nav>
       <nav className="header-panels" aria-label="辅助面板">
         {(["docs","agent","tools"] as Panel[]).map(view=><button key={view} ref={element=>{panelTriggers.current[view]=element;}} className="drawer-trigger" aria-label={panelNames[view]} title={view==="agent"&&agent.approvalSessions.length?"Agent · "+agent.approvalSessions.length+" 个会话等待审批":panelNames[view]} aria-expanded={panel===view} aria-controls="studio-inspector" onClick={()=>panel===view?closePanel():showPanel(view)}><ToolIcon view={view}/><span>{view==="docs"?"说明":panelNames[view]}</span>{view==="agent"&&(agent.approvalSessions.length?<ApprovalIndicator count={agent.approvalSessions.length}/>:agent.waiting?<span className="loading-spinner" aria-label="Agent 正在处理"/>:agent.job?.state==="ready"&&<span className="unsaved-dot" aria-hidden="true"/>)}</button>)}
       </nav>
     </header>
     <main className="studio-main">
-      <section className={"preview-stage "+(compare?"comparing":"")} aria-label="设计预览">
+      <section className={"preview-stage "+(compare&&!explorationActive?"comparing":"")+(explorationActive?" exploring":"")} aria-label="设计预览">
         {manifest.candidates.map(item=>{
           const id=item.id,active=id===candidate,currentPage=contexts[id]?.page??scenario.page,state=contexts[id]?.state??{...data.specs[id+":"+currentPage].state,...scenario.state};
-          return <PreviewFrame data={data} key={id+":"+scenario.id+":"+reset+":"+data.revision} candidate={id} page={currentPage} scenario={scenario} viewport={viewport} values={values[id+":"+currentPage]} hidden={compare?!comparisonIds.includes(id):!active} active={active} order={compare?comparisonIds.indexOf(id):0} waiting={waitingCandidates.includes(id)} onActivate={()=>focusCandidate(id)} pick={pick} locate={locate} instance={instance} annotations={annotationsFor(interactions,currentPage,state)} showAnnotations={showAnnotations} inspectDomId={active?inspectDomId:""} locateNonce={locateNonce} proposal={active?proposal:undefined} runtimeState={state} navigationRequest={navigationCommands[id]} onIntent={next=>navigate(next,id)} onPrepared={(serial,allowed)=>prepared(id,serial,allowed)} onContext={context=>observeContext(id,context)} onSelect={(target,address,detail,annotationId)=>{if(!active){if(detail)pickedCandidate.current=id;focusCandidate(id);}select(target,address,detail,annotationId);}} onElements={active?observe:()=>{}} onEscape={exitTools} onError={error=>reportError(id+":"+currentPage,error)}/>;
+          return <PreviewFrame data={data} key={id+":"+scenario.id+":"+reset+":"+data.revision} candidate={id} page={currentPage} scenario={scenario} viewport={viewport} values={values[id+":"+currentPage]} hidden={explorationActive||(compare?!comparisonIds.includes(id):!active)} active={active} order={compare?comparisonIds.indexOf(id):0} waiting={waitingCandidates.includes(id)} onActivate={()=>focusCandidate(id)} pick={pick} locate={locate} instance={instance} annotations={annotationsFor(interactions,currentPage,state)} showAnnotations={showAnnotations} inspectDomId={active?inspectDomId:""} locateNonce={locateNonce} proposal={active?proposal:undefined} runtimeState={state} navigationRequest={navigationCommands[id]} onIntent={next=>navigate(next,id)} onPrepared={(serial,allowed)=>prepared(id,serial,allowed)} onContext={context=>observeContext(id,context)} onSelect={(target,address,detail,annotationId)=>{if(!active){if(detail)pickedCandidate.current=id;focusCandidate(id);}select(target,address,detail,annotationId);}} onElements={active?observe:()=>{}} onEscape={exitTools} onError={error=>reportError(id+":"+currentPage,error)}/>;
         })}
-        {pick&&<div className="pick-notice" role="status"><span>点击一个元素以附加到 Agent，选中后自动结束</span><button onClick={()=>setPick(false)}>取消点选</button></div>}
+        {explorationActive&&<ExplorationCanvas key={agent.job!.exploration!.id} agent={agent} data={data} viewport={viewport} pick={pick} showAnnotations={showAnnotations} locate={locate} inspectDomId={inspectDomId} locateNonce={locateNonce} onView={observeExploration} onReference={reference=>{agent.addOptionReference(reference);setPick(false);showPanel("agent");}} onSelect={(target,address,annotation)=>select(target,address,undefined,annotation)} onEscape={exitTools} onError={setStatus}/>}
+        {pick&&<div className="pick-notice" role="status"><span>{explorationActive?"点选任一方案的元素，加入同一草稿":"点击一个元素以附加到 Agent，选中后自动结束"}</span><button onClick={()=>setPick(false)}>取消点选</button></div>}
         {status&&!previewError&&<p className="studio-announcement" role="status">{status}</p>}
         {previewError&&<div className="preview-error" role="alert">{workbenchStatus}</div>}
       </section>
@@ -202,7 +213,7 @@ export function App({data:initialData}:{data:BundleData}) {
       <header className="inspector-header"><div className="inspector-title-group">{panel==="agent"&&data.development?<AgentSessionControls agent={agent}/>:<h2 id="inspector-title">{panelNames[panel]}</h2>}</div><div className="inspector-header-actions">{panel==="agent"&&data.development&&<ProviderStatus agent={agent}/>}<button className="inspector-close" ref={closeButton} aria-label="关闭辅助面板" title="关闭 · Esc" onClick={closePanel}><CloseIcon/></button></div></header>
       <div className={"inspector-body "+(panel==="agent"?"agent-body":"")}>
         {panel==="docs"&&<div className="documentation" ref={docRef}>
-          <InteractionReader interactions={interactions} page={page} pageTitle={manifest.pages.find(p=>p.id===page)!.title} state={runtimeState} elements={elements} selected={selectedAnnotation} overview={proposal?.documentation??data.documentation} foundation={manifest.foundationVersion} onLocate={locateAnnotation}/>
+          <InteractionReader interactions={visibleInteractions} page={visiblePage} pageTitle={visibleManifest.pages.find(p=>p.id===visiblePage)!.title} state={runtimeState} elements={visibleElements} selected={selectedAnnotation} overview={currentExploration?.data.documentation??proposal?.documentation??data.documentation} foundation={manifest.foundationVersion} onLocate={locateAnnotation}/>
           {duplicates.length>0&&<p className="validation-warning" role="alert">重复的定位标识：{duplicates.join("、")}</p>}
           {missing.length>0&&elements.length>0&&<p className="validation-warning">当前画面尚未出现说明目标：{missing.map(a=>a.target).join("、")}。请在对应状态核对。</p>}
         </div>}
@@ -210,8 +221,8 @@ export function App({data:initialData}:{data:BundleData}) {
         {panel==="tools"&&<section className="workbench-tools" aria-label="画面工具">
           <div className="tool-grid">
             <button className="tool-card" aria-pressed={showAnnotations} onClick={()=>setShowAnnotations(v=>!v)}><CanvasToolIcon tool="annotations"/><span>{showAnnotations?"隐藏标注":"显示标注"}</span></button>
-            <button className="tool-card" aria-label="重置当前场景" onClick={()=>chooseScenario(data.scenarios.find(s=>s.page===page&&s.id===scenario.id)?.id??data.scenarios.find(s=>s.page===page)!.id)}><CanvasToolIcon tool="reset"/><span>重置当前场景</span></button>
-            <button className="tool-card" aria-label="对比方案" aria-pressed={compare} disabled={!alternate} onClick={toggleCompare}><CanvasToolIcon tool="compare"/><span>{compare?"退出方案对比":"对比方案"}</span></button>
+            <button className="tool-card" aria-label="重置当前场景" onClick={()=>currentExploration?currentExploration.reset():chooseScenario(data.scenarios.find(s=>s.page===page&&s.id===scenario.id)?.id??data.scenarios.find(s=>s.page===page)!.id)}><CanvasToolIcon tool="reset"/><span>重置当前场景</span></button>
+            <button className="tool-card" aria-label="对比方案" aria-pressed={compare} disabled={!alternate||explorationActive} onClick={toggleCompare}><CanvasToolIcon tool="compare"/><span>{compare?"退出方案对比":"对比方案"}</span></button>
             <button className="tool-card" disabled={!data.development||exporting||agent.busy} aria-describedby={!data.development?"offline-export-help":undefined} onClick={exportDesign}><CanvasToolIcon tool="export"/><span>{exporting?"正在导出…":"导出离线 HTML"}</span></button>
           </div>
           {!data.development&&<p id="offline-export-help" className="muted">当前为离线体验，重新导出请使用本地工作台。</p>}

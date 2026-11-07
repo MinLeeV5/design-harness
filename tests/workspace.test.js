@@ -20,6 +20,21 @@ describe("Fixed workbench and independent business resources",()=>{
   beforeEach(()=>{base=fs.mkdtempSync(path.join(os.tmpdir(),"design resources "));fs.writeFileSync(path.join(base,"business.ts"),"export const business='untouched';");workspace=initialize(base,{example:true}).workspace;req=path.join(workspace,"requirements/example");});
   afterEach(()=>fs.rmSync(base,{recursive:true,force:true}));
   const specFile=()=>path.join(req,"candidates/comfortable/pages/task.json");
+  test("Multi-page exports embed each candidate program once and retain every page spec",async()=>{
+    const first=await buildRequirement(workspace,"example"),manifest=readJson(path.join(req,"manifest.json")),scenarios=readJson(path.join(req,"scenarios.json"));
+    for(let index=1;index<14;index++){
+      const id="page-"+index;manifest.pages.push({id,title:"页面 "+index});
+      scenarios.push({id,page:id,title:"初始",state:{phase:"new"}});
+      for(const candidate of manifest.candidates){const file="candidates/"+candidate.id+"/pages/"+id+".json";fs.copyFileSync(path.join(req,candidate.pages.task),path.join(req,file));candidate.pages[id]=file;}
+    }
+    write(path.join(req,"manifest.json"),manifest);
+    write(path.join(req,"scenarios.json"),scenarios);
+    const built=await buildRequirement(workspace,"example"),wire=JSON.parse(/window\.__DH_DATA__=([\s\S]*?);<\/script>/.exec(built.html)[1]);
+    assert.deepEqual(Object.keys(wire.previews).sort(),manifest.candidates.map(candidate=>candidate.id).sort());
+    assert.equal(Object.keys(wire.specs).length,28);
+    assert.ok(built.html.length<first.html.length*1.5,"增加页面不能重复嵌入组件、字体和图片");
+    for(const candidate of manifest.candidates)assert.match(wire.previews[candidate.id],/<!doctype html>/);
+  });
   test("Initialization generates business resources only and refuses overwrite",()=>{
     assert.throws(()=>initialize(base),/拒绝覆盖/);assert.throws(()=>createRequirement(workspace,"example"),/拒绝覆盖/);
     for(const name of ["studio","workbench","node_modules","package-lock.json","tsconfig.json","releases"])assert.equal(fs.existsSync(path.join(workspace,name)),false,name);

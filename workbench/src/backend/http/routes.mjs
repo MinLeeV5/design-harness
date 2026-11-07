@@ -43,6 +43,10 @@ export function createRouter({workspace, token, agent, origin}) {
         if (authorized("会话需要当前工作台")) reply(200,agent.sessions(url.searchParams.get("id"),url.searchParams.get("candidate")));
         return;
       }
+      if (request.method === "GET" && url.pathname === "/__dh/live/explorations") {
+        if (authorized("方案历史需要当前本地工作台")) reply(200,agent.history(url.searchParams.get("id"),url.searchParams.get("candidate")));
+        return;
+      }
       if (request.method === "GET" && url.pathname === "/__dh/workspace") {
         if (authorized("设计资源需要当前工作台")) {
           const id=url.searchParams.get("id"),built=await buildRequirement(workspace,id,{development:true,token});

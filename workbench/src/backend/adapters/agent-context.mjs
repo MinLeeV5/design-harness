@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {PLUGIN} from "../paths.mjs";
 
-export function prepareAgentContext({data,request,disposition,identity,temp,currentImage,referenceFiles,hostProject,sourceResources,sourceRequirement}) {
+export function prepareAgentContext({data,request,disposition,identity,temp,currentImage,referenceFiles,hostProject,sourceResources,sourceRequirement,optionContext=[]}) {
   const context=path.join(temp,"context");fs.mkdirSync(context);
   const write=(name,value)=>{const file=path.join(context,name);fs.writeFileSync(file,JSON.stringify(value,null,2)+"\n");return file;};
   const entries=[],add=(file,purpose,when)=>{if(fs.existsSync(file))entries.push({path:file,purpose,when,kind:fs.statSync(file).isDirectory()?"directory":"file"});};
@@ -29,9 +29,14 @@ export function prepareAgentContext({data,request,disposition,identity,temp,curr
   add(data.foundationRoot,"公共组件、Token、规则和素材（只读）","沿当前组件引用定位，避免整库读取");
   for(const name of ["design.md","catalog.ts","registry.tsx","tokens.css"])add(path.join(data.foundationRoot,name),"公共设计基础入口（只读）","需要相应规则、契约或 Token 时");
   add(write("state.json",request.capture?.state??{}),"当前实际运行状态","核对行为、条件或反馈时");
+  if(request.explorationContext)add(write("exploration.json",request.explorationContext),"本轮设计结论、讨论记录与父方案来源","继续已保存方案或讨论取舍前必读；保留已有约束，不依赖原生聊天仍存在");
   if(request.selection)add(write("selection.json",request.selection),"点选 DOM、样式与祖先","定位点选元素时");
   if(currentImage)add(currentImage,"当前实际 DOM 静态截图；使用图片工具查看","视觉判断或视觉修改前必读");
   referenceFiles.forEach((file,i)=>add(file,`用户参考图（已直接附图）：${request.references[i].name}`,"直接附图不足以辨认或需要局部核对时再读取"));
+  if(optionContext.length){
+    add(write("options.json",optionContext),"不同方案的具体版本、局部引用和来源路径","讨论取舍或融合前必读；版本与目标分别核对");
+    for(const option of optionContext){add(option.directory,"方案 "+option.label+" 的版本实现（只读）","沿引用目标读取 Spec、组件、样式、场景及交互说明，不修改此参考目录");if(option.image)add(option.image,"方案 "+option.label+" 的引用画面","涉及此部分的视觉判断前使用图片工具查看");}
+  }
   const map={roots,identity:{id:identity.skill,label:identity.label,entry:identity.entry},current:{page:request.page,candidate:request.candidate,viewport:{width:request.capture?.width,height:request.capture?.height},selection:request.selection?{target:request.selection.target,instance:request.selection.instance,label:request.selection.label,tag:request.selection.tag}:null},revision:disposition.revision,entries};
   write("resource-map.json",map);return map;
 }

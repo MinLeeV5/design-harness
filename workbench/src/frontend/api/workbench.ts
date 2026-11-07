@@ -1,4 +1,4 @@
-import type {AgentJob,AgentSession,AgentSessionSummary,BundleData,CodexConnection,AgentSettings,AgentSettingsPatch} from "../../contracts/types";
+import type {AgentJob,AgentSession,AgentSessionSummary,BundleData,CodexConnection,AgentSettings,AgentSettingsPatch,ExplorationHistory} from "../../contracts/types";
 
 // All local HTTP access lives here. Offline exports use the same UI without invoking this client.
 export function createWorkbenchClient(token?:string) {
@@ -20,6 +20,8 @@ export function createWorkbenchClient(token?:string) {
       "/__dh/live/session?id="+encodeURIComponent(id)+"&candidate="+encodeURIComponent(candidate)+"&sessionId="+sessionId,{},"无法读取Agent会话"
     ),
     sessions: (id:string,candidate:string) => json<AgentSessionSummary[]>("/__dh/live/sessions?id="+encodeURIComponent(id)+"&candidate="+encodeURIComponent(candidate)),
+    explorationHistory:(id:string,candidate:string)=>json<ExplorationHistory>("/__dh/live/explorations?id="+encodeURIComponent(id)+"&candidate="+encodeURIComponent(candidate)),
+    deleteExploration:(body:object)=>json<{history:ExplorationHistory;deleted:string}>("/__dh/live/events",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...body,type:"exploration",action:"delete"})}),
     createSession: (id:string,candidate:string) => json<AgentSession>("/__dh/live/sessions",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,candidate})}),
     workspace: (id:string) => json<BundleData>("/__dh/workspace?id="+encodeURIComponent(id)),
     job: (id:string,sessionId="") => json<AgentJob>("/__dh/live/jobs/"+id+"?sessionId="+sessionId),
