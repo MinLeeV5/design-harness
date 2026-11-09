@@ -1,8 +1,25 @@
-# Design Harness
+<p align="center">
+  <img src="assets/icon.png" width="144" height="144" alt="Design Harness 彩色组件图标" />
+</p>
 
-<img src="assets/icon.png" width="80" height="80" alt="Design Harness 彩色组件图标">
+<h1 align="center">Design Harness</h1>
 
-**先把需求和界面做成可操作的设计，再进入工程实现。**
+<p align="center"><strong>先把需求和界面做成可操作的设计，再进入工程实现。</strong></p>
+
+<p align="center">
+  <a href="package.json"><img src="https://img.shields.io/badge/version-0.2.0-A259FF" alt="版本 0.2.0" /></a>
+  <a href="https://www.npmjs.com/package/@minleev5/design-harness"><img src="https://img.shields.io/badge/npm-CLI-CB3837" alt="通过 npm 安装 CLI" /></a>
+  <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/Node.js-22%2B-43853D" alt="Node.js 22 及以上" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT 许可证" /></a>
+</p>
+
+<p align="center">
+  <a href="#快速开始">快速开始</a> ·
+  <a href="#五个入口">五个入口</a> ·
+  <a href="#重点功能">功能演示</a> ·
+  <a href="#适合你吗">优势与取舍</a> ·
+  <a href="#进一步阅读">更多文档</a>
+</p>
 
 Design Harness 帮你和 Agent 讨论需求、制作交互与视觉方案，在本地工作台体验和修改，再导出 HTML 分享，或交给 Agent 在业务项目中实现。
 
