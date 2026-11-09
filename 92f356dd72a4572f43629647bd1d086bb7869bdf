@@ -1,0 +1,123 @@
+docs/html-design.md
+  98482baa06d59d5e 5,40-42
+README.md
+  d5743c3197e73f3a 180,184-185
+  98482baa06d59d5e 9-32
+shared/references/design-organization.md
+  98482baa06d59d5e 23-25
+skills/design-harness-visual/SKILL.md
+  98482baa06d59d5e 20
+skills/design-harness-init/SKILL.md
+  98482baa06d59d5e 18
+docs/skill-maintenance.md
+  186cc97d9d0d39f9 38
+  98482baa06d59d5e 54-55
+  d5743c3197e73f3a 60
+docs/validation.md
+  98482baa06d59d5e 19-28
+shared/references/agent.md
+  98482baa06d59d5e 5-6
+docs/agent-workflow.md
+  98482baa06d59d5e 11,13,33
+shared/references/preview-export.md
+  98482baa06d59d5e 3,5,8-15
+  d5743c3197e73f3a 74,86,89
+skills/design-harness-interaction/SKILL.md
+  98482baa06d59d5e 20
+AGENTS.md
+  98482baa06d59d5e 114,116
+.codex-plugin/plugin.json
+  98482baa06d59d5e 6
+shared/references/handoff.md
+  98482baa06d59d5e 29
+skills/design-harness-product/SKILL.md
+  98482baa06d59d5e 18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.8.2",
+  "base_commit_sha": "92f356dd72a4572f43629647bd1d086bb7869bdf",
+  "prompts": {
+    "17fabfaa3a3581bf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1be50-a1ec-74a0-acb8-6fa781f73f98",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 0,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/1ba9335db9b2e207124dc92f697fc125c6bcdeca9f1d69ea5a232b0de630f8bf",
+      "token_usage": {
+        "input_tokens": 75202,
+        "output_tokens": 11172,
+        "cache_read_tokens": 1561216,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "186cc97d9d0d39f9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1b1d7-ff52-7bd3-bc8d-6f25363c454a",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 1090,
+      "overriden_lines": 0,
+      "token_usage": {
+        "input_tokens": 254200,
+        "output_tokens": 72917,
+        "cache_read_tokens": 8358912,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "98482baa06d59d5e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1b1fe-3776-7950-b334-a80ff35dcfdd",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 102,
+      "overriden_lines": 0,
+      "token_usage": {
+        "input_tokens": 271866,
+        "output_tokens": 113169,
+        "cache_read_tokens": 11579008,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    },
+    "d5743c3197e73f3a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1b1b7-80dd-7150-b6b8-6c99c8d97259",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 303,
+      "overriden_lines": 0,
+      "token_usage": {
+        "input_tokens": 792945,
+        "output_tokens": 256945,
+        "cache_read_tokens": 34051456,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    }
+  }
+}
