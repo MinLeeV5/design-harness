@@ -8,7 +8,14 @@
 
 需要 Node.js 22+。npm 包名为 @minleev5/design-harness，命令与可选 Codex 插件名为 design-harness，设计资源目录为 design-harness/。团队项目将工具声明在宿主项目根 package.json 的 devDependencies，并提交锁文件。协作者安装项目开发依赖后即可启动，无需安装 Codex 插件。
 
-当前可先从本仓库生成 npm 包，再安装到项目；打包不执行远程发布：
+从 npm 安装固定版本，并启动已有设计：
+
+```sh
+npm install --save-dev --save-exact @minleev5/design-harness@0.2.0
+npm exec -- design-harness serve
+```
+
+需要验证本地源码时，可先从本仓库生成 npm 包；打包不执行远程发布：
 
 ```sh
 npm ci
@@ -22,14 +29,14 @@ npm install --save-dev --save-exact /绝对路径/minleev5-design-harness-0.2.0.
 npm exec -- design-harness serve
 ```
 
-pnpm 项目可用 pnpm add -D -E <包文件> 安装，再用 pnpm exec design-harness serve。建议在项目 scripts 中配置 "design": "design-harness serve"、"design:check": "design-harness check"，之后通过 npm run design 或 pnpm design 启动。发布到 npm 后，包文件参数可替换为 @minleev5/design-harness@<固定版本>。
+pnpm 项目可用 pnpm add -D -E @minleev5/design-harness@0.2.0 或本地包文件安装，再用 pnpm exec design-harness serve。建议在项目 scripts 中配置 "design": "design-harness serve"、"design:check": "design-harness check"，之后通过 npm run design 或 pnpm design 启动。
 
 指向个人目录的本地 .tgz 适合本机验收。团队共享应使用所有协作者可访问的 npm 注册表版本，或将包文件作为项目内可共享制品，避免提交依赖某位开发者目录的 file 引用。
 
 也支持全局安装后跨项目使用：
 
 ```sh
-npm install --global /绝对路径/minleev5-design-harness-0.2.0.tgz
+npm install --global @minleev5/design-harness@0.2.0
 design-harness serve --project <项目或资源目录>
 design-harness doctor
 design-harness skills
@@ -101,7 +108,7 @@ Init 先建立覆盖清单：已有产品提取指定版本的公共基础，先
 
 设计资源目录不复制 studio/ 或工作台源码，不维护工具脚本、工具依赖和构建配置；宿主项目可声明 CLI 开发依赖与启动脚本。React 负责组件内部外观与交互，Spec 负责页面组合和实例属性，Markdown 负责依据与说明。设计资源协议当前以本地文件为来源，为以后平台化保留边界；工具当前不提供云端设计资源协作服务。
 
-公共基础应保持向下兼容，更新会影响已有需求；每次导出采用当前需求、公共基础与工作台，历史差异用 Git 记录。当前未发布，统一采用最新协议，不建设旧试跑的多版本兼容层。
+公共基础应保持向下兼容，更新会影响已有需求；每次导出采用当前需求、公共基础与工作台，历史差异用 Git 记录。设计资源统一采用当前协议，早期试跑资源不提供多版本兼容层。
 
 ## 本地体验
 
@@ -190,7 +197,7 @@ requirements/ 是本地设计产物的唯一维护来源。用户指定飞书等
 
 ## 打包与可选插件
 
-当前版本保持 0.2.0。源码变更不自动更新安装缓存，本地修改没有发布或推送到远端。
+当前版本为 0.2.0。源码修改、npm 发布与 Git 推送分别维护；更新源码不会自动更新已安装的包，协作者按项目锁定版本安装。
 
 npm pack 生成可用于项目或全局安装的 .tgz；files 白名单包含 workbench、shared、skills、品牌、说明及可选插件元数据，不包含开发脚本、测试、项目知识、node_modules、dist、.harness 或 openspec。npm run test:install 在临时目录实际安装并验证 npm 开发依赖、隔离全局安装和可用的 pnpm 布局，不修改其他项目或本机全局工具。
 
