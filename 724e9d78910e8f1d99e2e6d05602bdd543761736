@@ -1,0 +1,35 @@
+docs/html-design.md
+  17fabfaa3a3581bf 106-107
+docs/validation.md
+  17fabfaa3a3581bf 101-102
+shared/references/preview-export.md
+  17fabfaa3a3581bf 24-25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.8.2",
+  "base_commit_sha": "724e9d78910e8f1d99e2e6d05602bdd543761736",
+  "prompts": {
+    "17fabfaa3a3581bf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1be50-a1ec-74a0-acb8-6fa781f73f98",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 18,
+      "total_deletions": 12,
+      "accepted_lines": 81,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/fafc9763ee5f5d762b1cf8ad5a4ff89e9499fdfd01500de8a8fd9f6f7964c516",
+      "token_usage": {
+        "input_tokens": 148470,
+        "output_tokens": 34169,
+        "cache_read_tokens": 7176448,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    }
+  }
+}
