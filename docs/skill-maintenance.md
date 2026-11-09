@@ -26,7 +26,7 @@ Init 按[初始化工作流](../skills/design-harness-init/references/workflow.m
 
 每个 Skill 保留入口、agents 与阶段工作流、评价、来源路由。公共指导、模板和来源声明只在 shared/ 保存一份，原创许可使用插件根 LICENSE；各入口链接同一个 workbench/cli.mjs，产品讨论无需运行它。Markdown 可引用本阶段、插件 shared/ 及明确公开的 CLI／许可文件，不依赖兄弟 Skill 或任意插件内部文件。
 公共基础仅在项目根目录保留一份，所有需求与导出共享，兼容更新需验证已有需求。requirements 为本地设计产物的唯一维护来源；正式业务 PRD 的位置由用户决定。不创建 releases 或业务源码副本；重新生成统一使用 export。
-npm 工具包与可选 Codex 插件统一携带公共工作台、业务资源模板及资源／协议／预览／交接指导；单独复制 Skill 不作为安装方式。CLI、全局和插件入口共用 workbench/cli.mjs；入口优先使用 --project 或当前目录发现的项目本地版本，并保留参数、退出状态和停止信号。阶段资料通过 skills 取得实际采用版本的路径，不将某台机器的安装位置写入项目。
+npm 工具包与可选 Codex 插件统一携带公共工作台、业务资源模板及资源／协议／预览／交接指导；单独复制 Skill 不作为安装方式。CLI、全局和插件入口共用 workbench/cli.mjs；入口优先使用 --project 或当前目录发现的项目本地版本，并保留参数、退出状态和停止信号。init 建立设计目录及 .agents/skills/ 下五个目录软链接，优先引用稳定的项目 node_modules 包路径；已有设计仅补齐缺失链接，同名冲突在写入前拒绝，失败撤销当次创建内容。入口目录的项目内链接可复用，项目外链接拒绝写入。阶段从 SKILL.md 真实路径读取引用；skills 保持只读定位，链接安装不自动执行阶段或证明会话已加载。全局或插件链接依赖本机工具位置，换机后需重新接入，不将该位置写入设计资源。
 workbench/ 是唯一工具开发源，shared/workspace/ 是唯一公共业务模板，shared/references/ 维护公共指导，shared/third-party/ 保留适用来源声明。维护原文件后直接验证，无复制或同步步骤；分发检查拒绝旧副本、缺失共享文件和软链接。
 
 工作台内部按 [源码架构与依赖](html-design.md#源码架构与依赖) 维护。跨功能选择器集中在 frontend/ui，字段和工具栏共享交互与选项协议；新增功能归入 frontend/features，跨端数据与纯规则归入 contracts，本地能力归入 backend/adapters，完整操作由 backend/services 编排；HTTP 和 CLI 复用服务。新增或移动模块时同步 scripts/validate.js 的分发资源清单，并通过架构边界校验，不在旧目录保留运行源码副本。

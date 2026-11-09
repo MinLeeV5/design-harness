@@ -32,6 +32,8 @@ DevKeel 为本仓库的 Codex 开发会话提供执行入口和通用能力。�
 
 ZIP 沿用现有文件白名单，npm tarball 使用 package.json 的 files 白名单；两者均不包含 `.harness/`、`openspec/` 或新增的平台链接。插件引用检查也不将这两个开发目录中的模板示例链接当成已生成的插件资产。公开 Skill 不依赖 DevKeel；单独复制 Skill 不包含共享指导、模板和工作台；使用完整 Design Harness 工具包。CLI 推荐作为宿主项目根开发依赖或全局工具，Codex 插件可选；skills 定位实际采用版本的指导，项目不复制运行器。
 
+使用方项目执行 design-harness init 时，会在 .agents/skills/ 建立五个公开 Skill 的目录链接；这些链接属于使用方的接入结果，不加入工具包分发。已有 .agents/skills 若链接到项目内的 .harness/skills，会沿用该目录并保留已有开发能力；入口目录指向项目外或同名内容冲突时拒绝写入。本仓库的 DevKeel 安装和设计目录初始化仍不自动启动任何公开阶段。
+
 `.harness/skills-state.json` 与 `.harness/skills-backups/` 是被 Git 忽略的本地入口状态及冲突备份，不作为项目知识提交。
 
 DevKeel 执行契约、开发 Skills、命令和 OpenSpec 模板来自官方 `devkeel-templates` 包，保留其 [MIT 许可](third-party/devkeel/LICENSE)。来源为 [DevKeel 仓库](https://github.com/MinLeeV5/devkeel)，安装组件版本以 `.harness/versions.yml` 为准。许可随维护文档保留在 ZIP 中，涵盖其中使用的 DevKeel 执行契约；开发能力目录本身仍不分发。

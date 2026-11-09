@@ -1,6 +1,6 @@
 # 预览、编辑与离线交付
 
-推荐通过宿主项目开发依赖运行 CLI，也支持全局安装。全局和可选 Codex 插件入口优先转交目标项目已安装的版本。运行 design-harness skills 定位该版本的阶段入口与公共指导；只有用户显式选择阶段才执行相应流程。
+推荐通过宿主项目开发依赖运行 CLI，也支持全局安装。全局和可选 Codex 插件入口优先转交目标项目已安装的版本。design-harness init 将五个 Skill 链接到宿主项目的 .agents/skills/，之后可直接显式调用对应阶段；skills 命令仍只读定位该版本的入口与公共指导。
 
 需要完整 Design Harness 工具包及其运行依赖（Node.js 22+），npm 包名为 @minleev5/design-harness。以下 design-harness 命令可在项目脚本或全局环境执行；项目本地安装也可使用 npm exec -- design-harness 或 pnpm exec design-harness。源码或插件模式使用 node <工具包目录>/workbench/cli.mjs，工具包目录为当前 SKILL.md 所在目录向上两级；先确认该目录下有 shared/ 与 CLI。设计资源目录不维护工具源码或绝对安装路径。
 
@@ -15,7 +15,7 @@ design-harness doctor
 design-harness skills
 ```
 
-init --example 创建局部合成示例，不代表真实产品完整稿。已有 design-harness/ 拒绝覆盖；--project 可指向资源目录。额外业务依赖用 deps 安装到项目外缓存。
+init --example 创建局部合成示例，不代表真实产品完整稿。已有 design-harness/ 时，init 仅补齐 Skill 链接，不重写设计或配置；模式变化使用 organization，新增需求使用 new。--project 可指向宿主项目或已有的标准资源目录。已有同名文件、目录或不同目标的链接会使 init 在写入前失败；项目内的 .agents/skills 目录链接可复用，指向项目外的入口目录拒绝写入。链接失败会撤销本次创建的资源与链接，已有内容保留。额外业务依赖用 deps 安装到项目外缓存。
 
 初始化按[设计组织模式](design-organization.md)协助确认后，以 init --mode continuous --primary <主稿ID> 或 init --mode per-requirement 保存选择；已有工作区使用 organization 加同样参数。无参数 organization 只读配置，缺失模式不自动猜测。持续模式的 new 可省略 ID 来建立主稿，后续直接更新已有主稿；用户明确要求独立设计时用 new <ID> --separate，基础验证用 new <ID> --preview。两种参数不并用，基础预览不作为主稿。
 

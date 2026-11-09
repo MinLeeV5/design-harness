@@ -4,6 +4,8 @@
 
 工作台采用本地运行的模块化结构，随 npm 工具包和可选 Codex 插件分发。npm 包 @minleev5/design-harness 提供 design-harness 命令，与插件共用唯一公开入口 `workbench/cli.mjs`，内部实现集中在 `workbench/src/`；HTTP 和 CLI 调用相同应用服务。入口按 --project 或当前目录解析项目本地安装的 @minleev5/design-harness 并优先转交，保留参数、退出状态和停止信号；帮助、版本、skills 与 doctor 无需初始化设计工作区。当前设计资源仍以项目文件为维护来源。
 
+CLI init 由 project-init 适配器组织设计目录创建与五个项目 Skill 软链接，写入前检查全部同名冲突；已有设计只补齐链接，失败撤销本次创建内容。底层 workspace-files 的资源初始化仍拒绝覆盖，供内部工作区操作复用；只读 skills 查询不产生项目文件。
+
 | 目录 | 职责 |
 | --- | --- |
 | `src/cli/` | 命令解析、输出和服务启动 |
