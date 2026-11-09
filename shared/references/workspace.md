@@ -25,11 +25,15 @@ requirements/<需求>/
     components/
     assets/
 reviews/
+  <需求>/<候选>/threads.json       持久批阅、讨论、位置、处理状态与来源
+  <需求>/<候选>/<批阅ID>.png       批阅当时画面，随记录保留
 ```
 
 运行、构建和 Agent 属于工具包；design-harness/ 资源目录不保留 releases、业务工程源码副本、runtime 或 evidence；探索保存需求内设计版本。临时截图、模型结果和检查输出用后清理，只把必要结论记入交接。
 
 explorations/ 是随需求保存的独立方案历史，不参与正式设计 revision，不复制公共基础或运行器；重启后按当前基础恢复。保存历史与接受当前设计分开，用户显式删除才清理无引用内容，见[设计探索历史](protocol.md#设计探索历史)。
+
+reviews/ 是本地评审记录，不参与设计源 revision，也不复制到 Agent 提案资源或离线 HTML。这里的批阅截图是评审内容；用于验证的临时截图仍按上述规则清理。批阅保存和查看通过当前本地服务执行，浏览器刷新或服务重启后恢复；协议见[本地批阅记录](protocol.md#本地批阅记录)。
 
 requirements 是本地设计产物的唯一维护来源；用户指定正式业务 PRD 时按[来源与承接](product-source.md)记录设计摘要与来源。工作台按需导出单文件 HTML；CLI 通过 --out 选择资源目录外的文件，历史用 Git 记录。
 
