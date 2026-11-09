@@ -2,7 +2,7 @@
 
 <img src="assets/icon.png" width="80" height="80" alt="Design Harness 彩色组件图标">
 
-面向本人和 Agent 的产品共创与本地设计工具，以 CLI 为主要分发入口，Codex 插件提供可选的专业流程接入。工具包提供固定工作台，项目维护业务设计资源。页面由 json-render Spec 组合，通过 Catalog／Registry 加载项目自定义 React 组件，可在工作台体验、比较和调整，按需导出可独立离线分享的单文件 HTML。
+面向本人和 Agent 的产品共创、本地设计与 UI/UX 工程实现工具，以 CLI 为主要分发入口，Codex 插件提供可选的专业流程接入。工具包提供固定工作台，项目维护业务设计资源。页面由 json-render Spec 组合，通过 Catalog／Registry 加载项目自定义 React 组件，可在工作台体验、比较和调整，按需导出可独立离线分享的单文件 HTML，并作为目标项目工程实现的 UI/UX 依据。
 
 ## 项目安装与启动
 
@@ -39,7 +39,7 @@ design-harness skills
 
 查看、检查和导出设计无需 Codex；工作台内的 Agent 需要本机可用的 Codex 及认证，继续复用其配置与原生执行能力。提案验证与批阅截图需要本机 Chrome。doctor 只读取连接状态；skills 输出当前采用版本的专业入口与公共指导位置，不自动安装插件或启动设计阶段。
 
-## 四个入口
+## 五个入口
 
 安装可选 Codex 插件后，可直接调用以下 Skill；使用其他 Agent 时，通过 design-harness skills 定位并读取同一套阶段资料。插件与项目版本不同时，以 CLI 返回的项目本地资料承接当前阶段。
 
@@ -49,8 +49,11 @@ design-harness skills
 | $design-harness-init | 盘点范围与依据，建立公共组件和页面模式，以基础预览核对布局及状态；交付可复用基础后停止 |
 | $design-harness-interaction | 按项目模式更新主稿或独立设计，维护完整 Spec、说明及场景，验证用户任务；完成交互评审和交接后停止 |
 | $design-harness-visual | 在同一 Spec 与组件上细化高保真、多尺寸和候选；完成视觉评审和交接后停止 |
+| $design-harness-implement | 参考指定设计，按目标项目的技术栈与规范实现 UI/UX；按开发者选择的保真策略完成验证与交接后停止 |
 
-四个入口显式调用，承接已有范围、授权与决定，不自动串联。产品共创支持有界面或无界面的需求，无需设计工作区；按用户模板和实际资料形成草稿，可保留待评审问题。飞书等文档使用环境已有工具，未连接时提供可复制草稿；评审后可根据提供的意见更新正式文档。
+五个入口显式调用，承接已有范围、授权与决定，不自动串联。产品共创支持有界面或无界面的需求，无需设计工作区；按用户模板和实际资料形成草稿，可保留待评审问题。飞书等文档使用环境已有工具，未连接时提供可复制草稿；评审后可根据提供的意见更新正式文档。
+
+工程实现支持跨框架与原生平台，例如将设计落实到现有 Android 工程；实现结构遵循目标项目，设计源码无需与业务代码逐项对应。开发者选择设计优先、项目 UI 规范优先或按区域指定的策略，已有有效选择直接承接；缺失业务能力先按目标项目流程明确需求与技术方案，再确定实现范围。设计和目标工程可以位于不同位置，目标工程无需初始化设计工作区。通过 design-harness skills implement 定位指导，例如输入 `使用 $design-harness-implement 参考指定设计，在当前项目实现这段流程，沿用项目 UI 规范`。详见[工程实现工作流](skills/design-harness-implement/references/workflow.md)。
 
 Init 先建立覆盖清单：已有产品提取指定版本的公共基础，先核对代表页面的运行与布局基线，再扩展组件和实际页面模式；尚无界面的新项目按已确认意图建立设计草稿。基础验证预览属于 Init，使用现有 requirements 协议，不自动开展新业务需求。仅生成目录、Token 或在 0 个需求上通过检查不构成完整初始化交付；缺少约定范围的实现或验证时明确交付阶段性结果。详见[初始化工作流](skills/design-harness-init/references/workflow.md)。
 
@@ -64,7 +67,7 @@ Init 先建立覆盖清单：已有产品提取指定版本的公共基础，先
 
 ## 完整 UI 交付标准
 
-完整 UI 按最高保真要求覆盖声明范围内的产品壳层、页面、控件、交互和状态。已有产品先取得指定版本、环境、路由及上下文下的实际基线；沿用区域逐区对照，新设计分别记录。
+设计阶段的完整 UI 按最高保真要求覆盖声明范围内的产品壳层、页面、控件、交互和状态。已有产品先取得指定版本、环境、路由及上下文下的实际基线；沿用区域逐区对照，新设计分别记录。工程实现按开发者选择的策略及目标项目约束核对实际应用，分别验证工程质量、视觉、交互和业务连接，见[工程实现评价](skills/design-harness-implement/references/evaluation.md)。
 
 核对包括租户等上下文切换、用户菜单、分割线、准确图标、分页、固定输入区、滚动边界和响应式。产品行为可以本地模拟，界面与交互不能因此省略。模拟说明由评审工作台承载，避免改变产品构图。
 
@@ -195,7 +198,7 @@ npm pack 生成可用于项目或全局安装的 .tgz；files 白名单包含 wo
 npm run package -- --out dist/build-<唯一名称>
 ```
 
-生成完整插件 ZIP 和 SHA-256，拒绝覆盖。解压后通过 marketplace 根目录安装，运行前在完整插件目录 npm ci 安装固定依赖。四个 Skill、shared/ 和 workbench/ 一起分发；不包含项目知识、node_modules、dist、.harness 或 openspec。
+生成完整插件 ZIP 和 SHA-256，拒绝覆盖。解压后通过 marketplace 根目录安装，运行前在完整插件目录 npm ci 安装固定依赖。五个 Skill、shared/ 和 workbench/ 一起分发；不包含项目知识、node_modules、dist、.harness 或 openspec。
 
 开发源：固定工具在 workbench/，公共业务模板在 shared/workspace/，公共指导在 shared/references/，来源声明在 shared/third-party/。每份公共资源只维护一份，各 Skill 直接引用；项目只复制业务模板。Node.js 22+、ESM 与 npm 为工具运行环境。
 
