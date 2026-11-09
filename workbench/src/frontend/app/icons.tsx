@@ -1,10 +1,10 @@
-export type Panel = "docs" | "agent" | "tools";
+export type Panel = "docs" | "agent" | "tools" | "reviews";
 export function CloseIcon() {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true" focusable="false"><path d="M6 6L18 18M6 18L18 6"/></svg>;
 }
 export function ToolIcon({view}:{view:Panel}) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-    {view==="docs"?<><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></>:view==="tools"?<><path d="M4 7h6m5 0h5M4 17h10m5 0h1"/><circle cx="12.5" cy="7" r="2.5"/><circle cx="16.5" cy="17" r="2.5"/></>:<><rect x="5" y="7" width="14" height="13" rx="3"/><path d="M12 3v4M2 11v5m20-5v5M9 16h6"/><circle cx="9" cy="12" r=".75"/><circle cx="15" cy="12" r=".75"/></>}
+    {view==="docs"?<><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></>:view==="reviews"?<><path d="M20 11a7 7 0 0 1-7 7H7l-4 3V7a4 4 0 0 1 4-4h7"/><path d="m13 8 6-6 3 3-6 6-4 1Z"/></>:view==="tools"?<><path d="M4 7h6m5 0h5M4 17h10m5 0h1"/><circle cx="12.5" cy="7" r="2.5"/><circle cx="16.5" cy="17" r="2.5"/></>:<><rect x="5" y="7" width="14" height="13" rx="3"/><path d="M12 3v4M2 11v5m20-5v5M9 16h6"/><circle cx="9" cy="12" r=".75"/><circle cx="15" cy="12" r=".75"/></>}
   </svg>;
 }
 export function WorkspaceStatusIcon({kind}:{kind:"local"|"offline"|"proposal"}) {

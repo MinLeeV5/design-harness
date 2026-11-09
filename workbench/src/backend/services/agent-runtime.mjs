@@ -17,15 +17,17 @@ import {buildRequirement} from "./preview.mjs";
 import {validateJob,checkControls} from "./proposals.mjs";
 import {checkAgentScope} from "./proposal-policy.mjs";
 import {createAgentSettings} from "./agent-settings.mjs";
+import {createReviewService} from "./reviews.mjs";
 import {explorationSchemaFor,explorationCount,requestsExploration} from "../../contracts/exploration.mjs";
 import {createExplorations} from "./explorations.mjs";
 const terminal=new Set(["accepted","answered","discarded","cancelled","failed","superseded"]);
 const idleTimeoutMessage="Agent 长时间无进展，已超时停止，可重试";
-export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,connection,provider=createAgentProvider({run,connection}),preferences,projectRoot,timeoutMs=600000,previewTimeoutMs=30*60000}={}) {
+export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,connection,provider=createAgentProvider({run,connection}),preferences,projectRoot,timeoutMs=600000,previewTimeoutMs=30*60000,reviews=createReviewService(workspace)}={}) {
   workspace=canonicalDirectory(workspace);const jobs=new Map(),sessions=new Map(),defaults=new Map(),starting=new Set(),disposals=new Set(),settings=createAgentSettings(preferences);let closed=false;
   const hostProject=hostProjectRoot(workspace,projectRoot);
+  function reviewState(job,state){try{reviews.origin(job.requirement,job.candidate,job.id,state,job.reviewLineageActive?job.reviewAncestors:[]);}catch(error){job.reviewWarning="批阅来源状态未能保存："+error.message;activity(job,"review-source-warning",job.reviewWarning,"failed");}}
   let explorations;
-  const cleanup=job=>{const disposal=explorations?.dispose(job);if(disposal){disposals.add(disposal);void disposal.finally(()=>disposals.delete(disposal));}clearTimeout(job.timer);if(job.temp){removeProposalDirectory(job.temp);job.temp=null;}};
+  const cleanup=job=>{const disposal=explorations?.dispose(job);if(disposal){disposals.add(disposal);void disposal.finally(()=>disposals.delete(disposal));}reviewState(job,job.reviewExpired?"expired":job.closedBeforeDecision?"unavailable":terminal.has(job.state)?job.state:"unavailable");clearTimeout(job.timer);if(job.temp){removeProposalDirectory(job.temp);job.temp=null;}};
   const find=id=>{const job=jobs.get(id);assert(job,"生成记录不存在或已过期");return job;};
   function sessionFor(id,candidate,sessionId) {
     assert(!closed,"Agent 已关闭");
@@ -41,8 +43,8 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
     settings.current(session.id);sessions.set(session.id,session);return session;
   }
   const sessionForJob=job=>sessions.get(job.sessionId);
-  const message=(job,role,content,state)=>{const item={id:randomBytes(8).toString("hex"),role,identity:job.role,skill:job.skill.skill,model:job.model,permissionMode:job.permissionMode,content,page:job.page,selection:role==="user"?job.selection:null,state,startedAt:Date.now(),...(role==="assistant"?{activity:[],approvals:job.approvals}: {})};sessionForJob(job).messages.push(item);return item;};
-  const view=job=>{const result={id:job.id,sessionId:job.sessionId,providerId:provider.id,state:job.state,permissionMode:job.permissionMode,sourceChanged:job.sourceChanged,approvals:job.approvals,startedAt:job.startedAt,page:job.page,role:job.role,skill:job.skill.skill,model:job.model,error:job.error??"",candidate:job.candidate,revision:job.revision,summary:job.summary??"",messages:sessionForJob(job).messages,observation:sessionForJob(job).observation,lastRequest:sessionForJob(job).lastRequest,proposal:job.state==="ready"?job.proposal:undefined};return job.exploration?explorations.decorate(job,result):result;};
+  const message=(job,role,content,state)=>{const item={id:randomBytes(8).toString("hex"),role,identity:job.role,skill:job.skill.skill,model:job.model,permissionMode:job.permissionMode,content,page:job.page,selection:role==="user"?job.selection:null,...(role==="user"&&job.reviewThreads?.length?{reviews:job.reviewThreads}:{}),state,startedAt:Date.now(),...(role==="assistant"?{activity:[],approvals:job.approvals}: {})};sessionForJob(job).messages.push(item);return item;};
+  const view=job=>{const result={id:job.id,sessionId:job.sessionId,providerId:provider.id,state:job.state,permissionMode:job.permissionMode,sourceChanged:job.sourceChanged,approvals:job.approvals,startedAt:job.startedAt,page:job.page,role:job.role,skill:job.skill.skill,model:job.model,error:job.error??job.reviewWarning??"",candidate:job.candidate,revision:job.revision,summary:job.summary??"",messages:sessionForJob(job).messages,observation:sessionForJob(job).observation,lastRequest:sessionForJob(job).lastRequest,proposal:job.state==="ready"?job.proposal:undefined};return job.exploration?explorations.decorate(job,result):result;};
   const summary=session=>({id:session.id,providerId:session.providerId,requirement:session.requirement,candidate:session.candidate,title:session.title,createdAt:session.createdAt,state:session.jobId?(find(session.jobId).pendingApprovals.size||explorations?.hasApprovals(find(session.jobId))?"awaiting_approval":find(session.jobId).state):"idle"});
   const snapshot=session=>{const job=session.jobId?view(find(session.jobId)):null;return {...summary(session),messages:job?.messages??session.messages,...settings.current(session.id),job};};
   function record(session,model,state){session.lastRequest={model:model.id,name:model.name,provider:model.provider,state,at:Date.now()};provider.record?.(model,state);}
@@ -89,14 +91,14 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
   function detectSourceChanges(job){try{job.sourceChanged=loadRequirement(workspace,job.requirement).revision!==job.revision;}catch{job.sourceChanged=true;}}
   function phase(job,id,label){if(closed||(!job.callActive&&job.state!=="accepting"))return;for(const item of job.reply?.activity??[])if(item.status==="running")activity(job,item.id,item.label,"done");activity(job,id,label);}
   const finishMessage=(job,state,content,activityState=state)=>{if(!job.reply)return;job.reply.state=state;if(content!==undefined)job.reply.content=content;job.reply.completedAt??=Date.now();for(const item of job.reply.activity)if(item.status==="running")activity(job,item.id,item.label,activityState==="failed"?"failed":activityState==="cancelled"||activityState==="discarded"?"cancelled":"done");};
-  function armPreview(job){clearTimeout(job.timer);if(job.explorationOwner||job.exploration)return;job.timer=setTimeout(()=>{if(job.state==="ready"){job.state="discarded";finishMessage(job,"discarded");job.proposal=undefined;activity(job,"expired","预览已过期","done");cleanup(job);}},previewTimeoutMs);job.timer.unref?.();}
-  function releaseBase(job){if(job.base){job.base.state="superseded";finishMessage(job.base,"superseded");cleanup(job.base);job.base=null;}}
+  function armPreview(job){clearTimeout(job.timer);if(job.explorationOwner||job.exploration)return;job.timer=setTimeout(()=>{if(job.state==="ready"){job.reviewExpired=true;job.state="discarded";finishMessage(job,"discarded");job.proposal=undefined;activity(job,"expired","预览已过期","done");cleanup(job);}},previewTimeoutMs);job.timer.unref?.();}
+  function releaseBase(job){if(job.base){job.base.state="superseded";finishMessage(job.base,"superseded");cleanup(job.base);job.base=null;job.reviewLineageActive=true;}}
   function failOrRecover(job,error,outcome="failed"){
     job.callActive=false;clearApprovals(job);detectSourceChanges(job);const base=job.base;
     if(base?.temp&&!closed){
       cleanup(job);job.temp=base.temp;job.directory=base.directory;base.temp=null;
       job.summary=base.summary;job.page=base.page;job.proposal={...base.proposal,jobId:job.id};job.changes=base.changes;job.controller=new AbortController();job.state="ready";job.error=error+"；上一版预览已保留，可继续调整或接受";
-      releaseBase(job);finishMessage(job,"ready",job.error,outcome);activity(job,"recovered","上一版预览已恢复","done");armPreview(job);
+      releaseBase(job);reviewState(job,"ready");finishMessage(job,"ready",job.error,outcome);activity(job,"recovered","上一版预览已恢复","done");armPreview(job);
     }else{job.state="failed";job.error=error;finishMessage(job,"failed",error);releaseBase(job);cleanup(job);}
   }
   async function generate(request,{source:branchSource,branch=false,owner,scope,planningGroup,previous}={}) {
@@ -118,6 +120,7 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
     if(exploring)assert(Array.isArray(requestedPages)&&requestedPages.length>0&&new Set(requestedPages).size===requestedPages.length&&requestedPages.every(page=>typeof page==="string"&&page.length<=100),"请选择有效的任务范围");
     assert(data.manifest.candidates.some(c=>c.id===request.candidate)&&data.manifest.pages.some(p=>p.id===request.page),"生成目标不存在");
     assert(request.capture&&request.capture.page===request.page&&request.capture.state&&typeof request.capture.state==="object"&&!Array.isArray(request.capture.state)&&JSON.stringify(request.capture.state).length<=120000,"请从当前页面发送有效的画面与运行状态");
+    const reviewContext=reviews.context(request.id,request.candidate,request.reviewIds??[]);
     const selection=request.selection??null;
     if(selection)assert(typeof selection==="object"&&typeof selection.domId==="string"&&typeof selection.target==="string"&&JSON.stringify(selection).length<=32000,"点选目标无效，请重新点选");
     const base=request.baseJob?find(request.baseJob):null;
@@ -128,7 +131,7 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
     if(base){base.state="refining";clearTimeout(base.timer);try{await stageValues(base,request.values);base.proposal=tuneProposal(base.proposal,request.values??{});base.changes=changesFor(base);}catch(error){base.state="ready";armPreview(base);throw error;}}
     const source=base?loadRequirement(base.directory,request.id):data,sourceWorkspace=base?base.directory:branchSource?.directory??workspace;
     const {temp,directory}=createProposalDirectory();
-    const job={id:randomBytes(16).toString("hex"),sessionId:session.id,state:"running",permissionMode,approvals:[],pendingApprovals:new Map(),startedAt:Date.now(),selection,requirement:request.id,candidate:request.candidate,page:request.page,role:request.role,skill,model,revision:acceptedData.revision,originalRoot:acceptedData.folder,originalFiles:base?.originalFiles??branchSource?.originalFiles??snapshotFiles(data.folder),temp,directory,controller:new AbortController(),changes:[],base,callActive:true,baseControls:base?.page===request.page?base.proposal.controls??[]:[]};
+    const job={id:randomBytes(16).toString("hex"),sessionId:session.id,state:"running",permissionMode,approvals:[],pendingApprovals:new Map(),startedAt:Date.now(),selection,reviewThreads:reviewContext.map(item=>item.thread),requirement:request.id,candidate:request.candidate,page:request.page,role:request.role,skill,model,revision:acceptedData.revision,originalRoot:acceptedData.folder,originalFiles:base?.originalFiles??branchSource?.originalFiles??snapshotFiles(data.folder),temp,directory,controller:new AbortController(),changes:[],base,reviewAncestors:base?[...(base.reviewAncestors??[]),base.id]:[],callActive:true,baseControls:base?.page===request.page?base.proposal.controls??[]:[]};
     job.inheritedRoles=[...new Set([...(branchSource?.inheritedRoles??[]),...(branchSource?.role?[branchSource.role]:[])])];
     job.explorationOwner=owner;job.explorationPages=scope;
     if(exploring){job.exploration={...planningGroup,count:planningGroup?.count??count,planningCount:count,pages:requestedPages,options:planningGroup?.options??[],phase:"planning",expanded:true};job.allPages=data.manifest.pages.map(page=>page.id);job.appendTurn=prompt=>{message(job,"user",prompt,"sent");job.reply=message(job,"assistant","","running");};}
@@ -146,7 +149,7 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
         const imageFiles=saveDesignReferences(request.references,temp),data=loadRequirement(directory,job.requirement);
         const optionContext=await explorations.context(job,request);
         job.optionReferences=request.resolvedOptionReferences;
-        const resources=prepareAgentContext({data,request,disposition,identity:skill,temp,currentImage,referenceFiles:imageFiles,hostProject,sourceResources:workspace,sourceRequirement:job.originalRoot,optionContext});
+        const resources=prepareAgentContext({data,request,disposition,identity:skill,temp,currentImage,referenceFiles:imageFiles,hostProject,sourceResources:workspace,sourceRequirement:job.originalRoot,reviewContext,optionContext});
         const {text:normalPrompt,metrics}=promptFor(data,{...request,permissionMode,sourceRoot:job.originalRoot},disposition,skill,imageFiles,resources);
         const prompt=normalPrompt+(exploring?explorations.planningPrompt(job,request):"");
         session.observation={...session.observation,context:metrics};
@@ -166,7 +169,7 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
         if(!job.changes.length){assert(!(result.controls?.length),"纯回答不能提供未生成的调整项");job.callActive=false;job.state="answered";finishMessage(job,"answered",result.summary);releaseBase(job);cleanup(job);return;}
         job.state="validating";phase(job,"types","检查组件与类型");await typecheck(job.directory,{signal});if(!job.callActive)return;signal.throwIfAborted();phase(job,"build","构建隔离预览");const built=await buildRequirement(job.directory,job.requirement);if(!job.callActive)return;signal.throwIfAborted();phase(job,"browser","检查浏览器中的页面与交互");const impact=await validateJob(job,built);if(!job.callActive)return;signal.throwIfAborted();
         const controls=result.files.length===0&&job.baseControls.length?job.baseControls:(result.controls??[]);checkControls(job,built,controls);
-        job.proposal=proposalFor(job,built,controls,branch,impact);job.callActive=false;job.state="ready";releaseBase(job);finishMessage(job,"ready",result.summary);activity(job,"preview","预览已就绪，等待接受","done");armPreview(job);
+        job.proposal=proposalFor(job,built,controls,branch,impact);job.callActive=false;job.state="ready";releaseBase(job);reviewState(job,"ready");finishMessage(job,"ready",result.summary);activity(job,"preview","预览已就绪，等待接受","done");armPreview(job);
       }catch(error){const detail=signal.reason==="timeout"?idleTimeoutMessage:error.message;if(exploring&&!signal.aborted&&explorations.recover(job,detail))clearTimeout(job.timer);else if(job.callActive)failOrRecover(job,detail);}
     })();return view(job);
     } finally {starting.delete(session.id);}
@@ -221,12 +224,14 @@ export function createLiveAgentRuntime(workspace,{run,capture=captureDesignView,
   explorations=createExplorations({workspace,find,createSession,generate,event,accept,view,activity,finishMessage,cleanup,restoreSaved,async buildBaseline(job){job.changes=changesFor(job);const built=await buildRequirement(job.directory,job.requirement);return proposalFor(job,built,[],true,checkAgentScope(job));},capture,async closeSession(id){const session=sessions.get(id);if(session?.native){const native=await session.native;await provider.closeSession(native);session.native=null;}}});
   return {
     event,get:(id,sessionId)=>view(ownedJob(id,sessionId)),
+    reviewStatus(id,candidate,proposalId){const job=jobs.get(proposalId);if(!job)return "unavailable";assert(job.requirement===id&&job.candidate===candidate,"提案来源不属于当前方案");return job.reviewExpired?"expired":job.closedBeforeDecision?"unavailable":job.state;},
+    reviewSource(id,candidate,proposalId){const job=find(proposalId);assert(job.state==="ready"&&job.requirement===id&&job.candidate===candidate,"原提案已结束或不属于当前方案，请回到本地设计新增批阅");return {kind:"proposal",proposalId:job.id,state:"ready",revision:job.revision,pages:loadRequirement(job.directory,job.requirement).manifest.pages.map(p=>p.id)};},
     async connection(options={}){const status=await provider.inspect(options);if(!options.sessionId)return {...status,agentProvider:{id:provider.id,capabilities:provider.capabilities}};const session=sessions.get(options.sessionId);assert(session,"会话不存在");return {...status,lastRequest:session.lastRequest,observation:session.observation,agentProvider:{id:provider.id,capabilities:provider.capabilities}};},
     createSession:(id,candidate)=>snapshot(createSession(id,candidate)),
     sessions(id,candidate){sessionFor(id,candidate);return [...sessions.values()].filter(s=>!s.hidden&&s.requirement===id&&s.candidate===candidate).map(summary);},
     history:(id,candidate)=>explorations.history(id,candidate),
     async saveSettings(id,candidate,patch,sessionId){const session=sessionFor(id,candidate,sessionId),job=session.jobId?find(session.jobId):null;assert(!starting.has(session.id)&&(!job||!job.stopping&&!["running","validating","accepting","refining"].includes(job.state)),"当前会话正在处理，请稍后调整设置");if(job?.state==="ready"&&!job.exploration&&patch.identity)assert(patch.identity===job.role,"请先接受或放弃当前身份的提案");return settings.update(session.id,patch);},
     session(id,candidate,sessionId){return snapshot(sessionFor(id,candidate,sessionId));},
-    async close(){closed=true;for(const job of jobs.values()){job.callActive=false;job.controller.abort();if(!terminal.has(job.state)){job.state="cancelled";}}await provider.dispose();await Promise.allSettled([...jobs.values()].map(j=>j.done));for(const job of jobs.values())cleanup(job);await Promise.allSettled([...disposals]);jobs.clear();sessions.clear();defaults.clear();settings.clear();}
+    async close(){closed=true;for(const job of jobs.values()){job.callActive=false;job.controller.abort();if(!terminal.has(job.state)){job.state="cancelled";job.closedBeforeDecision=true;}}await provider.dispose();await Promise.allSettled([...jobs.values()].map(j=>j.done));for(const job of jobs.values())cleanup(job);await Promise.allSettled([...disposals]);jobs.clear();sessions.clear();defaults.clear();settings.clear();}
   };
 }

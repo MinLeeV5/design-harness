@@ -5,7 +5,7 @@ import {exportHtml} from "../services/export.mjs";
 import {firstRequirement,requirementRevision,saveValues} from "../services/workspace.mjs";
 import {readJsonBody,replyJson} from "./requests.mjs";
 
-export function createRouter({workspace, token, agent, origin}) {
+export function createRouter({workspace, token, agent, reviews, origin}) {
   return async (request, response) => {
     const reply = (status, data) => replyJson(response,status,data);
     const authorized = message => {
@@ -35,6 +35,12 @@ export function createRouter({workspace, token, agent, origin}) {
         reply(200,{revision:requirementRevision(workspace,url.searchParams.get("id"))});
         return;
       }
+      if(request.method==="GET"&&["/__dh/reviews","/__dh/reviews/image"].includes(url.pathname)){
+        if(!authorized("批阅需要当前本地工作台"))return;
+        const id=url.searchParams.get("id"),candidate=url.searchParams.get("candidate");
+        if(url.pathname.endsWith("/image")){const bytes=reviews.imageBytes(id,candidate,url.searchParams.get("thread"));response.writeHead(200,{"Content-Type":"image/png","Cache-Control":"no-store","X-Content-Type-Options":"nosniff"});response.end(bytes);}
+        else {const snapshot=reviews.read(id,candidate),proposalId=url.searchParams.get("proposalId");reply(200,proposalId?{...snapshot,sourceState:agent.reviewStatus(id,candidate,proposalId)}:snapshot);}return;
+      }
       if (request.method === "GET" && url.pathname === "/__dh/live/session") {
         if (authorized("会话需要当前工作台")) reply(200,agent.session(url.searchParams.get("id"),url.searchParams.get("candidate"),url.searchParams.get("sessionId")));
         return;
@@ -63,7 +69,7 @@ export function createRouter({workspace, token, agent, origin}) {
         if (authorized("生成记录需要当前工作台")) reply(200,agent.get(url.pathname.split("/").at(-1),url.searchParams.get("sessionId")));
         return;
       }
-      if (request.method !== "POST" || !["/__dh/spec","/__dh/export","/__dh/live/events","/__dh/live/settings","/__dh/live/sessions"].includes(url.pathname)) {
+      if (request.method !== "POST" || !["/__dh/spec","/__dh/export","/__dh/live/events","/__dh/live/settings","/__dh/live/sessions","/__dh/reviews"].includes(url.pathname)) {
         reply(404,{error:"入口不存在"});
         return;
       }
@@ -71,7 +77,10 @@ export function createRouter({workspace, token, agent, origin}) {
         reply(403,{error:"写入需要当前本地工作台"});
         return;
       }
-      const body = await readJsonBody(request,url.pathname === "/__dh/live/events" ? 15000000 : 65536);
+      const body = await readJsonBody(request,url.pathname === "/__dh/live/events" ? 15000000 : url.pathname==="/__dh/reviews"?4000000:65536);
+      if(url.pathname==="/__dh/reviews"){
+        reply(200,body.action==="create"?await reviews.create(body,(id,candidate,job)=>agent.reviewSource(id,candidate,job)):reviews.change(body));return;
+      }
       if (url.pathname === "/__dh/live/sessions") {
         reply(200,agent.createSession(body.id,body.candidate));return;
       }

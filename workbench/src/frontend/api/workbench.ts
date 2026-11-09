@@ -1,11 +1,12 @@
-import type {AgentJob,AgentSession,AgentSessionSummary,BundleData,CodexConnection,AgentSettings,AgentSettingsPatch,ExplorationHistory} from "../../contracts/types";
+import type {AgentJob,AgentSession,AgentSessionSummary,BundleData,CodexConnection,AgentSettings,AgentSettingsPatch,ReviewSnapshot,ExplorationHistory} from "../../contracts/types";
 
 // All local HTTP access lives here. Offline exports use the same UI without invoking this client.
 export function createWorkbenchClient(token?:string) {
   const headers = () => ({"X-DH-Token":token!});
+  const address=(path:string)=>typeof location!=="undefined"&&location.protocol==="blob:"?new URL(path,location.origin).toString():path;
 
   async function json<T>(path:string, init:RequestInit = {}, failure?:string):Promise<T> {
-    const response = await fetch(path,{...init,headers:{...headers(),...init.headers}});
+    const response = await fetch(address(path),{...init,headers:{...headers(),...init.headers}});
     if (!response.ok && failure) throw new Error(failure);
     const result = await response.json();
     if (!response.ok) throw new Error(result.error ?? "Agent 请求失败");
@@ -13,6 +14,9 @@ export function createWorkbenchClient(token?:string) {
   }
 
   return {
+    reviews:(id:string,candidate:string,proposalId?:string)=>json<ReviewSnapshot>("/__dh/reviews?id="+encodeURIComponent(id)+"&candidate="+encodeURIComponent(candidate)+(proposalId?"&proposalId="+encodeURIComponent(proposalId):"")),
+    reviewChange:(body:unknown)=>json<ReviewSnapshot>("/__dh/reviews",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}),
+    reviewImage:async(id:string,candidate:string,thread:string)=>{const response=await fetch(address("/__dh/reviews/image?id="+encodeURIComponent(id)+"&candidate="+encodeURIComponent(candidate)+"&thread="+encodeURIComponent(thread)),{headers:headers()});if(!response.ok)throw new Error("无法读取批阅截图");return response.blob();},
     connection: (refresh = false,sessionId="") => json<CodexConnection>(
       "/__dh/live/connection?refresh="+(refresh?"1":"0")+"&sessionId="+sessionId,{},"无法读取 Codex 状态，请重试。"
     ),

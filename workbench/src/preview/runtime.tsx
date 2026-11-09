@@ -4,6 +4,7 @@ import {JSONUIProvider,Renderer,createStateStore,useRepeatScope,type ComponentRe
 import {markDevtoolsActive,type Catalog,type StateModel} from "@json-render/core";
 import {createInspector} from "./inspector";
 import {captureDocument} from "./capture";
+import {createReviewOverlay} from "./reviews";
 import {ScenarioContext,PreviewBridgeContext,type PreviewBridge,type NavigationAdapter} from "./sdk";
 import {pointerValue} from "../contracts/conditions.mjs";
 import type {ZodType} from "zod";
@@ -140,9 +141,9 @@ export function mount(project:Project) {
       window.addEventListener("message",receive);send({type:"dh:mounted"});return()=>window.removeEventListener("message",receive);
     },[]);
     useEffect(()=>{
-      const inspector=createInspector({send});
-      const receive=(event:MessageEvent)=>{if(event.source===window.parent&&event.data?.type==="dh:config")inspector.update(event.data.config);};
-      window.addEventListener("message",receive);return()=>{window.removeEventListener("message",receive);inspector.dispose();};
+      const inspector=createInspector({send}),reviews=createReviewOverlay({send});
+      const receive=(event:MessageEvent)=>{if(event.source===window.parent&&event.data?.type==="dh:config"){inspector.update(event.data.config);reviews.update(event.data.config);}};
+      window.addEventListener("message",receive);return()=>{window.removeEventListener("message",receive);inspector.dispose();reviews.dispose();};
     },[]);
     useEffect(()=>{if(config)for(const [name,value]of Object.entries(config.css))if(/^--[a-z][a-z0-9-]*$/.test(name))document.documentElement.style.setProperty(name,value);},[config]);
     if(error)return <p role="alert">{error}</p>;

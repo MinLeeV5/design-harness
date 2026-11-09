@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {PLUGIN} from "../paths.mjs";
 
-export function prepareAgentContext({data,request,disposition,identity,temp,currentImage,referenceFiles,hostProject,sourceResources,sourceRequirement,optionContext=[]}) {
+export function prepareAgentContext({data,request,disposition,identity,temp,currentImage,referenceFiles,hostProject,sourceResources,sourceRequirement,reviewContext=[],optionContext=[]}) {
   const context=path.join(temp,"context");fs.mkdirSync(context);
   const write=(name,value)=>{const file=path.join(context,name);fs.writeFileSync(file,JSON.stringify(value,null,2)+"\n");return file;};
   const entries=[],add=(file,purpose,when)=>{if(fs.existsSync(file))entries.push({path:file,purpose,when,kind:fs.statSync(file).isDirectory()?"directory":"file"});};
@@ -32,6 +32,10 @@ export function prepareAgentContext({data,request,disposition,identity,temp,curr
   if(request.explorationContext)add(write("exploration.json",request.explorationContext),"本轮设计结论、讨论记录与父方案来源","继续已保存方案或讨论取舍前必读；保留已有约束，不依赖原生聊天仍存在");
   if(request.selection)add(write("selection.json",request.selection),"点选 DOM、样式与祖先","定位点选元素时");
   if(currentImage)add(currentImage,"当前实际 DOM 静态截图；使用图片工具查看","视觉判断或视觉修改前必读");
+  if(reviewContext.length){
+    add(write("reviews.json",reviewContext.map(item=>item.thread)),"用户所选批阅：评语、回复、页面、位置与历史来源","处理批阅前必读；逐条核对所属页面与目标");
+    for(const {thread,image} of reviewContext){const file=path.join(context,"review-"+thread.id+".png");fs.copyFileSync(image,file);add(file,"批阅历史截图 · "+thread.page+" · "+thread.id,"处理对应批阅前使用图片工具查看；与当前设计区分，不当作最新画面");}
+  }
   referenceFiles.forEach((file,i)=>add(file,`用户参考图（已直接附图）：${request.references[i].name}`,"直接附图不足以辨认或需要局部核对时再读取"));
   if(optionContext.length){
     add(write("options.json",optionContext),"不同方案的具体版本、局部引用和来源路径","讨论取舍或融合前必读；版本与目标分别核对");

@@ -1,0 +1,10 @@
+export type ReviewAnchor={target:string;instance:string;selector:string;tag:string;text:string;x:number;y:number;view:{x:number;y:number;width:number;height:number}};
+export type ReviewSource={kind:"saved"|"proposal";revision:string;proposalId?:string;state:string;successor?:{proposalId:string;state:string}};
+export type ReviewThread={id:string;requirement:string;candidate:string;page:string;text:string;anchor:ReviewAnchor;source:ReviewSource;resolved:boolean;createdAt:number;updatedAt:number;replies:{id:string;text:string;createdAt:number}[]};
+export type ReviewSnapshot={version:number;threads:ReviewThread[];sourceState?:string};
+export const reviewSourceLabels:Record<string,string>;
+export function reviewSourceLabel(source:ReviewSource):string;
+export function reviewKey(value:unknown):string;
+export function reviewId(value:unknown):string;
+export function reviewText(value:unknown):string;
+export function reviewAnchor(value:unknown):ReviewAnchor;

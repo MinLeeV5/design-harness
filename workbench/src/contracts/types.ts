@@ -2,12 +2,14 @@ import type {Spec} from "@json-render/core";
 export type {Spec};
 export type {DesignOrganization} from "./design-organization.mjs";
 import type {RequirementPurpose} from "./design-organization.mjs";
+import type {ReviewAnchor,ReviewThread,ReviewSource} from "./reviews.mjs";
+export type {ReviewAnchor,ReviewThread,ReviewSource,ReviewSnapshot} from "./reviews.mjs";
 export type Value = number|string|boolean;
 export type Scenario = {id:string;page:string;title:string;state:Record<string,unknown>};
 export type Control = {id:string;label:string;page:string;target:string;property:string;type:"range"|"text"|"boolean";min?:number;max?:number;step?:number;unit?:string;maxLength?:number};
 export type Candidate = {id:string;title:string;registry:string;params:string;pages:Record<string,string>};
 export type Manifest = {schemaVersion:1;renderer:"json-render/react";id:string;title:string;purpose?:RequirementPurpose;foundationVersion:string;pages:{id:string;title:string}[];navigation?:{pageStatePath:string};candidates:Candidate[];viewports:{id:string;title:string;width:number;height:number}[];controls:Control[]};
-export type BundleData = {manifest:Manifest;scenarios:Scenario[];interactions:Interaction[];documentation:string;previews:Record<string,string>;specs:Record<string,Spec>;params:Record<string,{css:Record<string,string>}>;hashes:Record<string,string>;revision:string;requirements:{id:string;title:string}[];development:boolean;proposal?:boolean;proposalPermission?:AgentPermissionMode;token?:string};
+export type BundleData = {manifest:Manifest;scenarios:Scenario[];interactions:Interaction[];documentation:string;previews:Record<string,string>;specs:Record<string,Spec>;params:Record<string,{css:Record<string,string>}>;hashes:Record<string,string>;revision:string;requirements:{id:string;title:string}[];development:boolean;proposal?:boolean;proposalPermission?:AgentPermissionMode;token?:string;reviewSource?:ReviewSource & {candidate:string};reviewReturn?:{windowId:string;sessionId:string}};
 
 export type Annotation={id:string;target:string;section:string;label:string;number:string;placement?:"auto"|"top"|"right"|"bottom"|"left"};
 export type InteractionDimension="operation"|"condition"|"state"|"recovery"|"flow";
@@ -30,7 +32,7 @@ export type AgentTokenUsage={last?:AgentTokenBreakdown;total?:AgentTokenBreakdow
 export type AgentObservation={context?:{characters:number;bytes:number;blocks:{rules:number;map:number;message:number};imageCount:number;resourceEntries:number;roots:{hostProject:string;sourceResources:string;sourceRequirement:string;proposal:string;requirement:string;plugin:string}};usage?:AgentTokenUsage;compactions:number;lastCompactionAt?:number};
 export type AgentObservationEvent={kind:"usage";usage:AgentTokenUsage}|{kind:"compaction";id:string;at:number};
 export type CodexConnection={observation?:AgentObservation;available:boolean;provider:{id:string;name:string};auth:"authenticated"|"required"|"external"|"unknown";authMode:string;defaultModel:string;defaultEffort:string;models:{id:string;name:string;images:boolean;efforts:string[];defaultEffort:string;isDefault?:boolean}[];catalogAvailable:boolean;checkedAt:number;error?:string;lastRequest?:{model:string;name:string;provider:string;state:"running"|"succeeded"|"failed"|"cancelled";at:number}};
-export type AgentMessage={id:string;role:"user"|"assistant";identity?:AgentRole;skill?:string;model?:AgentModel;permissionMode?:AgentPermissionMode;content:string;page:string;selection:DomSelection|null;state?:string;startedAt?:number;completedAt?:number;activity?:AgentActivity[];approvals?:AgentApproval[]};
+export type AgentMessage={id:string;role:"user"|"assistant";identity?:AgentRole;skill?:string;model?:AgentModel;permissionMode?:AgentPermissionMode;content:string;page:string;selection:DomSelection|null;reviews?:ReviewThread[];state?:string;startedAt?:number;completedAt?:number;activity?:AgentActivity[];approvals?:AgentApproval[]};
 export type AgentProposal={summary:string;html:string;spec:Spec;pages?:Record<string,{spec:Spec}>;manifest?:Manifest;scenarios?:Scenario[];css:Record<string,string>;permissionMode?:AgentPermissionMode;controls?:AgentControl[];changes:{path:string;before:string|null;after:string}[];interactions?:Interaction[];documentation?:string;reviewHtml?:string;candidate?:string;page?:string;jobId?:string;impact?:{shared:string[];candidates:string[]}};
 export type OptionReference={group:string;option:string;version:string;label?:string;title?:string;page?:string;selection?:DomSelection;state?:Record<string,unknown>;capture?:CanvasCapture;screenshot?:string};
 export type ExplorationVersion={id:string;number:number;createdAt:number;role:AgentRole;page:string;summary:string;references:OptionReference[]};
@@ -39,7 +41,7 @@ export type AgentExploration={id:string;createdAt:number;count:number;pages:stri
 export type ExplorationHistory={version:number;groups:AgentExploration[]};
 
 export type CanvasCapture={html:string;width:number;height:number;page:string;state:Record<string,unknown>};
-export type PreviewConfig={scenario:Scenario;candidate:string;page?:string;pages?:string[];session?:string;initialState?:Record<string,unknown>;navigation?:{pageStatePath:string};spec:Spec;css:Record<string,string>;pick:boolean;locate?:string;instance?:string;annotations?:Annotation[];showAnnotations?:boolean;inspectDomId?:string;locateNonce?:number};
+export type PreviewConfig={scenario:Scenario;candidate:string;page?:string;pages?:string[];session?:string;initialState?:Record<string,unknown>;navigation?:{pageStatePath:string};spec:Spec;css:Record<string,string>;pick:boolean;locate?:string;instance?:string;annotations?:Annotation[];showAnnotations?:boolean;inspectDomId?:string;locateNonce?:number;reviewPick?:boolean;reviews?:{id:string;anchor:ReviewAnchor;number:number}[];showReviews?:boolean;reviewLocate?:string};
 export type AgentJob={exploration?:AgentExploration;lastRequest?:CodexConnection["lastRequest"];observation?:AgentObservation;id:string;sessionId:string;providerId:string;candidate:string;revision:string;permissionMode:AgentPermissionMode;sourceChanged?:boolean;state:string;role?:AgentRole;skill?:string;identity?:AgentRole;page?:string;startedAt?:number;error?:string;summary?:string;messages?:AgentMessage[];proposal?:AgentProposal;approvals?:AgentApproval[]};
 export type AgentSessionSummary={id:string;providerId:string;requirement:string;candidate:string;title:string;createdAt:number;state:string};
 export type AgentSession=AgentSessionSummary&AgentSettings&{messages:AgentMessage[];job:AgentJob|null};
