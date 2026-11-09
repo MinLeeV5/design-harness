@@ -3,7 +3,7 @@ import path from "node:path";
 import {build,transform} from "esbuild";
 import {inside} from "./filesystem.mjs";
 import {assert} from "../../contracts/assertions.mjs";
-import {TOOL,PLUGIN,requireTool,frontendFile,previewFile,sdkFile} from "../paths.mjs";
+import {TOOL,PLUGIN,requireTool,toolDependencyRoots,frontendFile,previewFile,sdkFile} from "../paths.mjs";
 import {dependencyDirectory,reserved} from "./dependencies.mjs";
 const escape=text=>String(text).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
 export const json=value=>JSON.stringify(value).replaceAll("<","\\u003c").replaceAll("\u2028","\\u2028").replaceAll("\u2029","\\u2029");
@@ -47,8 +47,14 @@ function aliases(workspace,cache) {
 }
 function checkImports(result){for(const file of Object.values(result.metafile.outputs))for(const entry of file.imports)assert(!entry.external||/^(data:|#)/.test(entry.path),"离线产物不允许外部资源: "+entry.path);}
 export function licenseText(cache){
+  const packages=new Map();
+  for(const directory of toolDependencyRoots()) {
+    const {name}=JSON.parse(fs.readFileSync(path.join(directory,"package.json"),"utf8"));
+    if(!packages.has(name))packages.set(name,directory);
+  }
   let text="";for(const name of ["react","react-dom","scheduler","@json-render/core","@json-render/react","zod","marked","@base-ui/react","@base-ui/utils","@babel/runtime","@floating-ui/core","@floating-ui/dom","@floating-ui/react-dom","@floating-ui/utils","reselect","use-sync-external-store"]){
-    let directory;try{directory=path.dirname(requireTool.resolve(name+"/package.json"));}catch{directory=path.dirname(requireTool.resolve(name));while(!fs.existsSync(path.join(directory,"package.json"))||JSON.parse(fs.readFileSync(path.join(directory,"package.json"))).name!==name){const parent=path.dirname(directory);assert(parent!==directory,"找不到依赖包信息: "+name);directory=parent;}}const file=["LICENSE","LICENSE.md","LICENSE.txt"].map(n=>path.join(directory,n)).find(f=>fs.existsSync(f));
+    const directory=packages.get(name);assert(directory,"工具依赖图缺少许可包: "+name);
+    const file=["LICENSE","LICENSE.md","LICENSE.txt"].map(n=>path.join(directory,n)).find(f=>fs.existsSync(f));
     assert(file,"依赖缺少许可证: "+name);text+="\n"+name+"\n"+fs.readFileSync(file,"utf8");
   }
   if(cache){const lock=JSON.parse(fs.readFileSync(path.join(cache,"package-lock.json")));for(const relative of Object.keys(lock.packages??{}).filter(k=>k.startsWith("node_modules/"))){const dir=path.join(cache,relative),pkg=JSON.parse(fs.readFileSync(path.join(dir,"package.json")));const license=["LICENSE","LICENSE.md","LICENSE.txt","license","license.md"].map(n=>path.join(dir,n)).find(f=>fs.existsSync(f));assert(license,"扩展依赖缺少许可证文件: "+pkg.name);text+="\n"+pkg.name+" "+pkg.version+"\n"+fs.readFileSync(license,"utf8");}}
@@ -56,14 +62,12 @@ export function licenseText(cache){
   return text;
 }
 export async function buildApp() {
-  const packages=fs.realpathSync(path.join(PLUGIN,"node_modules"));
-  const result=await build({...common,absWorkingDir:PLUGIN,entryPoints:[frontendFile()],outfile:"/virtual/design-harness/app.js",plugins:[boundary([TOOL,packages])]});checkImports(result);return result;
+  const result=await build({...common,absWorkingDir:PLUGIN,entryPoints:[frontendFile()],outfile:"/virtual/design-harness/app.js",plugins:[boundary([TOOL,...toolDependencyRoots()])]});checkImports(result);return result;
 }
 
 export async function buildCandidate(workspace,data,candidate,cache) {
-  const packages=fs.realpathSync(path.join(PLUGIN,"node_modules"));
     const source='import {mount} from '+JSON.stringify(previewFile())+'; import * as project from '+JSON.stringify(path.join(data.folder,candidate.registry))+'; mount(project);';
-    let result;try {result=await build({...common,absWorkingDir:PLUGIN,stdin:{contents:source,resolveDir:TOOL,loader:"tsx",sourcefile:"preview-entry.tsx"},outfile:"/virtual/design-harness/preview.js",plugins:[aliases(workspace,cache),boundary([data.candidateRoots[candidate.id],data.foundationRoot,TOOL,packages,...(cache?[cache]:[])],[data.candidateRoots[candidate.id],data.foundationRoot])]});}
+    let result;try {result=await build({...common,absWorkingDir:PLUGIN,stdin:{contents:source,resolveDir:TOOL,loader:"tsx",sourcefile:"preview-entry.tsx"},outfile:"/virtual/design-harness/preview.js",plugins:[aliases(workspace,cache),boundary([data.candidateRoots[candidate.id],data.foundationRoot,TOOL,...toolDependencyRoots(),...(cache?[cache]:[])],[data.candidateRoots[candidate.id],data.foundationRoot])]});}
     catch(error){throw new Error("候选 "+candidate.id+" 构建失败："+error.message);}
     checkImports(result);
     const csp='<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\'; style-src \'unsafe-inline\'; img-src data:; font-src data:; connect-src \'none\'; form-action \'none\'; base-uri \'none\';">';

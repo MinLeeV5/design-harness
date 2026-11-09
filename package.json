@@ -1,9 +1,26 @@
 {
-  "name": "design-harness",
+  "name": "@minleev5/design-harness",
   "version": "0.2.0",
-  "private": true,
-  "description": "Design Harness 插件的开发、校验、测试与打包工具",
+  "description": "本地产品设计工作台与 Agent CLI，支持项目依赖、全局安装及可选 Codex 插件",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
   "type": "module",
+  "bin": {
+    "design-harness": "workbench/cli.mjs"
+  },
+  "files": [
+    "workbench/",
+    "shared/",
+    "skills/",
+    "assets/",
+    "docs/",
+    "AGENTS.md",
+    ".codex-plugin/",
+    ".agents/plugins/marketplace.json"
+  ],
   "engines": {
     "node": ">=22"
   },
@@ -12,6 +29,8 @@
     "test": "node --test tests/*.test.js",
     "check": "npm run validate && npm test",
     "package": "node scripts/package-plugin.js",
+    "prepack": "npm run validate",
+    "test:install": "node scripts/cli-install-smoke.js",
     "demo": "node scripts/demo.js",
     "test:browser": "node scripts/select-smoke.js && node scripts/browser-smoke.js && node scripts/navigation-smoke.js && node scripts/agent-smoke.js && node scripts/agent-scroll-smoke.js && node scripts/sessions-smoke.js && node scripts/permissions-smoke.js && node scripts/roles-smoke.js && node scripts/composer-smoke.js && node scripts/model-settings-smoke.js && node scripts/preferences-smoke.js && node scripts/context-smoke.js && node scripts/visual-exploration-smoke.js",
     "workbench": "node workbench/cli.mjs",
@@ -19,20 +38,21 @@
   },
   "devDependencies": {
     "@babel/parser": "7.29.11",
-    "@types/react": "19.3.0",
-    "@types/react-dom": "19.3.0",
-    "fflate": "^0.8.3",
-    "playwright": "1.64.1",
-    "typescript": "7.0.2"
+    "fflate": "^0.8.3"
   },
   "dependencies": {
     "@base-ui/react": "1.9.0",
     "@json-render/core": "0.21.3",
     "@json-render/react": "0.21.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
     "esbuild": "0.28.2",
     "marked": "18.1.1",
+    "playwright": "1.64.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "scheduler": "0.28.0",
+    "typescript": "7.0.2",
     "yaml": "2.9.1",
     "zod": "4.6.7"
   }

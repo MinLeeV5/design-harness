@@ -20,7 +20,7 @@ export function dependencyDirectory(workspace) {
   const lock=readJson(resolveFile(workspace,"dependencies.lock.json"));
   assert(JSON.stringify(lock.packages?.[""]?.dependencies)===JSON.stringify(manifest.dependencies),"扩展依赖锁与声明不一致，请运行 deps");
   const key=hash(JSON.stringify(manifest)+JSON.stringify(lock)),directory=path.join(cacheRoot(),key);
-  assert(fs.existsSync(path.join(directory,".ready")),"扩展依赖尚未安装，请从插件运行 deps --project <项目>");
+  assert(fs.existsSync(path.join(directory,".ready")),"扩展依赖尚未安装，请运行 design-harness deps --project <项目>");
   return directory;
 }
 export function installDependencies(workspace,{frozen=false}={}) {

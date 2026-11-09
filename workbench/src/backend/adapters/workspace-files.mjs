@@ -16,11 +16,11 @@ export function initialize(project,{example=false,mode,primary}={}) {
   assert(mode!==undefined||primary===undefined,"指定主稿前需要确认设计组织模式 --mode");
   const parent=fs.realpathSync(project),target=path.join(parent,"design-harness");assert(!fs.existsSync(target),"design-harness 已存在，拒绝覆盖");fs.mkdirSync(target);
   try {
-    const source=path.join(PLUGIN,"shared/workspace");assert(fs.existsSync(source),"缺少插件公共业务模板；请安装完整 Design Harness 插件");filesIn(source);fs.cpSync(source,target,{recursive:true});
+    const source=path.join(PLUGIN,"shared/workspace");assert(fs.existsSync(source),"缺少公共业务模板；请安装完整 Design Harness 工具包");filesIn(source);fs.cpSync(source,target,{recursive:true});
     for(const name of ["requirements","reviews"])fs.mkdirSync(path.join(target,name),{recursive:true});
     if(mode!==undefined)configureOrganization(target,{mode,primary});
     if(example)createRequirement(target,"example","资料整理 · 设计示例",{preview:true});
-    return {workspace:target,designOrganization:designOrganization(loadProject(target)),next:"Init 需确认项目设计组织模式、核对事实并建立基础验证预览；从插件运行 node workbench/cli.mjs serve --project <项目目录>"};
+    return {workspace:target,designOrganization:designOrganization(loadProject(target)),next:"Init 需确认项目设计组织模式、核对事实并建立基础验证预览；运行 design-harness serve --project <项目目录>；使用 skills init 定位专业流程"};
   }catch(error){fs.rmSync(target,{recursive:true,force:true});throw error;}
 }
 export function configureOrganization(workspace,{mode,primary}={}) {

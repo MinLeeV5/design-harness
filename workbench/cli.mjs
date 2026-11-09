@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import {fileURLToPath} from "node:url";
-import {main} from "./src/cli/main.mjs";
+import {launch} from "./src/cli/launch.mjs";
 
-export {main};
+export async function main(args) {
+  return (await import("./src/cli/main.mjs")).main(args);
+}
 
-// Keep the plugin's public command stable while its implementation evolves.
+// npm local/global bins and optional plugin entries share this command.
 if (process.argv[1] && fs.existsSync(process.argv[1]) && fs.realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().then(result => {
-    if (result) console.log(JSON.stringify(result, null, 2));
-  }).catch(error => {
+  launch().catch(error => {
     console.error(error.message);
     process.exitCode = 1;
   });

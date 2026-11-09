@@ -50,6 +50,8 @@ export const WORKBENCH_FILES = [
   "src/backend/services/proposals.mjs",
   "src/backend/services/workspace.mjs",
   "src/cli/main.mjs",
+  "src/cli/launch.mjs",
+  "src/cli/options.mjs",
   "src/contracts/agent-controls.d.mts",
   "src/contracts/agent-controls.mjs",
   "src/contracts/agent-output.mjs",
@@ -293,6 +295,10 @@ export function validate(directory = ROOT) {
     entry?.category === "Productivity", "Invalid marketplace policy or category");
   const packageManifest = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
   const packageLock = JSON.parse(fs.readFileSync(path.join(root, "package-lock.json"), "utf8"));
+  check(packageManifest.name === packageLock.name && packageManifest.name === packageLock.packages?.[""]?.name, "npm package and lockfile names must agree");
+  check(packageManifest.private!==true&&packageManifest.bin?.["design-harness"]==="workbench/cli.mjs","Independent CLI requires a publishable npm package and shared command entry");
+  check(["typescript","playwright","@types/react","@types/react-dom","scheduler"].every(name=>packageManifest.dependencies?.[name]),"CLI runtime and validation dependencies must be installed for consumers");
+  check(["workbench/","shared/","skills/"].every(name=>packageManifest.files?.includes(name)),"npm distribution must include the workbench and professional guidance");
   check(packageManifest.version === manifest.version?.split("+")[0] && packageLock.version === packageManifest.version &&
     packageLock.packages?.[""]?.version === packageManifest.version, "Plugin and npm package versions must agree");
 

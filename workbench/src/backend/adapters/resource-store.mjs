@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import {TOOL,PLUGIN} from "../paths.mjs";
+import {TOOL,PLUGIN,toolDependencyRoots} from "../paths.mjs";
 import {parseInteractionDocument} from "./interaction-docs.mjs";
 import {assert,safeId} from "../../contracts/assertions.mjs";
 import {designOrganization,requirementPurpose} from "../../contracts/design-organization.mjs";
@@ -60,9 +60,10 @@ export function loadRequirement(workspace,id) {
     assert(!Object.hasOwn(s,"annotations"),"场景只保存体验初始状态；请将 annotations 迁移到 interactions/*.md："+s.id);
   }
   for(const page of pages)assert(scenarios.some(s=>s.page===page),"页面缺少场景: "+page);
-  const inputs=[...resourceFiles(folder),...filesIn(foundationRoot),resolveFile(workspace,"project.json"),...filesIn(TOOL),path.join(PLUGIN,"package-lock.json")];
+  const inputs=[...resourceFiles(folder),...filesIn(foundationRoot),resolveFile(workspace,"project.json"),...filesIn(TOOL),path.join(PLUGIN,"package.json")];
   for(const name of ["package.json","dependencies.lock.json"])if(fs.existsSync(path.join(workspace,name)))inputs.push(resolveFile(workspace,name));
-  const revision=hash(Buffer.concat(inputs.flatMap(file=>[Buffer.from(inside(folder,file)?path.relative(folder,file):inside(foundationRoot,file)?"foundation/"+path.relative(foundationRoot,file):inside(TOOL,file)?"tool/"+path.relative(TOOL,file):path.basename(file)),fs.readFileSync(file)])));
+  const dependencies=toolDependencyRoots().map(directory=>{const {name,version}=readJson(path.join(directory,"package.json"));return name+"@"+version;}).sort();
+  const revision=hash(Buffer.concat([...inputs.flatMap(file=>[Buffer.from(inside(folder,file)?path.relative(folder,file):inside(foundationRoot,file)?"foundation/"+path.relative(foundationRoot,file):inside(TOOL,file)?"tool/"+path.relative(TOOL,file):path.basename(file)),fs.readFileSync(file)]),Buffer.from(JSON.stringify(dependencies))]));
   return {folder,foundationRoot,project,manifest,scenarios,documentation,interactions,specs,hashes,params,specFiles,candidateRoots,revision};
 }
 export function listRequirements(workspace) {
