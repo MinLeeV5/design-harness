@@ -1,0 +1,51 @@
+skills/design-harness-product/SKILL.md
+  4413acd118fbbf8c 12-13
+skills/design-harness-interaction/SKILL.md
+  4413acd118fbbf8c 12-13
+shared/references/preview-export.md
+  4413acd118fbbf8c 3,18
+skills/design-harness-init/SKILL.md
+  4413acd118fbbf8c 12-13
+skills/design-harness-implement/SKILL.md
+  4413acd118fbbf8c 12-13
+docs/html-design.md
+  4413acd118fbbf8c 7-8
+docs/skill-maintenance.md
+  4413acd118fbbf8c 29
+docs/agent-workflow.md
+  4413acd118fbbf8c 35-36
+shared/references/workspace.md
+  4413acd118fbbf8c 3-5
+skills/design-harness-visual/SKILL.md
+  4413acd118fbbf8c 12-13
+docs/validation.md
+  4413acd118fbbf8c 27-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.8.2",
+  "base_commit_sha": "2abcc15d3583e4bcee57ffd35820e7f11d809565",
+  "prompts": {
+    "4413acd118fbbf8c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1beac-d90e-7ee1-b290-fed02ebee398",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "李伟民 <liweimin@cvte.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 286,
+      "overriden_lines": 0,
+      "messages_url": "https://gitai.gz.cvte.cn/cas/0dd2904e273030e002ea7f2dafe5254a7c5b87d1dfe75c75cb8f305cb4ec25cd",
+      "token_usage": {
+        "input_tokens": 295094,
+        "output_tokens": 86778,
+        "cache_read_tokens": 10474752,
+        "cache_creation_tokens": null,
+        "total_cost": null
+      }
+    }
+  }
+}
