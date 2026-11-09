@@ -20,7 +20,7 @@ export function initialize(project,{example=false,mode,primary}={}) {
     for(const name of ["requirements","reviews"])fs.mkdirSync(path.join(target,name),{recursive:true});
     if(mode!==undefined)configureOrganization(target,{mode,primary});
     if(example)createRequirement(target,"example","资料整理 · 设计示例",{preview:true});
-    return {workspace:target,designOrganization:designOrganization(loadProject(target)),next:"Init 需确认项目设计组织模式、核对事实并建立基础验证预览；运行 design-harness serve --project <项目目录>；使用 skills init 定位专业流程"};
+    return {workspace:target,designOrganization:designOrganization(loadProject(target)),next:"使用初始化 Skill 确认项目设计组织模式、核对事实并建立基础验证预览；运行 design-harness serve --project <项目目录>。"};
   }catch(error){fs.rmSync(target,{recursive:true,force:true});throw error;}
 }
 export function configureOrganization(workspace,{mode,primary}={}) {

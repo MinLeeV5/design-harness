@@ -49,7 +49,20 @@ async function verify(entry,directory,label) {
   }
   for(const file of ["workflow.md","evaluation.md","sources.md","adaptation.md"])assert.ok(fs.existsSync(path.join(path.dirname(implementation.entry),"references",file)));
   assert.equal(fs.existsSync(path.join(directory,"design-harness")),false,"工程实现指导无需初始化设计工作区");
-  await run(process.execPath,[entry,"init","--example","--project",directory],directory);
+  assert.equal(fs.existsSync(path.join(directory,".agents")),false,"skills 查询保持只读");
+  const initialized=JSON.parse(await run(process.execPath,[entry,"init","--example","--project",directory],directory));
+  assert.equal(initialized.created,true);assert.equal(initialized.skills.length,5);
+  for(const skill of guidance.skills) {
+    const link=path.join(directory,".agents/skills",skill.name);
+    assert.ok(fs.lstatSync(link).isSymbolicLink());
+    assert.equal(fs.realpathSync(path.join(link,"SKILL.md")),fs.realpathSync(skill.entry));
+    if(process.platform!=="win32") {
+      assert.equal(path.isAbsolute(fs.readlinkSync(link)),false);
+      if(label!=="npm-global")assert.equal(fs.readlinkSync(link),path.join("../..","node_modules",manifest.name,"skills",skill.name));
+    }
+  }
+  const repeated=JSON.parse(await run(process.execPath,[entry,"init","--project",directory],directory));
+  assert.equal(repeated.created,false);
   await run(process.execPath,[entry,"check","--project",directory],directory);
   await run(process.execPath,[entry,"typecheck","--project",directory],directory);
   const output=path.join(base,label+" 离线.html");
@@ -58,7 +71,7 @@ async function verify(entry,directory,label) {
   const state=await serve(entry,directory);
   assert.equal(fs.existsSync(path.join(directory,"design-harness/node_modules")),false);
   assert.equal(fs.existsSync(path.join(directory,"design-harness/workbench")),false);
-  console.log(JSON.stringify({installation:label,package:manifest.name,version:manifest.version,check:true,typecheck:true,export:true,guidance:true,...state}));
+  console.log(JSON.stringify({installation:label,package:manifest.name,version:manifest.version,check:true,typecheck:true,export:true,guidance:true,skillLinks:5,repeatInit:true,...state}));
 }
 
 async function agent(packageRoot,directory) {

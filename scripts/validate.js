@@ -20,6 +20,7 @@ export const WORKBENCH_FILES = [
   "src/backend/adapters/exploration-files.mjs",
   "src/backend/adapters/review-files.mjs",
   "src/backend/adapters/host-project.mjs",
+  "src/backend/adapters/project-init.mjs",
   "src/backend/adapters/agent-preferences.mjs",
   "src/backend/adapters/agent-skills.mjs",
   "src/backend/adapters/bundler.mjs",

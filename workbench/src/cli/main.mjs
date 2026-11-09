@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {parseCommand} from "./options.mjs";
 import {assert} from "../contracts/assertions.mjs";
-import {initialize,workspacePath,configureOrganization,projectOrganization,defaultDesign,createRequirement,cloneCandidate} from "../backend/services/workspace.mjs";
+import {initializeProject,workspacePath,configureOrganization,projectOrganization,defaultDesign,createRequirement,cloneCandidate} from "../backend/services/workspace.mjs";
 import {exportToFile} from "../backend/services/export.mjs";
 import {checkWorkspace} from "../backend/services/preview.mjs";
 import {PLUGIN} from "../backend/paths.mjs";
@@ -12,6 +12,7 @@ const usage=`Design Harness — 本地产品设计工作台
 用法: design-harness <命令> [选项]
 
   init [--mode continuous|per-requirement] [--primary <主稿ID>] [--example]
+                            建立设计目录并链接五个 Skill 到 .agents/skills
   organization [--mode <模式>] [--primary <主稿ID>]
   new [id] [--title <名称>] [--separate|--preview]
   clone <id> <原候选> <新候选> [--title <名称>]
@@ -43,7 +44,7 @@ export async function main(args=process.argv.slice(2)) {
     finally { await connection.close(); }
   }
   assert(["init","typecheck","organization","new","clone","deps","check","export","serve"].includes(action),"未知命令: "+action+"\n\n"+usage);
-  if(action==="init")return initialize(path.resolve(values.project??process.cwd()),values);
+  if(action==="init")return initializeProject(path.resolve(values.project??process.cwd()),values);
   if(action==="typecheck"){const {typecheck}=await import("../backend/adapters/typecheck.mjs");return typecheck(values.project?workspacePath(path.resolve(values.project)):undefined);}
   const workspace=workspacePath(path.resolve(values.project??process.cwd()));
   if(action==="organization") {

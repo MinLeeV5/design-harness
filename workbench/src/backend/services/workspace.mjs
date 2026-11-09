@@ -7,6 +7,7 @@ import {loadProject,loadRequirement,listRequirements} from "../adapters/resource
 import {writeSpec} from "../adapters/spec-store.mjs";
 
 export {workspacePath,initialize,configureOrganization,createRequirement,cloneCandidate} from "../adapters/workspace-files.mjs";
+export {initializeProject} from "../adapters/project-init.mjs";
 
 export function openWorkspace(workspace) {
   const directory = canonicalDirectory(workspace);
