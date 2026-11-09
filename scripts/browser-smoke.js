@@ -191,7 +191,7 @@ try {
   const touchStatus=phone.getByRole('button',{name:'本地草稿',exact:true}),touchTip=phone.getByRole('tooltip');
   await touchStatus.tap();await touchTip.getByText('本地草稿',{exact:true}).waitFor();
   for(const width of [360,320]){
-    await phone.setViewportSize({width,height:980});const box=await touchTip.boundingBox();assert.ok(box&&box.x>=0&&box.x+box.width<=width,"触屏状态说明应避让屏幕边缘");
+    await phone.setViewportSize({width,height:980});await phone.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));const box=await touchTip.boundingBox();assert.ok(box&&box.x>=0&&box.x+box.width<=width,"触屏状态说明应避让屏幕边缘");
     assert.equal(await phone.locator('html').evaluate(element=>element.scrollWidth<=innerWidth),true,'触屏Header不能横向溢出');
   }
   await touchStatus.tap();await touchTip.waitFor({state:'hidden'});await touchContext.close();
