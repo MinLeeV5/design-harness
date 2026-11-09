@@ -8,6 +8,6 @@
 
 files 只包含改变的完整 UTF-8 文件，path 相对当前需求目录。也可以按权限直接修改本轮副本；不要同时返回冲突版本。删除、软链接、任意新增文件和越界路径不受支持，身份范围由运行器校验。历史文件不代表已接受，本轮地图中的副本与提案状态是当前依据。
 
-明确视觉修改后按需返回 0–4 项对当前预览有实际作用的 controls，小改动可为零。binding=prop 绑定当前页面已有元素的字面量属性；binding=css 仅允许 range，绑定 params.json 中已被候选 CSS/React 使用的数值变量。range 使用合法 min/max/step 和单位，初始值须满足步长；其他类型使用 min:0、max:0、step:1、unit:""。完整字段以 JSON Schema 为准。
+明确视觉修改后按需返回 0–4 项对当前预览有实际作用的 controls，小改动可为零。所有控件的 target 都必须是当前页面 Spec.elements 中真实存在的元素 ID，不能填 CSS 选择器、组件类型或页面 ID；CSS 控件同样需要，可使用当前 Spec.root 指向的元素。binding=prop 绑定该元素已有的字面量属性；binding=css 仅允许 range，绑定 params.json 中已被候选 CSS/React 使用的数值变量。range 使用合法 min/max/step 和单位，初始值须满足步长；其他类型使用 min:0、max:0、step:1、unit:""。完整字段以 JSON Schema 为准。
 
 保留当前品牌和已确认行为。只有实际完成的检查可以报告；检查结果不代表用户验收。接受后由运行器写回，完全访问或批准越界操作的直接副作用不随取消或放弃自动撤销。
