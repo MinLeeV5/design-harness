@@ -110,6 +110,8 @@ export function App({data:initialData}:{data:BundleData}) {
   const alternate=manifest.candidates.find(c=>c.id!==candidate);
   const agent=useAgent({id:manifest.id,candidate,page,pages:manifest.pages,scenario:scenario.id,reset,selection,revision:()=>revisionRef.current,token:data.token,enabled:data.development,active:panel==="agent",blocked:exporting||navigationPending,capture:()=>{if(explorationActive&&explorationView&&explorationView.group===agent.job?.exploration?.id)return explorationView.capture();const frame=document.querySelector<HTMLIFrameElement>('.preview-stage>.frame-column[data-candidate="'+candidate+'"] iframe');if(!frame)return Promise.reject(new Error("当前画面尚未加载"));return captureFrame(frame,page,contexts[candidate]?.state??{...data.specs[candidate+":"+page].state,...scenario.state});},onProposal:value=>{if(proposalDocument.current!==value?.html){if(selection)setSelectionStale(true);setInspectDomId("");setPick(false);}proposalDocument.current=value?.html;setProposal(value);},onAccepted:refreshWorkspace});
   const explorationActive=Boolean(agent.job?.exploration&&!["accepted","discarded","cancelled","failed","superseded"].includes(agent.job.state)&&(agent.job.exploration.options.length||agent.job.exploration.baseProposal));
+  const reviewPickDisabledReason=compare||explorationActive?"方案对比期间暂不支持新增批阅":undefined;
+  useEffect(()=>{if(reviewPickDisabledReason)reviews.setPicking(false);},[reviewPickDisabledReason]);
   const currentExploration=explorationActive&&explorationView?.group===agent.job?.exploration?.id?explorationView:null;
   const visibleManifest=currentExploration?.data.manifest??manifest,visiblePage=currentExploration?.context.page??page,visibleScenario=currentExploration?.scenario??scenario,visibleScenarios=currentExploration?.data.scenarios??data.scenarios;
   const visibleInteractions=currentExploration?.data.interactions??interactions,visibleInteracting=currentExploration?.interacting??interacting,visibleElements=currentExploration?.elements??elements;
@@ -127,7 +129,7 @@ export function App({data:initialData}:{data:BundleData}) {
     channel.onmessage=event=>{if(event.data?.type==="reviews-added"&&event.data.request===request){delivered=true;clearTimeout(timer);channel.close();setReviewDraftLink("");setStatus("已加入原工作台的 Agent 草稿");}};
     channel.postMessage({type:"add-reviews",request,targetWindow:data.reviewReturn?.windowId,targetSession:data.reviewReturn?.sessionId,id:manifest.id,candidate,refs:items.map(t=>t.id)});
   }
-  function beginReview(){setSettingsOpen(false);setPick(false);setPanel("reviews");reviews.setPicking(true);}
+  function beginReview(){if(reviewPickDisabledReason)return;setSettingsOpen(false);setPick(false);setPanel("reviews");reviews.setPicking(true);}
   function locateReview(thread:ReviewThread){reviews.focus(thread.id);if(!manifest.pages.some(p=>p.id===thread.page)){reviews.setError("原页面已不在当前设计中，可查看批阅时的截图");return;}setLocateNonce(value=>value+1);if(thread.page!==page)navigate(thread.page);}
   const previewError=(compare?comparisonIds:[candidate]).map(id=>id+":"+(contexts[id]?.page??page)).map(key=>previewErrors[key]).filter(Boolean).join("；");
   function reportError(key:string,error:string){setPreviewErrors(old=>old[key]===error?old:{...old,[key]:error});}
@@ -240,7 +242,7 @@ export function App({data:initialData}:{data:BundleData}) {
           {duplicates.length>0&&<p className="validation-warning" role="alert">重复的定位标识：{duplicates.join("、")}</p>}
           {missing.length>0&&elements.length>0&&<p className="validation-warning">当前画面尚未出现说明目标：{missing.map(a=>a.target).join("、")}。请在对应状态核对。</p>}
         </div>}
-        {panel==="reviews"&&<ReviewPanel reviews={reviews} manifest={manifest} token={data.token} page={page} onPick={beginReview} onLocate={locateReview} onAdd={addReviewDraft} blocked={exporting||navigationPending||Boolean(reviewOriginState&&reviewOriginState!=="ready")}/>}{panel==="reviews"&&reviewOriginState&&reviewOriginState!=="ready"&&<p className="review-error">原提案当前不可新增批阅，评语与截图仍保留。请回到本地工作台在最新设计继续批阅。</p>}
+        {panel==="reviews"&&<ReviewPanel reviews={reviews} manifest={manifest} token={data.token} page={page} onPick={beginReview} onLocate={locateReview} onAdd={addReviewDraft} pickDisabledReason={reviewPickDisabledReason} blocked={exporting||navigationPending||Boolean(reviewOriginState&&reviewOriginState!=="ready")}/>}{panel==="reviews"&&reviewOriginState&&reviewOriginState!=="ready"&&<p className="review-error">原提案当前不可新增批阅，评语与截图仍保留。请回到本地工作台在最新设计继续批阅。</p>}
         {panel==="agent"&&<AgentPanel data={data} agent={agent} reviewWindowId={reviewWindowId} enabled={data.development} blocked={exporting||navigationPending} blockedReason={navigationPending?"请先完成或取消页面切换。":undefined} selection={selection} selectionStale={selectionStale} onPick={()=>{setSettingsOpen(false);setPick(true);}} onClear={()=>{setSelection(null);setSelectionStale(false);setSelected("");setInspectDomId("");setInstance("");}} onLevel={setInspectDomId}/>}
         {panel==="tools"&&<section className="workbench-tools" aria-label="画面工具">
           <div className="tool-grid">
