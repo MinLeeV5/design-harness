@@ -1,6 +1,6 @@
 # 项目资源协议
 
-当前只支持 schemaVersion: 1、renderer: "json-render/react"。工具使用当前插件引擎；尚未发布的旧试跑需重新整理资源，不维护旧 studio 协议兼容层。离线 HTML 可独立体验，重建采用当前插件和共享基础。
+当前只支持 schemaVersion: 1、renderer: "json-render/react"。工具使用当前安装包引擎，项目本地版本优先；尚未发布的旧试跑需重新整理资源，不维护旧 studio 协议兼容层。离线 HTML 可独立体验，重建采用当前工具包和共享基础。
 
 ## 入口与共享基础
 

@@ -15,4 +15,4 @@ metadata:
 
 按[产品工作流](references/workflow.md)共创和组织文档，按[评价](references/evaluation.md)检查可评审性，按[来源](references/sources.md)查阅适用指导。正式业务 PRD 与本地设计的衔接遵循[来源与承接](../../shared/references/product-source.md)。
 
-复用当前环境中实际可用的文档工具；不可用或权限不足时提供可复制草稿并说明限制。产品讨论和无界面需求无需初始化设计工作区或运行[插件 CLI](../../workbench/cli.mjs)；设计工作由用户另行选择，不自动启动其他阶段。
+复用当前环境中实际可用的文档工具；不可用或权限不足时提供可复制草稿并说明限制。产品讨论和无界面需求无需初始化设计工作区。通过可选 Codex 插件调用，或使用[公共 CLI](../../workbench/cli.mjs) 的 skills product 定位阶段资料；项目本地版本优先，按返回的资料承接。设计工作由用户另行选择，不自动启动其他阶段。

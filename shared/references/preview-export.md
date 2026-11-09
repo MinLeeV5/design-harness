@@ -1,16 +1,18 @@
 # 预览、编辑与离线交付
 
-命令中的 <插件目录> 为当前 SKILL.md 所在目录向上两级；先确认该目录下有 shared/ 与 workbench/cli.mjs。所有阶段使用同一入口，不需发布或全局安装 npm 包。
+推荐通过宿主项目开发依赖运行 CLI，也支持全局安装。全局和可选 Codex 插件入口优先转交目标项目已安装的版本。运行 design-harness skills 定位该版本的阶段入口与公共指导；只有用户显式选择阶段才执行相应流程。
 
-需要完整插件及锁定依赖（Node.js 22+）。以下命令直接调用插件公共 CLI，项目不维护工具源码或安装路径。
+需要完整 Design Harness 工具包及其运行依赖（Node.js 22+），npm 包名为 @minleev5/design-harness。以下 design-harness 命令可在项目脚本或全局环境执行；项目本地安装也可使用 npm exec -- design-harness 或 pnpm exec design-harness。源码或插件模式使用 node <工具包目录>/workbench/cli.mjs，工具包目录为当前 SKILL.md 所在目录向上两级；先确认该目录下有 shared/ 与 CLI。设计资源目录不维护工具源码或绝对安装路径。
 
 ```sh
-node <插件目录>/workbench/cli.mjs init --project <项目目录>
-node <插件目录>/workbench/cli.mjs organization --project <项目目录>
-node <插件目录>/workbench/cli.mjs new <需求ID> --project <项目目录> --title <名称>
-node <插件目录>/workbench/cli.mjs serve --project <项目目录> --port 4173
-node <插件目录>/workbench/cli.mjs check --project <项目目录> [需求ID]
-node <插件目录>/workbench/cli.mjs typecheck --project <项目目录>
+design-harness init --project <项目目录>
+design-harness organization --project <项目目录>
+design-harness new <需求ID> --project <项目目录> --title <名称>
+design-harness serve --project <项目目录> --port 4173
+design-harness check --project <项目目录> [需求ID]
+design-harness typecheck --project <项目目录>
+design-harness doctor
+design-harness skills
 ```
 
 init --example 创建局部合成示例，不代表真实产品完整稿。已有 design-harness/ 拒绝覆盖；--project 可指向资源目录。额外业务依赖用 deps 安装到项目外缓存。
@@ -69,7 +71,7 @@ Agent 标题下拉切换会话，紧邻的＋图标新建会话；Codex Provider
 ## 候选与公共基础
 
 ```sh
-node <插件目录>/workbench/cli.mjs clone <需求ID> <原候选> <新候选> --project <项目目录> --title <名称>
+design-harness clone <需求ID> <原候选> <新候选> --project <项目目录> --title <名称>
 ```
 
 clone 复制完整 Spec、参数与专属实现，两候选的运行状态独立。所有需求引用项目唯一 foundation；公共更新保持向下兼容并检查既有页面，不复制需求基础或建立升级草稿。
@@ -81,10 +83,10 @@ clone 复制完整 Spec、参数与专属实现，两候选的运行状态独立
 命令行明确指定资源目录之外的 .html 文件：
 
 ```sh
-node <插件目录>/workbench/cli.mjs export <需求ID> --project <项目目录> --out <资源目录之外的文件.html>
+design-harness export <需求ID> --project <项目目录> --out <资源目录之外的文件.html>
 ```
 
-export 使用当前 requirements、公共 foundation 与当前插件生成一个 HTML，内嵌工作台、候选、样式、资源、说明与许可，可从 file:// 离线体验。CLI 重新导出可以替换选定文件，构建失败保留原输出；目标不能位于 design-harness 资源目录内，不能是目录或软链接。
+export 使用当前 requirements、公共 foundation 与当前工具包生成一个 HTML，内嵌工作台、候选、样式、资源、说明与许可，可从 file:// 离线体验。CLI 重新导出可以替换选定文件，构建失败保留原输出；目标不能位于 design-harness 资源目录内，不能是目录或软链接。
 
 持续模式可省略 export 的 ID，读取配置中的主稿，后续通过相同 --out 更新同一 HTML；浏览器默认下载名由设计 ID 稳定生成。按需求模式指定各自 ID，显式打开独立例外时导出当前独立设计，不自动合入主稿。
 

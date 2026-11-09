@@ -111,9 +111,9 @@
 
 ### 常驻边界
 
-- 使用中文沟通。本仓库分发通用 Codex 插件，使用方项目的设计知识、独立需求与交接保存在其代码仓库的 design-harness/。
+- 使用中文沟通。本仓库以 npm 包 @minleev5/design-harness 分发独立 CLI，命令与可选 Codex 插件名为 design-harness；使用方项目的设计知识、独立需求与交接保存在其代码仓库的 design-harness/。
 - 通用分发资产不得写入使用方项目的真实标识、路径、代码映射或任务记录。
-- 每个公开 Skill 保留阶段入口、工作流与评价；公共指导、业务模板与适用许可集中在 shared/，直接引用插件唯一 workbench/cli.mjs。运行与读取共享资源依赖完整插件，不复制工具到项目，不依赖兄弟 Skill。详细资源组织按下表读取。
+- 每个公开 Skill 保留阶段入口、工作流与评价；公共指导、业务模板与适用许可集中在 shared/，直接引用工具包唯一 workbench/cli.mjs。CLI 可作为宿主项目根开发依赖或全局工具；全局与可选插件入口优先采用项目本地版本，skills 定位同版本指导。完整工具包承载运行及共享资源，不复制工具到设计资源目录，不依赖兄弟 Skill。详细资源组织按下表读取。
 - 不启用自动跨项目学习、后台知识晋升、hooks 或遥测。
 - 页面组合和实例属性由原生 json-render Spec 维护，Catalog／Registry 注册项目自定义 React 组件；组件内部外观与交互由 React 维护，交互说明与标注关联由需求内 interactions/*.md 按统一 Markdown＋YAML 协议维护，JSON 场景仅保存体验初始状态；工作台按实际页面和运行状态同步顶部、说明与标注。项目只保留一处公共 foundation，兼容更新影响既有需求；requirements 是本地设计产物的唯一维护来源，用户指定的正式业务 PRD 与设计按[来源与承接](shared/references/product-source.md)衔接。离线 HTML 由当前插件按需导出，历史由 Git 记录，不维护 releases 或源码副本。
 - 插件固定工作台与产品预览隔离，项目只承载业务资源；设计产物以参考交付为目的，不导入或修改业务工程。固定工具开发源为 workbench/，公共业务模板为 shared/workspace/，公共指导与来源为 shared/references/ 和 shared/third-party/；各入口直接引用，不维护复制同步脚本。

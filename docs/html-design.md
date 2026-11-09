@@ -2,7 +2,7 @@
 
 ## 源码架构与依赖
 
-工作台采用本地运行的模块化结构，随完整插件启动和分发。公开命令保持 `workbench/cli.mjs`，内部实现集中在 `workbench/src/`；HTTP 和 CLI 调用相同应用服务。当前设计资源仍以项目文件为维护来源。
+工作台采用本地运行的模块化结构，随 npm 工具包和可选 Codex 插件分发。npm 包 @minleev5/design-harness 提供 design-harness 命令，与插件共用唯一公开入口 `workbench/cli.mjs`，内部实现集中在 `workbench/src/`；HTTP 和 CLI 调用相同应用服务。入口按 --project 或当前目录解析项目本地安装的 @minleev5/design-harness 并优先转交，保留参数、退出状态和停止信号；帮助、版本、skills 与 doctor 无需初始化设计工作区。当前设计资源仍以项目文件为维护来源。
 
 | 目录 | 职责 |
 | --- | --- |
@@ -37,7 +37,9 @@ Agent 会话、消息与审批统一使用 frontend/features/agent/AgentStatus �
 
 project.json 的 designOrganization 保存已确认组织方式，contracts/design-organization 统一校验配置与创建边界；workspace 文件适配器保存配置，CLI init／organization／new 复用该边界。持续模式记录 primary，普通新建只允许主稿，独立例外须显式 --separate，基础预览用 --preview；工作台默认进入已建立主稿。模式缺失时仍可读取旧资源，不自动推断。loadRequirement 返回冻结的项目配置，Agent 每轮从提案副本读取模式、主稿与用途，并装载共享组织指导；配置变化纳入 revision，旧提案不能继续接受。基础预览不是产品主稿，项目配置也不属于工作台提案写入范围。
 
-工具依赖固定在插件；可选业务 package.json 只声明精确版本的 dependencies，锁定到 dependencies.lock.json。deps 使用 --ignore-scripts 安装到用户缓存目录；deps 显式更新扩展锁；构建与重建使用项目当前匹配锁和外部缓存。项目不产生 node_modules 或工具配置。构建将 React/json-render/zod 固定到插件，避免重复 React 或业务覆盖引擎。
+CLI 可作为宿主项目根开发依赖或全局工具。运行、类型与浏览器验证依赖属于工具包 dependencies，源码架构解析器与 ZIP 打包器属于开发依赖。backend/paths 按实际 Node 解析定位工具依赖及递归依赖的真实包目录，兼容 npm 提升、嵌套依赖与 pnpm 链接；构建只允许实际依赖图中的包目录，不放开整个宿主 node_modules，类型路径同样基于包解析。资源 revision 纳入工具源码、工具 package.json 与实际安装依赖的名称和版本，不依赖 npm 不分发的源码 package-lock.json。
+
+资源目录内可选业务 package.json 只声明精确版本的 dependencies，锁定到 dependencies.lock.json。deps 使用 --ignore-scripts 安装到用户缓存目录；deps 显式更新扩展锁；构建与重建使用项目当前匹配锁和外部缓存。design-harness/ 不产生 node_modules 或工具配置。构建将 React/json-render/zod 固定到工具包解析出的版本，避免业务覆盖引擎。
 
 ## Agent 多方案设计
 

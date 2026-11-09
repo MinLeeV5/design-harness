@@ -26,7 +26,7 @@
 
 ## 恢复与交接记录
 
-恢复时依次读取 project.json 中的组织模式与主稿、当前设计 manifest.json 的用途、requirement.md、interactions/*.md、handoff.md；随后按当前候选读取完整 Spec、参数、Catalog／Registry、专属组件和项目唯一公共基础。沿用项目已确认默认及本次明确例外，不根据目录顺序猜测主稿。工具从完整插件启动，项目不承载工作台源码或绝对安装路径。
+恢复时依次读取 project.json 中的组织模式与主稿、当前设计 manifest.json 的用途、requirement.md、interactions/*.md、handoff.md；随后按当前候选读取完整 Spec、参数、Catalog／Registry、专属组件和项目唯一公共基础。沿用项目已确认默认及本次明确例外，不根据目录顺序猜测主稿。工具从完整 CLI 包或可选插件启动，入口优先使用项目本地版本；设计资源目录不承载工作台源码或绝对安装路径。
 
 handoff.md 至少记录当前范围、事实基线、已确认决定、当前候选及选择理由、实际变化、检查结果、未决项和下一步。沿用区域与本次新增分开，保留基线版本、环境、上下文和实际视口。
 

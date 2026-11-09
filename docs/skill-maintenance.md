@@ -24,18 +24,18 @@ Init 按[初始化工作流](../skills/design-harness-init/references/workflow.m
 
 每个 Skill 保留入口、agents 与阶段工作流、评价、来源路由。公共指导、模板和来源声明只在 shared/ 保存一份，原创许可使用插件根 LICENSE；各入口链接同一个 workbench/cli.mjs，产品讨论无需运行它。Markdown 可引用本阶段、插件 shared/ 及明确公开的 CLI／许可文件，不依赖兄弟 Skill 或任意插件内部文件。
 公共基础仅在项目根目录保留一份，所有需求与导出共享，兼容更新需验证已有需求。requirements 为本地设计产物的唯一维护来源；正式业务 PRD 的位置由用户决定。不创建 releases 或业务源码副本；重新生成统一使用 export。
-完整插件统一携带公共工作台、业务资源模板及资源／协议／预览／交接指导；单独复制 Skill 不作为安装方式。
+npm 工具包与可选 Codex 插件统一携带公共工作台、业务资源模板及资源／协议／预览／交接指导；单独复制 Skill 不作为安装方式。CLI、全局和插件入口共用 workbench/cli.mjs；入口优先使用 --project 或当前目录发现的项目本地版本，并保留参数、退出状态和停止信号。阶段资料通过 skills 取得实际采用版本的路径，不将某台机器的安装位置写入项目。
 workbench/ 是唯一工具开发源，shared/workspace/ 是唯一公共业务模板，shared/references/ 维护公共指导，shared/third-party/ 保留适用来源声明。维护原文件后直接验证，无复制或同步步骤；分发检查拒绝旧副本、缺失共享文件和软链接。
 
 工作台内部按 [源码架构与依赖](html-design.md#源码架构与依赖) 维护。跨功能选择器集中在 frontend/ui，字段和工具栏共享交互与选项协议；新增功能归入 frontend/features，跨端数据与纯规则归入 contracts，本地能力归入 backend/adapters，完整操作由 backend/services 编排；HTTP 和 CLI 复用服务。新增或移动模块时同步 scripts/validate.js 的分发资源清单，并通过架构边界校验，不在旧目录保留运行源码副本。
 各阶段独立维护工作流和评价；Init/视觉在需要资产时读取公共资产方法，其余阶段不引入生图流程。
 
-固定工具使用 Node.js 22+、json-render、React、TypeScript 与 esbuild，工具依赖和锁文件位于插件。项目只维护 Spec、Catalog／Registry、业务组件和可选扩展依赖声明；扩展缓存位于项目之外。
+固定工具使用 Node.js 22+、json-render、React、TypeScript 与 esbuild，源码锁文件位于工具仓库。宿主项目可将 CLI 声明为根开发依赖并提交自身锁文件；design-harness/ 只维护 Spec、Catalog／Registry、业务组件和可选扩展依赖声明，扩展缓存位于项目之外。工具运行、类型检查和提案浏览器验证所需依赖必须属于工具包 dependencies，不能依赖安装者取得本包 devDependencies。构建与类型检查按实际解析的包目录运行，不假定包内有独立 node_modules，也不放开宿主全部依赖。
 交互正文与关联配置由各需求 interactions/*.md 统一维护，场景仅保存初始数据；[交互协议](../shared/references/interactions.md)约定文档、展示模式与导航 SDK。对比共享页面/场景/视口/标注上下文，编辑焦点不影响两侧会话；离开保护先分别确认再统一切页，输入及业务/Agent 修改保持方案独立。
 说明打点的必要性判断、五维模板与精炼要求只在该交互协议维护：外部交互阶段与内部交互身份均须在必要时主动补齐或更新，并与实现同步交付。新说明优先使用 dimensions，按需组合操作、条件、状态、异常和流程，短标题下直接显示有效维度，不强制摘要或空项；原有四种模式继续兼容。入口、评价和通用蓝图同步引用，维护时兼顾简洁与关键规则可验收，不用打点数量、字数或协议格式通过代替内容检查。
 图标输入工具栏复用本机 Codex 配置与登录；身份首次默认交互，用户级偏好在项目与插件外保存；新会话继承最近选择，已有会话独立。身份、模型与按模型记住的思考深度互相独立，切换只影响下一轮，认证和推理结果分别展示，不管理新的 Provider 或密钥。专业身份从 workbench/agents 的内部入口启动，公共方法抽到 shared，由外部阶段与内部身份按需引用；身份元数据独立于模型输出，切换身份保留同一候选已确认上下文。交互提案可包含需求级说明、场景和页面登记，需展示共享影响、验证全部候选并统一接受；公共基础与已有其他候选实现继续隔离。
 工作台内设计 Agent 通过入口地图按需读取业务 PRD 与设计承接指导；命令和工具按用户所选原生权限运行，网络、飞书等来源需具备对应工具和授权。实际未访问的来源不得称为已核对或最新。三档权限、审批、直接修改风险和提案边界统一维护在[专业 Agent 协议](../shared/references/agent.md)。
-预览工具维护本地 HTTP 服务、隔离 iframe、页面状态双向同步、维度组合与既有说明组件、编号说明、单次精确点选、统一Agent讨论与多方案预览、动态控件、完整当前会话和公开活动记录，不注册 MCP、hooks 或遥测。
+预览工具维护本地 HTTP 服务、隔离 iframe、页面状态双向同步、维度组合与既有说明组件、编号说明、单次精确点选、本地自由批阅、统一Agent讨论与多方案预览、动态控件、完整当前会话和公开活动记录，不注册 MCP、hooks 或遥测。批阅的记录与截图协议统一维护在 shared/references，交互与视觉阶段按对应评价核对反馈，不将解决状态自动等同于提案接受。
 多方案同时服务交互与视觉身份，数量、讨论确认、并行生成、局部引用、融合／细化／再探索及历史持久化共同维护在 agent、proposal、protocol 和 preview-export 公共指导；两阶段只保留各自方法及评价，不维护固定三方案的专属流程。公共基础不进入版本快照，正式源和历史分别计版本。
 [技术结构](html-design.md) 解释协议、编译边界和按需导出；[验证范围](validation.md) 说明检查证据。
 
@@ -51,9 +51,12 @@ Live 复用 workbench/vendor/impeccable 的 DOM 辅助模块，保留固定提�
 
 插件清单、package.json、锁文件版本同步。使用 SemVer，本地正式源版本不带缓存后缀；远端发布与推送需明确授权。
 日常迭代不自动递增版本；有明确版本或发布需求时再同步调整。
-市场稳定名为 design-harness，根 source.path 为 ./，ZIP 中转换为 ./plugins/design-harness。
+npm 稳定包名为 @minleev5/design-harness，命令与市场稳定名为 design-harness；包名与插件名分别维护。根 source.path 为 ./，ZIP 中转换为 ./plugins/design-harness。
+scoped npm 包通过 publishConfig 指定公共注册表与 public 访问级别，本地打包文件名为 minleev5-design-harness-<版本>.tgz。
 npm ci 安装依赖，npm run check 验证，npm run package -- --out <新目录> 打包；拒绝覆盖并输出 SHA-256。
+npm pack 生成可安装的 CLI .tgz，prepack 执行结构校验；files 白名单包含运行源码、模板、专业资料、品牌、维护说明与可选插件元数据，排除 scripts、tests、.harness、openspec 和生成产物。发布到 npm 或插件市场均需要明确授权；本地打包与安装验收不执行发布。
 保留品牌和许可证；.harness、openspec、node_modules、dist、私有设计工作区不进入包。
 验证入口指导完整性、脱离完整插件时的明确错误、完整插件在全新路径安装解压及离线交付；构建成功、真实浏览器运行、设计验收与用户批准分别报告。
+npm run test:install 实际安装同一 tarball 到临时 npm 项目、隔离全局 prefix 及可用的 pnpm 项目，覆盖中文／空格路径、命令发现、本地版本优先、检查、类型、导出、缺少 Codex 时启动和包内指导。Agent 提案链路使用确定性执行夹具及真实 Chrome 验证，不等同于真实模型推理；真实 Codex 另行试跑。资源 revision 使用工具 package.json 与实际依赖名称／版本，不依赖 npm 不包含的源码锁文件。
 
 内部身份的短规则只含职责、质量底线和执行边界；目录、版本、权限、提案状态逐轮明确。正文与源码按需读取，不按字符前缀静默裁切，不把外部完整阶段或宿主 UI 使用手册注入产品设计上下文。新增身份／公共方法入口同步分发清单及相关引用；公共方法只维护一份。Provider 用量区只展示主机可计量的注入信息与原生返回的用量，原生缺失值保持未知，数据按会话隔离。

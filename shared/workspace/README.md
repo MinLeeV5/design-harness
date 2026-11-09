@@ -1,8 +1,8 @@
 # 项目业务设计资源
 
-本目录只保存项目设计基础、需求、完整 json-render Spec、Catalog／Registry、React 组件、场景、资产和交接。固定工作台由完整 Design Harness 插件启动，不在此目录维护运行器。
+本目录只保存项目设计基础、需求、完整 json-render Spec、Catalog／Registry、React 组件、场景、资产和交接。固定工作台通过 Design Harness CLI 启动，可安装为宿主项目的开发依赖或全局工具，无需安装 Codex 插件；不在此资源目录维护运行器或工具依赖。
 
-project.json 是资源入口；foundation/ 为公共基础，仅此一份，全部需求与按需导出共享，兼容更新需要核对已有页面。每个候选保存独立完整页面、参数和专属实现。通过完整插件的 workbench/cli.mjs 调用公共工具，具体命令见 Skill 操作说明。
+project.json 是资源入口；foundation/ 为公共基础，仅此一份，全部需求与按需导出共享，兼容更新需要核对已有页面。每个候选保存独立完整页面、参数和专属实现。运行 design-harness serve --project <宿主项目> 启动已有设计，skills 定位专业流程，doctor 检查本机 Codex；全局和可选插件入口优先使用项目本地版本。
 
 每个需求在 interactions/*.md 独立编写交互说明，组件只提供稳定定位与导航状态。工作台内置卡片、步骤、规则表和状态对照，随页面与运行状态筛选；场景只保存初始数据。
 

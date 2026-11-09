@@ -2,9 +2,46 @@
 
 <img src="assets/icon.png" width="80" height="80" alt="Design Harness 彩色组件图标">
 
-面向本人和 Agent 的产品共创与本地设计插件。产品入口协助讨论需求、形成和维护 PRD；设计工作台由插件固定提供，项目维护业务设计资源。页面由 json-render Spec 组合，通过 Catalog／Registry 加载项目自定义 React 组件，可在工作台体验、比较和调整，按需导出可独立离线分享的单文件 HTML。
+面向本人和 Agent 的产品共创与本地设计工具，以 CLI 为主要分发入口，Codex 插件提供可选的专业流程接入。工具包提供固定工作台，项目维护业务设计资源。页面由 json-render Spec 组合，通过 Catalog／Registry 加载项目自定义 React 组件，可在工作台体验、比较和调整，按需导出可独立离线分享的单文件 HTML。
+
+## 项目安装与启动
+
+需要 Node.js 22+。npm 包名为 @minleev5/design-harness，命令与可选 Codex 插件名为 design-harness，设计资源目录为 design-harness/。团队项目将工具声明在宿主项目根 package.json 的 devDependencies，并提交锁文件。协作者安装项目开发依赖后即可启动，无需安装 Codex 插件。
+
+当前可先从本仓库生成 npm 包，再安装到项目；打包不执行远程发布：
+
+```sh
+npm ci
+npm pack
+```
+
+在使用方项目安装生成的 .tgz，并启动已有设计：
+
+```sh
+npm install --save-dev --save-exact /绝对路径/minleev5-design-harness-0.2.0.tgz
+npm exec -- design-harness serve
+```
+
+pnpm 项目可用 pnpm add -D -E <包文件> 安装，再用 pnpm exec design-harness serve。建议在项目 scripts 中配置 "design": "design-harness serve"、"design:check": "design-harness check"，之后通过 npm run design 或 pnpm design 启动。发布到 npm 后，包文件参数可替换为 @minleev5/design-harness@<固定版本>。
+
+指向个人目录的本地 .tgz 适合本机验收。团队共享应使用所有协作者可访问的 npm 注册表版本，或将包文件作为项目内可共享制品，避免提交依赖某位开发者目录的 file 引用。
+
+也支持全局安装后跨项目使用：
+
+```sh
+npm install --global /绝对路径/minleev5-design-harness-0.2.0.tgz
+design-harness serve --project <项目或资源目录>
+design-harness doctor
+design-harness skills
+```
+
+全局、源码和插件入口均优先转交目标项目已安装的本地版本，保留参数、退出状态及停止信号。--project 缺省时使用当前目录，支持从资源子目录发现宿主项目的安装版本。
+
+查看、检查和导出设计无需 Codex；工作台内的 Agent 需要本机可用的 Codex 及认证，继续复用其配置与原生执行能力。提案验证与批阅截图需要本机 Chrome。doctor 只读取连接状态；skills 输出当前采用版本的专业入口与公共指导位置，不自动安装插件或启动设计阶段。
 
 ## 四个入口
+
+安装可选 Codex 插件后，可直接调用以下 Skill；使用其他 Agent 时，通过 design-harness skills 定位并读取同一套阶段资料。插件与项目版本不同时，以 CLI 返回的项目本地资料承接当前阶段。
 
 | 入口 | 职责与停止点 |
 | --- | --- |
@@ -35,7 +72,7 @@ Init 先建立覆盖清单：已有产品提取指定版本的公共基础，先
 
 ## 固定工作台与项目资源
 
-- 插件 workbench/ 维护画布、抽屉、比较、构建、隔离预览、定位、保存及导出。
+- 工具包 workbench/ 维护画布、抽屉、比较、构建、隔离预览、定位、保存及导出。
 - 项目 foundation/ 沉淀公共组件、Catalog／Registry、Token、规则和资产。
 - 所有需求共享项目唯一 foundation，每个候选保存独立完整 Spec、参数和专属实现。
 
@@ -59,13 +96,13 @@ Init 先建立覆盖清单：已有产品提取指定版本的公共基础，先
   reviews/
 ```
 
-项目不复制 studio/ 或工作台源码，不维护工具脚本、工具依赖和构建配置。React 负责组件内部外观与交互，Spec 负责页面组合和实例属性，Markdown 负责依据与说明。设计资源协议当前以本地文件为来源，为以后平台化保留边界；插件当前不提供云端设计资源协作服务。
+设计资源目录不复制 studio/ 或工作台源码，不维护工具脚本、工具依赖和构建配置；宿主项目可声明 CLI 开发依赖与启动脚本。React 负责组件内部外观与交互，Spec 负责页面组合和实例属性，Markdown 负责依据与说明。设计资源协议当前以本地文件为来源，为以后平台化保留边界；工具当前不提供云端设计资源协作服务。
 
 公共基础应保持向下兼容，更新会影响已有需求；每次导出采用当前需求、公共基础与工作台，历史差异用 Git 记录。当前未发布，统一采用最新协议，不建设旧试跑的多版本兼容层。
 
 ## 本地体验
 
-在完整插件目录安装锁定依赖后开发或启动工具：
+在本仓库源码目录安装锁定依赖后开发或启动工具：
 
 ```sh
 npm ci
@@ -75,7 +112,7 @@ npm run demo
 
 demo 在 dist/centralized-demo/design-harness 生成合成数据局部示例，默认地址 http://127.0.0.1:4173。示例验证输入、进度、结果、下载和失败恢复，不证明任何真实产品的完整 UI 或服务行为。
 
-从插件目录创建和加载项目资源（--project 也可直接指向资源目录）：
+从源码目录创建和加载项目资源（--project 也可直接指向资源目录；npm 安装后可将 node workbench/cli.mjs 换成 design-harness）：
 
 ```sh
 node workbench/cli.mjs init --project <项目> --example
@@ -87,7 +124,7 @@ node workbench/cli.mjs clone <需求> <原候选> <新候选> --project <项目>
 node workbench/cli.mjs export <需求> --project <项目> --out <资源目录之外的文件.html>
 ```
 
-各 Skill 直接引用同一个公共入口 node <插件目录>/workbench/cli.mjs；插件目录为当前 SKILL.md 所在目录向上两级。产品共创无需运行 CLI 或初始化设计工作区。阶段工作流和评价各自维护，业务模板、公共指导和许可集中在 shared/，随完整插件分发。项目无需 npm ci；工具依赖安装在插件，扩展业务依赖用 deps 命令安装到项目之外的缓存。
+各 Skill 直接引用同一个公共入口 node <工具包目录>/workbench/cli.mjs；工具包目录为当前 SKILL.md 所在目录向上两级。该入口同样优先使用项目本地版本。产品共创无需初始化设计工作区。阶段工作流和评价各自维护，业务模板、公共指导和许可集中在 shared/，随 npm 包和可选插件一起分发。工具运行依赖由包管理器安装；资源目录不安装工具依赖，扩展业务依赖用 deps 命令安装到项目之外的缓存。
 
 CLI init 只建立资源目录，拒绝覆盖已有 design-harness/；已有工作区由 Skill 承接维护。模板默认基础仍是草稿，应按项目真实依据或已确认设计修订，再建立基础验证预览。Figma、Pencil、截图与代码可作为输入，日常运行不依赖这些设计工具，也不导入业务工程模块。
 
@@ -140,9 +177,11 @@ requirements/ 是本地设计产物的唯一维护来源。用户指定飞书等
 
 历史差异用 Git 显式记录；真实验收状态、选择理由、对照结论与未决项记录在需求 handoff.md，导出本身不代表验收。公共基础只按明确批准增量更新，不自动跨项目学习、后台晋升或遥测。
 
-## 安装与分发
+## 打包与可选插件
 
 当前版本保持 0.2.0。源码变更不自动更新安装缓存，本地修改没有发布或推送到远端。
+
+npm pack 生成可用于项目或全局安装的 .tgz；files 白名单包含 workbench、shared、skills、品牌、说明及可选插件元数据，不包含开发脚本、测试、项目知识、node_modules、dist、.harness 或 openspec。npm run test:install 在临时目录实际安装并验证 npm 开发依赖、隔离全局安装和可用的 pnpm 布局，不修改其他项目或本机全局工具。
 
 ```sh
 npm run package -- --out dist/build-<唯一名称>

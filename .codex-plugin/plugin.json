@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "homepage": "https://github.com/MinLeeV5/design-harness",
   "repository": "https://github.com/MinLeeV5/design-harness",
-  "description": "共创产品需求并维护 PRD；通过固定评审工作台加载 json-render 与 React 设计资源，支持交互说明、Agent 迭代及离线 HTML 导出。",
+  "description": "为 Design Harness CLI 提供可选专业入口：共创产品需求并维护 PRD，通过固定工作台迭代 json-render 与 React 设计资源，支持交互说明、Agent 及离线 HTML。",
   "author": {
     "name": "Min Lee"
   },

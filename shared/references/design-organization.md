@@ -20,9 +20,9 @@
 通过公共 CLI 保存；命令中的参数应来自已确认决定，不以工具成功代替用户确认：
 
 ```sh
-node <插件目录>/workbench/cli.mjs init --project <项目> --mode continuous --primary product
-node <插件目录>/workbench/cli.mjs organization --project <项目>
-node <插件目录>/workbench/cli.mjs organization --project <项目> --mode per-requirement
+design-harness init --project <项目> --mode continuous --primary product
+design-harness organization --project <项目>
+design-harness organization --project <项目> --mode per-requirement
 ```
 
 已有工作区使用 organization，不重跑 init。旧工作区缺少该字段时仍可打开现有设计，在初始化或需要确定新设计归属时补充选择，不擅自搬移、合并或重命名既有资源。
