@@ -7,7 +7,7 @@ import {isWithin, isFile, walk} from "./files.js";
 import {validateArchitecture} from "./architecture.js";
 
 export const ROOT = path.resolve(import.meta.dirname, "..");
-export const SKILL_NAMES = ["design-harness-init", "design-harness-interaction", "design-harness-visual", "design-harness-product"];
+export const SKILL_NAMES = ["design-harness-init", "design-harness-interaction", "design-harness-visual", "design-harness-product", "design-harness-implement"];
 // Entries carry phase instructions; the complete plugin owns the shared resources and runtime.
 export const WORKSPACE_FILES = [".gitignore","README.md","project.json","foundation/components.tsx","foundation/catalog.ts","foundation/registry.tsx","foundation/design.md","foundation/foundation.json","foundation/tokens.css"];
 export const WORKBENCH_FILES = [
@@ -144,8 +144,9 @@ export const SHARED_FILES = [
   ...SHARED_REFERENCES.map(file => "references/" + file),
   ...SHARED_NOTICES.map(file => "third-party/" + file)
 ];
-export function requiredSkillFiles() {
-  return ["SKILL.md", "agents/openai.yaml", "references/workflow.md", "references/evaluation.md", "references/sources.md"];
+export function requiredSkillFiles(name) {
+  return ["SKILL.md", "agents/openai.yaml", "references/workflow.md", "references/evaluation.md", "references/sources.md",
+    ...(name === "design-harness-implement" ? ["references/adaptation.md"] : [])];
 }
 function validateShared(root) {
   const errors = [];
@@ -322,7 +323,7 @@ export function validate(directory = ROOT) {
   const skills = fs.existsSync(skillRoot) ? fs.readdirSync(skillRoot)
     .map(name => path.join(skillRoot, name)).filter(skill => isFile(path.join(skill, "SKILL.md"))) : [];
   check(skills.length === SKILL_NAMES.length && skills.every(skill => SKILL_NAMES.includes(path.basename(skill))),
-    "Expected exactly Init, Interaction, Visual and Product public skills");
+    "Expected exactly Init, Interaction, Visual, Product and Implement public skills");
   errors.push(...validateShared(root));
   const loadedShared = new Set();
   for (const skill of skills) errors.push(...validateSkill(skill, loadedShared));

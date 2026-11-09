@@ -42,6 +42,13 @@ async function verify(entry,directory,label) {
   const guidance=JSON.parse(await run(process.execPath,[entry,"skills"],directory));
   for(const skill of guidance.skills)assert.ok(fs.existsSync(skill.entry));
   assert.ok(fs.existsSync(guidance.shared));
+  const implementation=guidance.skills.find(skill=>skill.name==="design-harness-implement");assert.ok(implementation);
+  for(const selector of ["implement","design-harness-implement"]) {
+    const selected=JSON.parse(await run(process.execPath,[entry,"skills",selector],directory));
+    assert.deepEqual(selected.skills,[implementation]);
+  }
+  for(const file of ["workflow.md","evaluation.md","sources.md","adaptation.md"])assert.ok(fs.existsSync(path.join(path.dirname(implementation.entry),"references",file)));
+  assert.equal(fs.existsSync(path.join(directory,"design-harness")),false,"工程实现指导无需初始化设计工作区");
   await run(process.execPath,[entry,"init","--example","--project",directory],directory);
   await run(process.execPath,[entry,"check","--project",directory],directory);
   await run(process.execPath,[entry,"typecheck","--project",directory],directory);
@@ -110,7 +117,7 @@ async function liveAgent(packageRoot,directory) {
 try {
   const packed=JSON.parse(await run("npm",["pack","--ignore-scripts","--json","--pack-destination",base],root))[0];
   const files=packed.files.map(file=>file.path);
-  for(const expected of ["workbench/cli.mjs","shared/references/agent.md","skills/design-harness-product/SKILL.md",".codex-plugin/plugin.json",".agents/plugins/marketplace.json"])assert.ok(files.includes(expected),expected);
+  for(const expected of ["workbench/cli.mjs","shared/references/agent.md","skills/design-harness-product/SKILL.md","skills/design-harness-implement/SKILL.md","skills/design-harness-implement/references/adaptation.md",".codex-plugin/plugin.json",".agents/plugins/marketplace.json"])assert.ok(files.includes(expected),expected);
   assert.ok(!files.some(file=>/^(?:scripts|tests|node_modules|dist|\.harness|openspec|design-harness)\//.test(file)));
   const archive=path.join(base,packed.filename),npmProject=project("npm 项目");
   await run("npm",["install","--save-dev","--save-exact","--ignore-scripts","--no-audit","--no-fund",archive],npmProject);

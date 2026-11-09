@@ -79,7 +79,13 @@ describe("Plugin distribution", () => {
       const entry=path.join(plugin,"skills",name,"SKILL.md"),links=[...fs.readFileSync(entry,"utf8").matchAll(/\[[^\]]*\]\(([^)]+\/cli\.mjs)\)/g)];
       assert.equal(links.length,1,name+" must link the shared CLI");
       const cli=path.resolve(path.dirname(entry),links[0][1]);assert.equal(cli,path.join(plugin,"workbench/cli.mjs"));
-      if(name==="design-harness-product") continue;
+      if(["design-harness-product","design-harness-implement"].includes(name)) {
+        const project=path.join(base,"空项目 "+name);fs.mkdirSync(project);
+        const located=spawnSync(process.execPath,[cli,"skills",name,"--project",project],{cwd:base,encoding:"utf8"});
+        assert.equal(located.status,0,located.stderr);assert.equal(JSON.parse(located.stdout).skills[0].entry,fs.realpathSync(entry));
+        assert.deepEqual(fs.readdirSync(project),[]);
+        continue;
+      }
       const project=path.join(base,"业务 项目 "+name);fs.mkdirSync(project);
       const run=(...args)=>spawnSync(process.execPath,[cli,...args,"--project",project],{cwd:base,encoding:"utf8"});
       const initialized=run("init","--example");assert.equal(initialized.status,0,initialized.stderr);
@@ -262,6 +268,7 @@ describe("Plugin distribution", () => {
   test("Missing skills, shared resources or the central CLI prevent packaging", () => {
     for(const relative of [
       ...SKILL_NAMES.map(name => "skills/" + name + "/SKILL.md"),
+      "skills/design-harness-implement/references/adaptation.md",
       "workbench/src/frontend/app/App.tsx", "workbench/cli.mjs", ...SHARED_FILES.map(file => "shared/" + file)
     ]) {
       const filename=path.join(root,relative),original=fs.readFileSync(filename);

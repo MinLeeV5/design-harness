@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "homepage": "https://github.com/MinLeeV5/design-harness",
   "repository": "https://github.com/MinLeeV5/design-harness",
-  "description": "为 Design Harness CLI 提供可选专业入口：共创产品需求并维护 PRD，通过固定工作台迭代 json-render 与 React 设计资源，支持交互说明、Agent 及离线 HTML。",
+  "description": "为 Design Harness CLI 提供可选专业入口：共创产品需求与 PRD，迭代本地 UI/UX 设计，并按目标项目的技术栈与规范落地工程实现。",
   "author": {
     "name": "Min Lee"
   },
@@ -24,8 +24,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Design Harness · 设计工作流",
-    "shortDescription": "产品共创、可运行设计与 Agent 迭代，按需导出离线 HTML",
-    "longDescription": "四个显式入口：共创产品需求和 PRD；初始化项目设计基础；以 json-render Spec 和 Catalog／Registry 注册的 React 组件迭代交互与视觉。产品入口支持复用环境已有文档工具及评审后修订，无需设计工作区。交互与视觉任务内完成获准的公共基础更新、验证和交接，按需导出单文件 HTML。固定工作台由插件维护，项目只保存一份公共基础和本地设计资源；正式业务 PRD 的位置由用户决定。完整 UI 按真实基线核对壳层、组件与状态，本地模拟与生产证据分别报告。",
+    "shortDescription": "产品共创、可运行设计与 UI/UX 工程实现，按需导出离线 HTML",
+    "longDescription": "五个显式入口：共创产品需求和 PRD；初始化项目设计基础；迭代交互与视觉；参考指定设计在目标项目实现 UI/UX。工程实现支持跨框架与原生平台，遵循目标项目技术体系，保真策略由开发者选择，缺失业务能力按项目流程明确后再确定范围。产品入口无需设计工作区；交互与视觉任务内完成获准的公共基础更新、验证和交接，按需导出单文件 HTML。固定工作台由插件维护，项目保存一份公共基础和本地设计资源；正式业务 PRD 的位置由用户决定。设计与目标应用的视觉、交互、业务连接和工程证据分别报告。",
     "developerName": "Min Lee",
     "websiteURL": "https://github.com/MinLeeV5/design-harness",
     "category": "Productivity",
@@ -35,7 +35,8 @@
       "PRD、UX 与 json-render Spec／React 组件关联",
       "多尺寸、多场景与候选比较",
       "元素点选、按需视觉生成、动态控件与多轮Agent聊天",
-      "单文件 HTML 下载与指定文件导出、唯一公共基础与需求来源"
+      "单文件 HTML 下载与指定文件导出、唯一公共基础与需求来源",
+      "按目标项目规范跨技术栈实现 UI/UX，开发者选择保真策略"
     ],
     "defaultPrompt": [
       "用 $design-harness-init 基于项目现状建立本地设计基础与独立工作区。",

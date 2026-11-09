@@ -20,7 +20,7 @@ const usage=`Design Harness — 本地产品设计工作台
   typecheck                  检查工具及指定项目的类型
   deps                       安装设计资源声明的扩展依赖
   export [id] --out <文件.html>
-  skills [product|init|interaction|visual]  定位专业流程与公共指导
+  skills [product|init|interaction|visual|implement]  定位专业流程与公共指导
   doctor                     读取本机 Codex 连接状态
 
 资源命令使用 --project <项目或资源目录>，默认当前目录。
@@ -33,8 +33,8 @@ export async function main(args=process.argv.slice(2)) {
   if(values.version)return manifest.version;
   if(values.help||!action||action==="help")return usage;
   if(action==="skills") {
-    const phases=["product","init","interaction","visual"],phase=id?.replace(/^design-harness-/,"");
-    assert(positionals.length<=2&&(!phase||phases.includes(phase)),"skills 仅接受 product、init、interaction 或 visual");
+    const phases=["product","init","interaction","visual","implement"],phase=id?.replace(/^design-harness-/,"");
+    assert(positionals.length<=2&&(!phase||phases.includes(phase)),"skills 仅接受 product、init、interaction、visual 或 implement");
     return {version:manifest.version,shared:path.join(PLUGIN,"shared/references"),skills:(phase?[phase]:phases).map(name=>({name:"design-harness-"+name,entry:path.join(PLUGIN,"skills/design-harness-"+name+"/SKILL.md")}))};
   }
   if(action==="doctor") {

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Design Harness · 工程实现"
+  short_description: "参考 UI/UX 设计，按目标项目规范跨技术栈落地，并依开发者选择验证体验。"
+  default_prompt: "使用 $design-harness-implement 参考指定设计，按目标项目的技术栈、架构和代码规范实现 UI/UX，承接或明确我的保真策略，并完成适用验证与交接。"
+policy:
+  allow_implicit_invocation: false

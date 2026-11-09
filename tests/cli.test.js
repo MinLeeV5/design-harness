@@ -17,9 +17,13 @@ test("CLI help, version and professional resources work before workspace initial
     }
     for(const arg of ["--version","-v"])assert.equal(run(directory,[arg]).stdout.trim(),version);
     const result=run(directory,["skills"]);assert.equal(result.status,0,result.stderr);
-    const data=JSON.parse(result.stdout);assert.equal(data.skills.length,4);assert.ok(fs.existsSync(data.shared));
+    const data=JSON.parse(result.stdout);assert.equal(data.skills.length,5);assert.ok(fs.existsSync(data.shared));
     for(const skill of data.skills)assert.ok(fs.readFileSync(skill.entry,"utf8").includes("name: "+skill.name));
     assert.equal(JSON.parse(run(directory,["skills","visual"]).stdout).skills[0].name,"design-harness-visual");
+    for(const selector of ["implement","design-harness-implement"]) {
+      const located=run(directory,["skills",selector]);assert.equal(located.status,0,located.stderr);
+      assert.deepEqual(JSON.parse(located.stdout).skills,[data.skills.find(skill=>skill.name==="design-harness-implement")]);
+    }
     assert.notEqual(run(directory,["skills","unknown"]).status,0);
     const invalid=run(directory,["unsupported"]);assert.notEqual(invalid.status,0);assert.match(invalid.stderr,/未知命令/);
     assert.deepEqual(fs.readdirSync(directory),[]);
