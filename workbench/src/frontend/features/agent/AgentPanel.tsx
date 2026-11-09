@@ -1,6 +1,6 @@
 import {useEffect,useLayoutEffect,useRef,useState} from "react";
 import {ExplorationPanel} from "./ExplorationPanel";
-import type {BundleData,AgentMessage,AgentProposal,AgentApproval,DomSelection} from "../../../contracts/types";
+import type {BundleData,AgentMessage,AgentProposal,AgentApproval,AgentActivity,DomSelection} from "../../../contracts/types";
 import {tuneProposal} from "../../../contracts/agent-controls.mjs";
 import {effortLabel} from "../../../contracts/agent-settings.mjs";
 import {agentRoles} from "../../../contracts/agent-roles.mjs";
@@ -28,6 +28,24 @@ function DirectoryPath({path}:{path:string}){
     update();const observer=new ResizeObserver(update);observer.observe(node);return()=>observer.disconnect();
   },[path]);
   return <small className="agent-directory" title={path}><span>目录：</span><span className="agent-directory-path" ref={label}>{display}</span></small>;
+}
+function CommandActivity({activity,onInspect}:{activity:AgentActivity;onInspect:()=>void}){
+  const state=activity.status==="done"&&activity.exitCode!==undefined&&activity.exitCode!==0?"failed":activity.status;
+  const status=({running:"执行中",done:"已完成",failed:"执行失败",cancelled:"已取消"})[state];
+  const command=activity.command||activity.label;
+  return <details className="agent-command-activity" data-state={state}>
+    <summary onClick={onInspect}>
+      <AgentStatus state={state} label={status} iconOnly/>
+      <span className="agent-command-preview" title={command}>{command.replace(/\s+/g," ").trim()}</span>
+      <span className="agent-command-outcome">{activity.exitCode!==undefined?"退出码 "+activity.exitCode:status}</span>
+    </summary>
+    <div className="agent-command-body">
+      {activity.text&&<Markdown source={activity.text}/>}
+      {activity.command&&<pre className="agent-command" aria-label="完整命令">{activity.command}</pre>}
+      {activity.cwd&&<DirectoryPath path={activity.cwd}/>}
+      {activity.output&&<div className="agent-output"><span className="agent-output-heading">输出</span><pre aria-label="命令输出">{activity.output}</pre>{activity.truncated&&<small>输出较长，已截断。</small>}</div>}
+    </div>
+  </details>;
 }
 function ApprovalCard({approval,agent}:{approval:AgentApproval;agent:ReturnType<typeof useAgent>}){
   const [values,setValues]=useState<Record<string,string|boolean>>({});
@@ -96,7 +114,7 @@ export function AgentPanel({agent,data,enabled,blocked,blockedReason,selection,s
         {!!message.reviews?.length&&<details className="message-reviews"><summary>已附加 {message.reviews.length} 条批阅</summary>{message.reviews.map(thread=><div key={thread.id}><strong>{thread.page}</strong><p className="review-text">{thread.text}</p><ReviewImage thread={thread} token={agent.reviewToken}/></div>)}</details>}
         {message.role==="assistant"&&message.model&&<small className="message-model">{message.model.name} · {message.model.provider}{message.model.effort&&<> · 思考 {effortLabel(message.model.effort)}</>}{message.permissionMode&&<> · {permissionLabel(message.permissionMode)}</>}</small>}{message.content&&<Markdown source={message.content}/>}
         {message.permissionMode==="full-access"&&message.role==="assistant"&&<small className="message-permission">本轮使用完全访问；放弃或取消不会撤销直接修改。</small>}
-        {!!message.activity?.length&&<details className="agent-process" open={["running","validating","accepting"].includes(message.state??"")}><summary>处理过程 · {message.activity.length} 项{message.startedAt&&<span>{activityElapsed(message,now)}</span>}</summary><ol aria-label="实际处理活动">{message.activity.map(item=><li key={item.id} data-state={item.status}><AgentStatus state={item.status} iconOnly decorative className="activity-mark"/><div><span>{item.label}</span>{item.text&&<Markdown source={item.text}/>}{item.command&&<pre className="agent-command">{item.command}</pre>}{item.cwd&&<DirectoryPath path={item.cwd}/>}{item.output&&<details className="agent-output"><summary>查看输出{item.exitCode!==undefined?" · 退出码 "+item.exitCode:""}</summary><pre>{item.output}</pre>{item.truncated&&<small>输出较长，已截断。</small>}</details>}{!item.output&&item.exitCode!==undefined&&<small>退出码 {item.exitCode}</small>}</div></li>)}</ol></details>}
+        {!!message.activity?.length&&<details className="agent-process" open={["running","validating","accepting"].includes(message.state??"")}><summary>处理过程 · {message.activity.length} 项{message.startedAt&&<span>{activityElapsed(message,now)}</span>}</summary><ol aria-label="实际处理活动">{message.activity.map(item=><li key={item.id} data-state={item.status}>{item.command||item.kind==="command"?<CommandActivity activity={item} onInspect={()=>{follow.current=false;}}/>:<><AgentStatus state={item.status} iconOnly decorative className="activity-mark"/><div><span>{item.label}</span>{item.text&&<Markdown source={item.text}/>}{item.cwd&&<DirectoryPath path={item.cwd}/>}{item.output&&<details className="agent-output"><summary>查看输出{item.exitCode!==undefined?" · 退出码 "+item.exitCode:""}</summary><pre>{item.output}</pre>{item.truncated&&<small>输出较长，已截断。</small>}</details>}{!item.output&&item.exitCode!==undefined&&<small>退出码 {item.exitCode}</small>}</div></>}</li>)}</ol></details>}
         {message.approvals?.map(approval=><ApprovalCard key={approval.id} approval={approval} agent={agent}/>)}
         {message.role==="assistant"&&message.state&&<small className="message-state"><AgentStatus state={message.approvals?.some(item=>pendingApprovals.some(pending=>pending.id===item.id))?"awaiting_approval":message.state}/></small>}
       </article>):<div className="agent-empty"><strong>从页面开始，一起完善设计</strong><p>默认由交互设计协助，也可切换视觉设计；直接讨论目标、附加参考图或点选元素。提案工作区中的修改先预览，接受后写入。</p></div>}

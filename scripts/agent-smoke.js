@@ -88,7 +88,7 @@ try{
   assert.equal(await process.locator(".markdown-content strong").textContent(),"已完成分析");
   assert.equal(await process.locator(".markdown-content li").count(),2);
   assert.equal(await process.locator(".markdown-content li").first().evaluate(el=>getComputedStyle(el).display),"list-item");
-  await process.locator(".agent-output > summary").click();
+  await process.locator(".agent-command-activity > summary").click();
   assert.equal(await process.locator(".agent-output pre").textContent(),"# 原始输出\n**保留星号**");
  });
  await check("代码与表格在桌面及360/320px内横向滚动，刷新恢复富文本且不改变画布",async()=>{

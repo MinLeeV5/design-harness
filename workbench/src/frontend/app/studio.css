@@ -294,6 +294,21 @@ button[aria-pressed=true],button[aria-expanded=true],button.active {color:#6640b
 .agent-message .agent-approval-result{display:flex;align-items:center;gap:6px;min-width:0;margin-top:10px;line-height:1.6;white-space:nowrap;}.agent-approval-result .approval-command{min-width:0;overflow:hidden;text-overflow:ellipsis;}.agent-approval-result>span:last-child{flex-shrink:0;}
 .agent-message .agent-directory{display:flex;gap:0;min-width:0;max-width:100%;line-height:1.6;white-space:nowrap;}.agent-directory>span:first-child{flex-shrink:0;}.agent-directory-path{flex:1;min-width:0;overflow:hidden;}
 .agent-process ol{grid-template-columns:minmax(0,1fr);}
+.agent-command-activity{width:100%;min-width:0;}
+.agent-command-activity>summary{display:flex;align-items:center;gap:6px;min-height:28px;padding:3px 4px;border-radius:5px;box-sizing:border-box;cursor:pointer;list-style:none;white-space:nowrap;}
+.agent-command-activity>summary::-webkit-details-marker{display:none;}
+.agent-command-activity>summary:hover{background:#ffffffa6;}
+.agent-command-activity>summary:focus-visible{outline:2px solid #9e86c4;outline-offset:1px;}
+.agent-command-preview{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;color:#565263;font:11px/1.6 ui-monospace,monospace;}
+.agent-command-outcome{flex-shrink:0;color:#85808d;font-size:10px;font-variant-numeric:tabular-nums;}
+.agent-command-activity[data-state=running] .agent-command-outcome{color:#7955b5;}
+.agent-command-activity[data-state=failed] .agent-command-outcome{color:#b04f45;}
+.agent-command-activity>summary:after{content:'▸';flex-shrink:0;color:#938b9d;}
+.agent-command-activity[open]>summary:after{content:'▾';}
+.agent-command-body{min-width:0;padding:3px 4px 5px 28px;}
+.agent-command-body>.agent-command{margin:0 0 6px;}
+.agent-output-heading{display:block;margin-top:6px;font-size:10px;}
+.agent-command-body .agent-output pre{margin-top:3px;}
 .approval-field{display:grid;gap:4px;min-width:0;}.approval-field input:not([type=checkbox]){min-width:0;width:100%;box-sizing:border-box;padding:6px 8px;border:1px solid #d5c49e;border-radius:5px;font:inherit;}.approval-field input[type=checkbox]{justify-self:start;}
 
 /* One model entry owns model, effort, permission and design identity choices. */
